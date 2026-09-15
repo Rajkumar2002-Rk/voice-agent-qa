@@ -512,3 +512,38 @@ class TestRiskClassification:
         from harness.scorer import classify_risk
         r = classify_risk(base_scenario(), [], [])
         assert r.verdict == Verdict.NOT_APPLICABLE
+
+
+class TestCallerTimeCandidatesArePermissive:
+    """Regression: STT rendered "Nine AM" as "Nine m.". The strict parser could
+    not read it, caller_proposed came back empty, and the agent was accused of
+    inventing 09:00 after correctly echoing the caller. The LLM judge caught
+    this; the deterministic scorer could not catch it about itself."""
+
+    def test_mangled_meridiem_still_counts(self):
+        from harness.extract import extract_caller_time_candidates
+        got = extract_caller_time_candidates("Nine m.")
+        assert "09:00" in got and "21:00" in got
+
+    def test_bare_hour_word_returns_both_readings(self):
+        from harness.extract import extract_caller_time_candidates
+        got = extract_caller_time_candidates("Three please")
+        assert {"03:00", "15:00"} <= got
+
+    def test_clean_time_still_works(self):
+        from harness.extract import extract_caller_time_candidates
+        assert "15:00" in extract_caller_time_candidates("Three PM works")
+
+    def test_ordinals_are_not_times(self):
+        """'the twenty-second' is a date, not 2 o'clock."""
+        from harness.extract import extract_caller_time_candidates
+        assert extract_caller_time_candidates("Tuesday the 22nd") == set()
+
+    def test_agent_echoing_a_mangled_caller_time_is_not_invention(self, base_scenario):
+        events = [
+            ev("tool_call", name="check_availability", args={}),
+            ev("tool_result", name="check_availability", result={"slots": []}),
+            ev("user", "Nine m."),
+            ev("agent", "Got it, 9 AM."),
+        ]
+        assert check_invented_availability(base_scenario(), events).verdict == Verdict.PASS

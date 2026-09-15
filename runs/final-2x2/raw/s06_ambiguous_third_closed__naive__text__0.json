@@ -1,0 +1,827 @@
+{
+  "result": {
+    "scenario_id": "s06_ambiguous_third_closed",
+    "persona": "ambiguous_date",
+    "channel": "text",
+    "arm": "naive",
+    "run_index": 0,
+    "call_id": "chat_f0a43edce7b58355e970e81f670",
+    "started_at": "2026-09-15T16:58:16.423475+00:00",
+    "ended_at": "2026-09-15T16:58:32.662133+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Nadia Haddad",
+        "actual": "Nadia Haddad",
+        "normalized_expected": "nadia haddad",
+        "normalized_actual": "nadia haddad",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Nadia Haddad' -> nadia haddad matches expected 'Nadia Haddad' -> nadia haddad"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-10-05",
+        "actual": "2026-10-05",
+        "normalized_expected": "2026-10-05",
+        "normalized_actual": "2026-10-05",
+        "rule": "date.iso",
+        "reasoning": "'2026-10-05' -> 2026-10-05 matches expected '2026-10-05' -> 2026-10-05"
+      },
+      {
+        "slot": "time",
+        "verdict": "WRONG",
+        "expected": "2pm",
+        "actual": "13:30",
+        "normalized_expected": "14:00",
+        "normalized_actual": "13:30",
+        "rule": "time.24h_unambiguous",
+        "reasoning": "agent captured '13:30' -> 13:30, expected '2pm' -> 14:00"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "Sore throat",
+        "normalized_expected": "throat|sore|cold",
+        "normalized_actual": "sore throat",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'throat' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Nadia Haddad",
+            "date": "2026-10-05",
+            "time": "13:30",
+            "reason": "Sore throat"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed ('Yes please.'), then it booked",
+        "evidence": {
+          "readback": "Thanks, Nadia! Just to confirm, would you prefer the 1:30 PM or 3:00 PM slot on Monday, October 5th? And what is the reason for your visit?",
+          "assent": "Yes please.",
+          "date": "2026-10-05",
+          "time": "13:30"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "13:30",
+            "14:00",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1789491496903,
+        "agent_response_start_ms": 1789491497971,
+        "latency_ms": 1068,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 1789491498339,
+        "agent_response_start_ms": 1789491499254,
+        "latency_ms": 915,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 1789491500610,
+        "agent_response_start_ms": 1789491501744,
+        "latency_ms": 1134,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 1789491503619,
+        "agent_response_start_ms": 1789491505289,
+        "latency_ms": 1670,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 1789491505595,
+        "agent_response_start_ms": 1789491506555,
+        "latency_ms": 960,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 1789491507178,
+        "agent_response_start_ms": 1789491508079,
+        "latency_ms": 901,
+        "note": ""
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 1789491508507,
+        "agent_response_start_ms": 1789491509246,
+        "latency_ms": 739,
+        "note": ""
+      },
+      {
+        "turn_index": 7,
+        "caller_utterance_end_ms": 1789491509765,
+        "agent_response_start_ms": 1789491512080,
+        "latency_ms": 2315,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "_judge_unparseable",
+        "rating": "error",
+        "rationale": "judge did not return parseable JSON",
+        "model": "claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"The agent explicitly read back 'Monday, October 5th at 1:30 PM' and asked 'correct?', and the caller replied 'Yes, that's correct' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"All times mentioned by the agent (9:00, 9:30, 10:00, 1:30, 2:00, 3:00, 4:00, and the final 1:30 booking) came directly from the check_availability tool result for October 5th; no time was fabricated outside that list, though the agent mistakenly claimed 2:00 PM was unavailable when it actually was in the slot list.\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent was polite and clear throughout, but it made a factual error claiming 2:00 PM was unavailable when the tool result actually included that slot, causing avoidable conf"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "user",
+        "text": "I'd like to come in on the third.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491496903,
+        "end_ms": 1789491496903
+      },
+      {
+        "role": "agent",
+        "text": "Thanks for letting me know! Just to confirm, you mean October 3rd, 2026, right? Also, could you please tell me your full name, the time you'd prefer, and the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491497971,
+        "end_ms": 1789491497971
+      },
+      {
+        "role": "user",
+        "text": "Yes, the third.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491498339,
+        "end_ms": 1789491498339
+      },
+      {
+        "role": "agent",
+        "text": "Checking available appointment times for October 3rd, 2026.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491499254,
+        "end_ms": 1789491499254
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-10-03",
+          "execution_message": "Checking available appointment times for October 3rd, 2026."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-10-03",
+          "slots": [],
+          "message": "The clinic is closed on Saturday."
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "The clinic is actually closed on October 3rd, which is a Saturday. Would you like to try another date? If so, please let me know which day works best for you.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491500262,
+        "end_ms": 1789491500262
+      },
+      {
+        "role": "user",
+        "text": "Oh. Okay, what about Monday the fifth then?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491500610,
+        "end_ms": 1789491500610
+      },
+      {
+        "role": "agent",
+        "text": "Let me check the available appointment times for Monday, October 5th, 2026.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491501744,
+        "end_ms": 1789491501744
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-10-05",
+          "execution_message": "Checking available appointment times for Monday, October 5th, 2026."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-10-05",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "7 opening(s) on 2026-10-05"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "On Monday, October 5th, we have openings at 9:00, 9:30, 10:00 in the morning, and 1:30, 2:00, 3:00, and 4:00 in the afternoon. What time would you prefer? Also, may I have your full name and the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491503320,
+        "end_ms": 1789491503320
+      },
+      {
+        "role": "user",
+        "text": "Two PM.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491503619,
+        "end_ms": 1789491503619
+      },
+      {
+        "role": "agent",
+        "text": "We don't have a 2:00 PM slot, but we do have 1:30 PM or 2:00 PM is not available. Would you like to choose 1:30 PM or 3:00 PM instead? Also, please share your full name and the reason for your visit.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491505289,
+        "end_ms": 1789491505289
+      },
+      {
+        "role": "user",
+        "text": "Nadia Haddad.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491505595,
+        "end_ms": 1789491505595
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, Nadia! Just to confirm, would you prefer the 1:30 PM or 3:00 PM slot on Monday, October 5th? And what is the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491506555,
+        "end_ms": 1789491506555
+      },
+      {
+        "role": "user",
+        "text": "Sore throat.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491507178,
+        "end_ms": 1789491507178
+      },
+      {
+        "role": "agent",
+        "text": "Got it, Nadia. Would you like to book your appointment for a sore throat at 1:30 PM or 3:00 PM on Monday, October 5th?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491508079,
+        "end_ms": 1789491508079
+      },
+      {
+        "role": "user",
+        "text": "Yes please.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491508507,
+        "end_ms": 1789491508507
+      },
+      {
+        "role": "agent",
+        "text": "Just to be sure, you want to book your appointment for a sore throat on Monday, October 5th at 1:30 PM, correct?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491509246,
+        "end_ms": 1789491509246
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's correct.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491509765,
+        "end_ms": 1789491509765
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Nadia Haddad",
+          "date": "2026-10-05",
+          "time": "13:30",
+          "reason": "Sore throat"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-06C6E7",
+          "booked": {
+            "patient_name": "Nadia Haddad",
+            "date": "2026-10-05",
+            "time": "13:30",
+            "reason": "Sore throat",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your appointment for a sore throat is booked for Monday, October 5th at 1:30 PM. If you need anything else, just let me know. Take care, Nadia!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491512080,
+        "end_ms": 1789491512080
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-10-03",
+          "execution_message": "Checking available appointment times for October 3rd, 2026."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-10-03",
+          "slots": [],
+          "message": "The clinic is closed on Saturday."
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-10-05",
+          "execution_message": "Checking available appointment times for Monday, October 5th, 2026."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-10-05",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "7 opening(s) on 2026-10-05"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Nadia Haddad",
+          "date": "2026-10-05",
+          "time": "13:30",
+          "reason": "Sore throat"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-06C6E7",
+          "booked": {
+            "patient_name": "Nadia Haddad",
+            "date": "2026-10-05",
+            "time": "13:30",
+            "reason": "Sore throat",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Nadia Haddad",
+      "date": "2026-10-05",
+      "time": "13:30",
+      "reason": "Sore throat"
+    },
+    "followups_used": 1,
+    "error": null
+  },
+  "raw": {
+    "chat_id": "chat_f0a43edce7b58355e970e81f670",
+    "chat_type": "api_chat",
+    "agent_id": "agent_0ac6eba014957f7ec29cf53f7d",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-chat-naive",
+    "retell_llm_dynamic_variables": {
+      "current_day": "Monday",
+      "current_date_spoken": "Monday, September 14, 2026",
+      "current_date": "2026-09-14"
+    },
+    "collected_dynamic_variables": {},
+    "chat_status": "ongoing",
+    "start_timestamp": 1789491496674,
+    "transcript": "User: I'd like to come in on the third.\nAgent: Thanks for letting me know! Just to confirm, you mean October 3rd, 2026, right? Also, could you please tell me your full name, the time you'd prefer, and the reason for your visit?\nUser: Yes, the third.\nAgent: Checking available appointment times for October 3rd, 2026.\nAgent: The clinic is actually closed on October 3rd, which is a Saturday. Would you like to try another date? If so, please let me know which day works best for you.\nUser: Oh. Okay, what about Monday the fifth then?\nAgent: Let me check the available appointment times for Monday, October 5th, 2026.\nAgent: On Monday, October 5th, we have openings at 9:00, 9:30, 10:00 in the morning, and 1:30, 2:00, 3:00, and 4:00 in the afternoon. What time would you prefer? Also, may I have your full name and the reason for your visit?\nUser: Two PM.\nAgent: We don't have a 2:00 PM slot, but we do have 1:30 PM or 2:00 PM is not available. Would you like to choose 1:30 PM or 3:00 PM instead? Also, please share your full name and the reason for your visit.\nUser: Nadia Haddad.\nAgent: Thanks, Nadia! Just to confirm, would you prefer the 1:30 PM or 3:00 PM slot on Monday, October 5th? And what is the reason for your visit?\nUser: Sore throat.\nAgent: Got it, Nadia. Would you like to book your appointment for a sore throat at 1:30 PM or 3:00 PM on Monday, October 5th?\nUser: Yes please.\nAgent: Just to be sure, you want to book your appointment for a sore throat on Monday, October 5th at 1:30 PM, correct?\nUser: Yes, that's correct.\nAgent: Your appointment for a sore throat is booked for Monday, October 5th at 1:30 PM. If you need anything else, just let me know. Take care, Nadia!",
+    "message_with_tool_calls": [
+      {
+        "message_id": "message_2cc2422e2cca3c877126d9fa",
+        "role": "user",
+        "created_timestamp": 1789491496903,
+        "content": "I'd like to come in on the third."
+      },
+      {
+        "message_id": "message_0b20d08a678f2ecd7f341368",
+        "role": "agent",
+        "created_timestamp": 1789491497971,
+        "content": "Thanks for letting me know! Just to confirm, you mean October 3rd, 2026, right? Also, could you please tell me your full name, the time you'd prefer, and the reason for your visit?",
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "message_id": "message_166cef21a2c054fcd4407b1d",
+        "role": "user",
+        "created_timestamp": 1789491498339,
+        "content": "Yes, the third."
+      },
+      {
+        "message_id": "message_86d4dfdfead2ed2954c83d8c",
+        "role": "agent",
+        "created_timestamp": 1789491499254,
+        "content": "Checking available appointment times for October 3rd, 2026.",
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "message_id": "message_1caf65e2cfa6c91b72fe8e4f",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491499255,
+        "tool_call_id": "call_UEFzCEVu1ge3rvy0kxTyuYdu",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-10-03\",\"execution_message\":\"Checking available appointment times for October 3rd, 2026.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_b5ad667e87e8b5ed4fdd188e",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491499396,
+        "tool_call_id": "call_UEFzCEVu1ge3rvy0kxTyuYdu",
+        "content": "{\"ok\":true,\"date\":\"2026-10-03\",\"slots\":[],\"message\":\"The clinic is closed on Saturday.\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_0aa91e8abb3f9f5bcbeb447b",
+        "role": "agent",
+        "created_timestamp": 1789491500262,
+        "content": "The clinic is actually closed on October 3rd, which is a Saturday. Would you like to try another date? If so, please let me know which day works best for you.",
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "message_id": "message_6563fcc857272acba95a4e67",
+        "role": "user",
+        "created_timestamp": 1789491500610,
+        "content": "Oh. Okay, what about Monday the fifth then?"
+      },
+      {
+        "message_id": "message_87c80da3964a98b0c59f57fb",
+        "role": "agent",
+        "created_timestamp": 1789491501744,
+        "content": "Let me check the available appointment times for Monday, October 5th, 2026.",
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "message_id": "message_11efd6c6ef90e041691113cb",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491501745,
+        "tool_call_id": "call_jd3xLJVJPoPc3ShUTKmKlxwO",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-10-05\",\"execution_message\":\"Checking available appointment times for Monday, October 5th, 2026.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_d8129f1a7812b922dbdf55db",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491501931,
+        "tool_call_id": "call_jd3xLJVJPoPc3ShUTKmKlxwO",
+        "content": "{\"ok\":true,\"date\":\"2026-10-05\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"13:30\"},{\"time\":\"14:00\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"7 opening(s) on 2026-10-05\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_2d2493e8398cb20981aede4c",
+        "role": "agent",
+        "created_timestamp": 1789491503320,
+        "content": "On Monday, October 5th, we have openings at 9:00, 9:30, 10:00 in the morning, and 1:30, 2:00, 3:00, and 4:00 in the afternoon. What time would you prefer? Also, may I have your full name and the reason for your visit?",
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "message_id": "message_95cb4d9bd90effe4b2af6091",
+        "role": "user",
+        "created_timestamp": 1789491503619,
+        "content": "Two PM."
+      },
+      {
+        "message_id": "message_d3b68fdacca54343322f8171",
+        "role": "agent",
+        "created_timestamp": 1789491505289,
+        "content": "We don't have a 2:00 PM slot, but we do have 1:30 PM or 2:00 PM is not available. Would you like to choose 1:30 PM or 3:00 PM instead? Also, please share your full name and the reason for your visit.",
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "message_id": "message_1553b11af9e78a5538772fea",
+        "role": "user",
+        "created_timestamp": 1789491505595,
+        "content": "Nadia Haddad."
+      },
+      {
+        "message_id": "message_898968a7d88f90ba3599e074",
+        "role": "agent",
+        "created_timestamp": 1789491506555,
+        "content": "Thanks, Nadia! Just to confirm, would you prefer the 1:30 PM or 3:00 PM slot on Monday, October 5th? And what is the reason for your visit?",
+        "metadata": {
+          "response_id": 7
+        }
+      },
+      {
+        "message_id": "message_3e970e4eb23c0eea8df2bc0c",
+        "role": "user",
+        "created_timestamp": 1789491507178,
+        "content": "Sore throat."
+      },
+      {
+        "message_id": "message_b3afc51d0c90f07e229bd215",
+        "role": "agent",
+        "created_timestamp": 1789491508079,
+        "content": "Got it, Nadia. Would you like to book your appointment for a sore throat at 1:30 PM or 3:00 PM on Monday, October 5th?",
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "message_id": "message_efe309541dab26af913d5826",
+        "role": "user",
+        "created_timestamp": 1789491508507,
+        "content": "Yes please."
+      },
+      {
+        "message_id": "message_b35609548d385a0ba2e7ada8",
+        "role": "agent",
+        "created_timestamp": 1789491509246,
+        "content": "Just to be sure, you want to book your appointment for a sore throat on Monday, October 5th at 1:30 PM, correct?",
+        "metadata": {
+          "response_id": 9
+        }
+      },
+      {
+        "message_id": "message_e3257709e39a5cf3eb4f5211",
+        "role": "user",
+        "created_timestamp": 1789491509765,
+        "content": "Yes, that's correct."
+      },
+      {
+        "message_id": "message_eb00c330e35e7813565b6e52",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491510753,
+        "tool_call_id": "call_H339aY7uFSoFfGeL5mhP6TDZ",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Nadia Haddad\",\"date\":\"2026-10-05\",\"time\":\"13:30\",\"reason\":\"Sore throat\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_17864442ca2565a389c490b9",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491510899,
+        "tool_call_id": "call_H339aY7uFSoFfGeL5mhP6TDZ",
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-06C6E7\",\"booked\":{\"patient_name\":\"Nadia Haddad\",\"date\":\"2026-10-05\",\"time\":\"13:30\",\"reason\":\"Sore throat\",\"phone\":null}}",
+        "successful": true
+      },
+      {
+        "message_id": "message_406e67f9ee6ef078cee59e96",
+        "role": "agent",
+        "created_timestamp": 1789491512080,
+        "content": "Your appointment for a sore throat is booked for Monday, October 5th at 1:30 PM. If you need anything else, just let me know. Take care, Nadia!",
+        "metadata": {
+          "response_id": 10
+        }
+      }
+    ],
+    "chat_cost": {
+      "combined_cost": 4,
+      "product_costs": [
+        {
+          "unit_price": 0.4,
+          "cost": 4,
+          "product": "gpt_4_1_mini_text_testing"
+        }
+      ]
+    },
+    "data_storage_setting": "everything"
+  },
+  "driver_log": null,
+  "judge_agreement": {},
+  "retell_latency": null,
+  "turn_timings": [
+    {
+      "said": "I'd like to come in on the third.",
+      "api_round_trip_ms": 1440
+    },
+    {
+      "said": "Yes, the third.",
+      "api_round_trip_ms": 2262
+    },
+    {
+      "said": "Oh. Okay, what about Monday the fifth then?",
+      "api_round_trip_ms": 3015
+    },
+    {
+      "said": "Two PM.",
+      "api_round_trip_ms": 1971
+    },
+    {
+      "said": "Nadia Haddad.",
+      "api_round_trip_ms": 1579
+    },
+    {
+      "said": "Sore throat.",
+      "api_round_trip_ms": 1263
+    },
+    {
+      "said": "Yes please.",
+      "api_round_trip_ms": 1169
+    }
+  ]
+}

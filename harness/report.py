@@ -231,19 +231,27 @@ def build(run_dir: Path) -> str:
     add("The judge grades two checks the rules already cover. Disagreements are "
         "listed because they are the evidence for keeping the primary score "
         "deterministic.\n")
+    # Recomputed from results.jsonl, NOT read from raw/*.json. The raw files
+    # store the agreement as it stood when the run executed; after a `rescore`
+    # that is stale, and the judge-vs-rules number is exactly the thing that
+    # must reflect the current scorer.
+    from .judge import judge_vs_rules
+
     agree = disagree = unclear = 0
     rows: list[str] = []
-    for raw in sorted((run_dir / "raw").glob("*.json")) if (run_dir / "raw").exists() else []:
-        d = json.loads(raw.read_text())
-        for check, info in (d.get("judge_agreement") or {}).items():
+    for r in results:
+        if not r.judge:
+            continue
+        for check, info in judge_vs_rules(r.judge, r.behaviours).items():
             a = info.get("agreement")
             if a == "agree":
                 agree += 1
             elif a == "DISAGREE":
                 disagree += 1
                 why = str(info.get("judge_why", ""))[:120].replace("|", "&#124;")
+                label = f"{r.scenario_id}/{r.arm}/{r.channel}#{r.run_index}"
                 rows.append(
-                    f"| {raw.stem} | `{check}` | rules: **{info['rule']}** | "
+                    f"| {label} | `{check}` | rules: **{info['rule']}** | "
                     f"judge: **{info['judge']}** | {why} |"
                 )
             elif a == "judge_unclear":

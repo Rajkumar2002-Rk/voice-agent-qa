@@ -193,150 +193,140 @@ is blunt: an agent saying *"I'm open at 2pm"* — meaning the slot — is now in
 it. No deterministic fix found. **This check under-reports**, and should be read that
 way rather than as a clean signal.
 
-## 4. Results — 82 runs across the full 2x2
+## 4. Results — 102 runs, and the pass rate is the wrong metric
 
-Text: 7 scenarios x 2 arms x 3 repeats. Voice: 10 scenarios x 2 arms x 2 repeats.
-All raw transcripts committed under `runs/`. Total spend ~$8.
+Text: 7 scenarios x 2 arms x 3 repeats. Voice: 10 scenarios x 2 arms x 3 repeats,
+with padded audio fixtures. All transcripts committed under `runs/final-2x2/`.
 
 | channel | naive | hardened |
 |---|---|---|
-| text | **20/21 (95%)** | **20/21 (95%)** |
-| voice | **15/20 (75%)** | **16/20 (80%)** |
+| text | 20/21 (95%) | 20/21 (95%) |
+| voice | 20/30 (67%) | 22/30 (73%) |
 
-**The hardened prompt did not measurably help.** Text is a dead tie. Voice differs by
-a single run at n=2, which is noise, not a result.
+Read as a pass rate, the hardened prompt bought **6 points on voice and nothing on
+text**. That is close to noise and would be an honest place to stop.
 
-### Per-persona classification
+It would also be wrong. Classifying *what kind of wrong* each failure was:
 
-| persona | naive/text | hard/text | naive/voice | hard/voice | verdict |
+| arm | channel | correct | safe_refusal | **unsafe_commit** | stalled |
 |---|---|---|---|---|---|
-| happy_path | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
-| mind_change | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
-| ambiguous_date | 83% | 100% | 100% | 100% | NOT_A_PROBLEM |
-| out_of_scope | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
-| compound_utterance | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
-| background_noise | — | — | 100% | 100% | NOT_A_PROBLEM |
-| long_silence | — | — | 50% | 100% | FIXED_BY_PROMPT |
-| **barge_in** | — | — | **0%** | **0%** | **NOTHING_FIXED** |
-| self_correction | 100% | 67% | 0% | 0% | REGRESSED |
+| naive | voice | 20 | 0 | **10** | 0 |
+| hardened | voice | 22 | 5 | **2** | 1 |
+| naive | text | 20 | 0 | 1 | 0 |
+| hardened | text | 20 | 0 | 1 | 0 |
 
-Six of nine personas were never a problem for either prompt. That is the headline,
-and it is a negative result.
+- **`unsafe_commit`** — the agent told the caller their appointment was booked, with
+  wrong data in it.
+- **`safe_refusal`** — the agent declined to book because it could not confirm
+  something, and said so. Scored as a failure. For a clinic it is the correct outcome.
 
-### The one failure nothing fixed: barge_in
+**On voice the naive prompt committed bad data 10 times; the hardened prompt did it
+twice.** A 5x reduction in the only failure that actually reaches a patient record —
+invisible in a 6-point pass-rate difference, because a safe refusal and a wrong
+booking score identically.
 
-0% in both arms, and the cause is identical in all four runs. The caller says
-**"David Okonkwo. O-K-O-N-K-W-O."** — spelling it out. STT produces
-**"David O'Connell co"** (and once "David O'Conk Co"). The agent books the wrong
-name and tells the caller it is confirmed.
+The hardened prompt's 5 safe refusals are the mechanism. Where naive silently booked
+a garbled name, hardened stopped and asked the caller to spell it:
 
-This is the cleanest structural-to-voice result in the set, and the reasoning is not
-statistical:
+```
+USER   Dave O and KWO?
+AGENT  Could you please spell your full name for me?
+```
 
-- **The information was destroyed upstream of the language model.** The agent sees
-  only the transcript, and "O'Connell" is a perfectly ordinary surname with no signal
-  that anything went wrong.
-- **The caller's own error-correction mechanism was destroyed with it.** Spelling the
-  name out is exactly what a human does to disambiguate, and the mis-transcription
-  ate the spelling too.
-- **The hardened prompt has a rule for this** — *"full name. Spell-check it back if
-  it's unusual."* It cannot fire. The name does not look unusual.
+The scripted caller cannot answer that, so the run scores zero. **The agent doing the
+right thing is the reason it failed the test.**
 
-I recorded that prediction before the hardened runs executed; it held. No prompt can
-recover a signal that never reached text. The levers that would work are elsewhere:
-keyword boosting or a custom vocabulary for surnames, a phonetic-alphabet
-confirmation flow, DTMF spelling capture, or a different STT model.
+### What the failures actually are: names, and only names
 
-**A text-only QA suite reports this agent as flawless at name capture, forever.**
+Every voice slot failure in the final run is a patient name:
 
-### long_silence: the only thing the prompt appears to have fixed — at n=2
+| | captured | expected |
+|---|---|---|
+| `s02_barge_in` (naive, x9) | `Dave O` | `David Okonkwo` |
+| `s02_barge_in` (hardened, x2) | `Dave O and KWO` | `David Okonkwo` |
+| `s09_self_correction` | `grace linkvist`, `grace linkfist` | `Grace Lindqvist` |
 
-Naive 1/2, hardened 2/2. One run. The mechanism is plausible (the hardened prompt
-says to check in once and then offer a callback, and the transcripts show it doing
-exactly that), but a single run at n=2 cannot support a claim and I am not making
-one.
+Dates, times, reasons and phone numbers all capture correctly in voice. **The failure
+is localised to one subsystem — STT vocabulary on uncommon surnames.** The levers are
+keyword boosting, a custom surname vocabulary, phonetic-alphabet confirmation, or
+DTMF spelling capture. None of them are prompt engineering, which is precisely why
+the prompt ablation could not move them.
 
-### self_correction: REGRESSED, and confounded
+### The most actionable finding: plausible beats accurate
 
-Text 100% -> 67% is one run at n=3. Voice is 0% in both arms, but that is **not an
-agent result** — it is B19. The "Four PM." fixture is a 0.5s clip with no leading
-silence, and STT rendered it "For", losing the time. Both arms are handicapped
-identically so the comparison survives; the absolute number is unusable. Flagged, and
-the padding fix is implemented but deliberately not applied (see §6).
+Padding the audio fixtures changed what STT produced, and the change is instructive:
 
-## 5. LLM judge vs. deterministic scorer — 146/146
+| stimulus | STT produced | agent's behaviour |
+|---|---|---|
+| unpadded | `David O'Connell` | booked it — a plausible ordinary surname, no reason to doubt |
+| padded | `Dave O and KWO?` | challenged it, asked the caller to spell |
 
-The judge (`claude-sonnet-5`) graded two checks the rules also cover, across all 82
-runs: **146/146 agreement, zero disagreements, zero "unclear"**.
+Better audio did not produce a correct transcription. It produced an **obviously
+wrong** one — and an obviously-wrong transcription is far more useful to an agent
+than a plausibly-wrong one, because it is detectable.
 
-This cuts against the premise I started from. I expected to demonstrate judge
-unreliability and measured the opposite.
+**The dangerous failure mode is not that STT is inaccurate. It is that STT is
+confidently plausible when it is wrong.** An agent can defend against garbage. It
+cannot defend against a wrong answer that looks right.
 
-**The honest reading is less flattering to the judge than 100% suggests.** 71 of 82
-runs pass; the conversations are short; both checks have visually obvious answers in
-the transcript. A grader answering "yes, confirmed / no, not invented" uniformly
-would have scored ~144/146. The judge was almost never required to catch a subtle
-failure because there were almost none to catch. So this is **not** evidence that an
-LLM judge is reliable for slot correctness — it is evidence that on easy data it was
-not the bottleneck, and that my assumption it would visibly disagree was wrong.
+## 5. LLM judge vs. deterministic scorer — the honest version
 
-Notably, the judge was also *right when my scorer was wrong*: during the morning-slot
-bug it reported "not invented", because it was reading the transcript correctly and
-the agent genuinely had not invented anything.
+Final: **177/177 agreement, zero disagreements.** But the interesting part is what
+happened before that number settled.
 
-**So the case for determinism does not rest on the judge being bad.** It rests on
-what determinism actually bought, which is measurable:
+The judge disagreed **twice**, and **was right both times**. In both cases my scorer
+flagged the agent for inventing a time. The judge said the caller had proposed it.
+The judge was correct: STT had rendered the caller's "Nine AM" as `"Nine m."`, which
+my strict time parser could not read, so the set of caller-proposed times came back
+empty and the agent was blamed for echoing something the caller actually said.
 
-- **Free re-derivation.** The `compound_utterance` scenario bug (§6) was corrected
-  and all 82 runs re-scored with zero API calls. An LLM-judged suite would have meant
-  paying for 146 re-gradings and accepting drift in unrelated verdicts.
-- **Per-slot attribution.** The same bug was *only visible* because the report named
-  the failing slot and its captured value. One verdict per run — which is what
-  Retell's native simulation testing produces — would have shown
-  `compound_utterance: 0/4 voice` and I would have published it.
-- **Reproducibility of the verdict** (though not of the channel — see caveats).
+**STT noise did not just degrade the agent. It corrupted my ground truth.** And the
+deterministic scorer could not catch that about itself — being reproducible says
+nothing about being right. A model reading the transcript in context could.
+
+The fix was asymmetric strictness: times the *tool* returned are parsed strictly,
+times the *caller* proposed are parsed permissively, because that set is only ever
+used to excuse the agent. Over-reading it costs nothing; under-reading it
+manufactures a false accusation. After the fix, re-scoring the committed transcripts
+moved both verdicts — no new API calls — and agreement went to 177/177.
+
+So the defensible conclusion is narrower than "use rules, not judges":
+
+- **The deterministic scorer earns its place** on reproducibility, per-slot
+  attribution, and free re-derivation. Every one of those was used in anger here.
+- **The judge earned its place too** — as a second opinion that catches errors the
+  rules cannot catch about themselves. It found two scorer bugs I had no other way to
+  find.
+- **The mistake would be running only one of them.** They fail differently, which is
+  exactly why both are worth having.
+
+I set out to show an LLM judge was unreliable. It ended up auditing my scorer.
 
 ## 6. Latency
 
-Split by whether a tool round-trip happened inside the turn, because a tool turn here
-includes a webhook to a laptop behind a cloudflared tunnel — test rig, not agent.
+Split by whether a tool round-trip happened inside the turn, since a tool turn here
+includes a webhook to a laptop behind a tunnel — test rig, not agent.
 
-| | n | median |
-|---|---|---|
-| conversational turns | 191 | **1331 ms** |
-| turns containing a tool call | 72 | **2635 ms** |
+| | median |
+|---|---|
+| conversational turns | ~1.3 s |
+| turns containing a tool call | ~2.6 s |
 
-A tool call roughly doubles the turn. Some of that is my tunnel and should not be
-attributed to Retell. The conversational median of ~1.3s is the more meaningful
-number, and p90s in the 2.5-4s range appear across both arms.
+A tool call roughly doubles the turn, and part of that is my own infrastructure.
 
-The hardened prompt is consistently slower in conversational terms, and that shows up
-in follow-ups needed:
+## 7. What this says
 
-| arm | channel | runs needing a nudge | mean |
-|---|---|---|---|
-| naive | text | 1/21 | 0.05 |
-| hardened | text | 4/21 | 0.19 |
-| naive | voice | 4/20 | 0.20 |
-| hardened | voice | 6/20 | 0.40 |
-
-Roughly double in both channels. Same accuracy, more turns to reach it — real caller
-patience and per-minute cost spent for no measured gain.
-
-## 7. What this actually says
-
-Stated plainly, because the negative result is the useful one:
-
-1. **Prompt hardening bought nothing measurable here.** Six of nine personas were
-   never broken. The one thing it may have fixed is a single run at n=2.
-2. **The one unfixable failure is unfixable for a structural reason**, not a
-   statistical one: STT destroyed information before the model saw it.
-3. **Most of what a first-pass harness reports as agent failure is harness failure.**
-   Six defects of mine arrived disguised as agent findings, and the most convincing
-   produced *exactly the failure signature its scenario predicted*.
-4. **The expensive part of an eval harness is not the scoring.** It is earning the
-   right to believe the output. Every check in `make preflight` and
-   `make check-fixtures` exists because its absence already cost a batch.
+1. **Judged on pass rate, prompt hardening did almost nothing. Judged on unsafe
+   commits, it cut them 5x.** The metric chose the conclusion. Pick it deliberately.
+2. **The residual failure is one subsystem** — STT on uncommon surnames — not the
+   model, the prompt, or the agent's reasoning.
+3. **Confidently-plausible transcription errors are the dangerous ones**, because
+   they are the only ones an agent cannot detect.
+4. **Rules and judges catch different classes of error.** Mine caught slot-level
+   detail the judge would have blurred; the judge caught two bugs in mine.
+5. **Most of what a first-pass harness reports as agent failure is harness failure.**
+   Seven defects of mine produced false findings, two of them producing exactly the
+   failure signature their scenario predicted.
 
 ## Caveats — read these before quoting any number above
 

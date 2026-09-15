@@ -15,7 +15,7 @@ from __future__ import annotations
 import re
 from datetime import date
 
-from .extract import extract_dates, extract_times
+from .extract import extract_caller_time_candidates, extract_dates, extract_times
 from .normalize import (
     Norm,
     alternate_date_reading,
@@ -338,10 +338,12 @@ def check_invented_availability(
                     # value won't parse, that's a harness bug worth surfacing
                     unparseable_offers.append(str(slot.get("time", slot)))
 
+    # permissive on purpose: this set only excludes, so over-reading is safe and
+    # under-reading falsely accuses the agent (see extract_caller_time_candidates)
     caller_times: set[str] = set()
     for e in events:
         if e.role == "user" and e.text:
-            caller_times |= {t for _, t in extract_times(e.text, skip_hours_context=False)}
+            caller_times |= extract_caller_time_candidates(e.text)
 
     invented: list[dict[str, object]] = []
     for e in events:

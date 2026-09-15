@@ -1,0 +1,859 @@
+{
+  "result": {
+    "scenario_id": "s04_mind_change",
+    "persona": "mind_change",
+    "channel": "text",
+    "arm": "naive",
+    "run_index": 1,
+    "call_id": "chat_5da7be1f5843d16035ad5a805d0",
+    "started_at": "2026-09-15T16:54:45.319782+00:00",
+    "ended_at": "2026-09-15T16:54:59.070509+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Tom Bergstrom",
+        "actual": "Tom Bergstrom",
+        "normalized_expected": "tom bergstrom",
+        "normalized_actual": "tom bergstrom",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Tom Bergstrom' -> tom bergstrom matches expected 'Tom Bergstrom' -> tom bergstrom"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-25",
+        "actual": "2026-09-25",
+        "normalized_expected": "2026-09-25",
+        "normalized_actual": "2026-09-25",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-25' -> 2026-09-25 matches expected '2026-09-25' -> 2026-09-25"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "10am",
+        "actual": "10:00",
+        "normalized_expected": "10:00",
+        "normalized_actual": "10:00",
+        "rule": "time.24h_by_schema",
+        "reasoning": "'10:00' -> 10:00 matches expected '10am' -> 10:00"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "Follow-up on my blood pressure",
+        "normalized_expected": "blood pressure|follow|hypertension",
+        "normalized_actual": "follow-up on my blood pressure",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'blood pressure' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Tom Bergstrom",
+            "date": "2026-09-25",
+            "time": "10:00",
+            "reason": "Follow-up on my blood pressure"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed (\"Yes, that's it.\"), then it booked",
+        "evidence": {
+          "readback": "We have a 10 AM opening on Friday the 25th. Could you please provide your full name and the reason for your visit?",
+          "assent": "Yes, that's it.",
+          "date": "2026-09-25",
+          "time": "10:00"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "11:00",
+            "13:30",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1789491285574,
+        "agent_response_start_ms": 1789491286502,
+        "latency_ms": 928,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 1789491287333,
+        "agent_response_start_ms": 1789491288194,
+        "latency_ms": 861,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 1789491289482,
+        "agent_response_start_ms": 1789491290315,
+        "latency_ms": 833,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 1789491290710,
+        "agent_response_start_ms": 1789491291500,
+        "latency_ms": 790,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 1789491292623,
+        "agent_response_start_ms": 1789491293436,
+        "latency_ms": 813,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 1789491293782,
+        "agent_response_start_ms": 1789491295629,
+        "latency_ms": 1847,
+        "note": ""
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 1789491296020,
+        "agent_response_start_ms": 1789491298327,
+        "latency_ms": 2307,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent stated 'Friday, September 25th at 10 AM' and the reason, then asked 'Is that correct?' and the caller replied 'Yes, that's it' before the book_appointment call was made.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent stated 'Friday, September 25th at 10 AM' and the reason, then asked 'Is that correct?' and the caller replied 'Yes, that's it' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"Both 3 PM (from the 09-22 check_availability result) and 10 AM (from the 09-25 check_availability result) were confirmed via tool calls before being stated, and the agent correctly re-checked availability after the date change.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent remained clear, calm, and accommodating when the caller changed the date, without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"When the caller changed their mind from Tuesday to Friday, the agent smoothly acknowledged it and re-ran check_availability for the new date instead of assuming carry-over availability.\"}}"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "Both 3 PM (from the 09-22 check_availability result) and 10 AM (from the 09-25 check_availability result) were confirmed via tool calls before being stated, and the agent correctly re-checked availability after the date change.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent stated 'Friday, September 25th at 10 AM' and the reason, then asked 'Is that correct?' and the caller replied 'Yes, that's it' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"Both 3 PM (from the 09-22 check_availability result) and 10 AM (from the 09-25 check_availability result) were confirmed via tool calls before being stated, and the agent correctly re-checked availability after the date change.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent remained clear, calm, and accommodating when the caller changed the date, without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"When the caller changed their mind from Tuesday to Friday, the agent smoothly acknowledged it and re-ran check_availability for the new date instead of assuming carry-over availability.\"}}"
+      },
+      {
+        "check": "tone",
+        "rating": "good",
+        "rationale": "The agent remained clear, calm, and accommodating when the caller changed the date, without being robotic or over-apologetic.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent stated 'Friday, September 25th at 10 AM' and the reason, then asked 'Is that correct?' and the caller replied 'Yes, that's it' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"Both 3 PM (from the 09-22 check_availability result) and 10 AM (from the 09-25 check_availability result) were confirmed via tool calls before being stated, and the agent correctly re-checked availability after the date change.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent remained clear, calm, and accommodating when the caller changed the date, without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"When the caller changed their mind from Tuesday to Friday, the agent smoothly acknowledged it and re-ran check_availability for the new date instead of assuming carry-over availability.\"}}"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "When the caller changed their mind from Tuesday to Friday, the agent smoothly acknowledged it and re-ran check_availability for the new date instead of assuming carry-over availability.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent stated 'Friday, September 25th at 10 AM' and the reason, then asked 'Is that correct?' and the caller replied 'Yes, that's it' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"Both 3 PM (from the 09-22 check_availability result) and 10 AM (from the 09-25 check_availability result) were confirmed via tool calls before being stated, and the agent correctly re-checked availability after the date change.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent remained clear, calm, and accommodating when the caller changed the date, without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"When the caller changed their mind from Tuesday to Friday, the agent smoothly acknowledged it and re-ran check_availability for the new date instead of assuming carry-over availability.\"}}"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "user",
+        "text": "I'd like to book for Tuesday the twenty-second.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491285574,
+        "end_ms": 1789491285574
+      },
+      {
+        "role": "agent",
+        "text": "Got it, Tuesday the 22nd of September 2026. May I have your full name, please? Also, what time of day do you prefer for your appointment? And what's the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491286502,
+        "end_ms": 1789491286502
+      },
+      {
+        "role": "user",
+        "text": "Three PM.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491287333,
+        "end_ms": 1789491287333
+      },
+      {
+        "role": "agent",
+        "text": "Checking available times for Tuesday, September 22nd.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491288194,
+        "end_ms": 1789491288194
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-22",
+          "execution_message": "Checking available times for Tuesday, September 22nd."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-22",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-22"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "We do have an opening at 3 PM on Tuesday the 22nd. Could you please tell me your full name and the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491289052,
+        "end_ms": 1789491289052
+      },
+      {
+        "role": "user",
+        "text": "Sorry, actually \u2014 can we do Friday the twenty-fifth instead?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491289482,
+        "end_ms": 1789491289482
+      },
+      {
+        "role": "agent",
+        "text": "No problem! Let me check the available times for Friday, September 25th. What time would you like on that day?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491290315,
+        "end_ms": 1789491290315
+      },
+      {
+        "role": "user",
+        "text": "Ten AM.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491290710,
+        "end_ms": 1789491290710
+      },
+      {
+        "role": "agent",
+        "text": "Checking available times for Friday, September 25th.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491291500,
+        "end_ms": 1789491291500
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-25",
+          "execution_message": "Checking available times for Friday, September 25th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-25",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "7 opening(s) on 2026-09-25"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "We have a 10 AM opening on Friday the 25th. Could you please provide your full name and the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491292313,
+        "end_ms": 1789491292313
+      },
+      {
+        "role": "user",
+        "text": "Tom Bergstrom.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491292623,
+        "end_ms": 1789491292623
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, Tom. Just to confirm: you want to book an appointment on Friday, September 25th at 10 AM. What's the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491293436,
+        "end_ms": 1789491293436
+      },
+      {
+        "role": "user",
+        "text": "Follow-up on my blood pressure.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491293782,
+        "end_ms": 1789491293782
+      },
+      {
+        "role": "agent",
+        "text": "Great, Tom. To confirm, you want to book a follow-up appointment for your blood pressure on Friday, September 25th at 10 AM. Is that correct?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491295629,
+        "end_ms": 1789491295629
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's it.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491296020,
+        "end_ms": 1789491296020
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Tom Bergstrom",
+          "date": "2026-09-25",
+          "time": "10:00",
+          "reason": "Follow-up on my blood pressure"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-089509",
+          "booked": {
+            "patient_name": "Tom Bergstrom",
+            "date": "2026-09-25",
+            "time": "10:00",
+            "reason": "Follow-up on my blood pressure",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your appointment is all set, Tom, for Friday, September 25th at 10 AM for your blood pressure follow-up. If you need anything else, just let me know!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491298327,
+        "end_ms": 1789491298327
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-22",
+          "execution_message": "Checking available times for Tuesday, September 22nd."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-22",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-22"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-25",
+          "execution_message": "Checking available times for Friday, September 25th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-25",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "7 opening(s) on 2026-09-25"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Tom Bergstrom",
+          "date": "2026-09-25",
+          "time": "10:00",
+          "reason": "Follow-up on my blood pressure"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-089509",
+          "booked": {
+            "patient_name": "Tom Bergstrom",
+            "date": "2026-09-25",
+            "time": "10:00",
+            "reason": "Follow-up on my blood pressure",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Tom Bergstrom",
+      "date": "2026-09-25",
+      "time": "10:00",
+      "reason": "Follow-up on my blood pressure"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "chat_id": "chat_5da7be1f5843d16035ad5a805d0",
+    "chat_type": "api_chat",
+    "agent_id": "agent_0ac6eba014957f7ec29cf53f7d",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-chat-naive",
+    "retell_llm_dynamic_variables": {
+      "current_date_spoken": "Monday, September 14, 2026",
+      "current_date": "2026-09-14",
+      "current_day": "Monday"
+    },
+    "collected_dynamic_variables": {},
+    "chat_status": "ongoing",
+    "start_timestamp": 1789491285371,
+    "transcript": "User: I'd like to book for Tuesday the twenty-second.\nAgent: Got it, Tuesday the 22nd of September 2026. May I have your full name, please? Also, what time of day do you prefer for your appointment? And what's the reason for your visit?\nUser: Three PM.\nAgent: Checking available times for Tuesday, September 22nd.\nAgent: We do have an opening at 3 PM on Tuesday the 22nd. Could you please tell me your full name and the reason for your visit?\nUser: Sorry, actually \u2014 can we do Friday the twenty-fifth instead?\nAgent: No problem! Let me check the available times for Friday, September 25th. What time would you like on that day?\nUser: Ten AM.\nAgent: Checking available times for Friday, September 25th.\nAgent: We have a 10 AM opening on Friday the 25th. Could you please provide your full name and the reason for your visit?\nUser: Tom Bergstrom.\nAgent: Thanks, Tom. Just to confirm: you want to book an appointment on Friday, September 25th at 10 AM. What's the reason for your visit?\nUser: Follow-up on my blood pressure.\nAgent: Great, Tom. To confirm, you want to book a follow-up appointment for your blood pressure on Friday, September 25th at 10 AM. Is that correct?\nUser: Yes, that's it.\nAgent: Your appointment is all set, Tom, for Friday, September 25th at 10 AM for your blood pressure follow-up. If you need anything else, just let me know!",
+    "message_with_tool_calls": [
+      {
+        "message_id": "message_87f2ed9d105e10833dc7202e",
+        "role": "user",
+        "created_timestamp": 1789491285574,
+        "content": "I'd like to book for Tuesday the twenty-second."
+      },
+      {
+        "message_id": "message_40a50e69b07125c585b25d9b",
+        "role": "agent",
+        "created_timestamp": 1789491286502,
+        "content": "Got it, Tuesday the 22nd of September 2026. May I have your full name, please? Also, what time of day do you prefer for your appointment? And what's the reason for your visit?",
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "message_id": "message_fdc74bca46d833a07c0cdf5e",
+        "role": "user",
+        "created_timestamp": 1789491287333,
+        "content": "Three PM."
+      },
+      {
+        "message_id": "message_ec1d7b12557673014569a46a",
+        "role": "agent",
+        "created_timestamp": 1789491288194,
+        "content": "Checking available times for Tuesday, September 22nd.",
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "message_id": "message_d5e4b17112ff2f76a71dfb3c",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491288195,
+        "tool_call_id": "call_YeBcDgGu1r6wU9QEAAZTKJek",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-22\",\"execution_message\":\"Checking available times for Tuesday, September 22nd.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_76006355173879693915b9ef",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491288335,
+        "tool_call_id": "call_YeBcDgGu1r6wU9QEAAZTKJek",
+        "content": "{\"ok\":true,\"date\":\"2026-09-22\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"13:30\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-22\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_776d791e78dd3eaf85fd0151",
+        "role": "agent",
+        "created_timestamp": 1789491289052,
+        "content": "We do have an opening at 3 PM on Tuesday the 22nd. Could you please tell me your full name and the reason for your visit?",
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "message_id": "message_b168f2435f41df72e5abfd59",
+        "role": "user",
+        "created_timestamp": 1789491289482,
+        "content": "Sorry, actually \u2014 can we do Friday the twenty-fifth instead?"
+      },
+      {
+        "message_id": "message_d935f4b2ca617cc3b6cf09a8",
+        "role": "agent",
+        "created_timestamp": 1789491290315,
+        "content": "No problem! Let me check the available times for Friday, September 25th. What time would you like on that day?",
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "message_id": "message_4af8998a28fbc874af7204d5",
+        "role": "user",
+        "created_timestamp": 1789491290710,
+        "content": "Ten AM."
+      },
+      {
+        "message_id": "message_538ab128bddc43e44e590bc3",
+        "role": "agent",
+        "created_timestamp": 1789491291500,
+        "content": "Checking available times for Friday, September 25th.",
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "message_id": "message_f3ef59fed6a36b59db38f1ef",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491291501,
+        "tool_call_id": "call_tIAlJ6cpSXsoGSCNhDfuXqcu",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-25\",\"execution_message\":\"Checking available times for Friday, September 25th.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_640ce1aee664c165dbf94506",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491291647,
+        "tool_call_id": "call_tIAlJ6cpSXsoGSCNhDfuXqcu",
+        "content": "{\"ok\":true,\"date\":\"2026-09-25\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"11:00\"},{\"time\":\"13:30\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"7 opening(s) on 2026-09-25\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_a05f9190f59cf7f489528cdc",
+        "role": "agent",
+        "created_timestamp": 1789491292313,
+        "content": "We have a 10 AM opening on Friday the 25th. Could you please provide your full name and the reason for your visit?",
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "message_id": "message_d3ad2f529af59233aa305ac6",
+        "role": "user",
+        "created_timestamp": 1789491292623,
+        "content": "Tom Bergstrom."
+      },
+      {
+        "message_id": "message_0b61e8456934bffa389b0cb6",
+        "role": "agent",
+        "created_timestamp": 1789491293436,
+        "content": "Thanks, Tom. Just to confirm: you want to book an appointment on Friday, September 25th at 10 AM. What's the reason for your visit?",
+        "metadata": {
+          "response_id": 7
+        }
+      },
+      {
+        "message_id": "message_98f4cda6cef1c8dc32585555",
+        "role": "user",
+        "created_timestamp": 1789491293782,
+        "content": "Follow-up on my blood pressure."
+      },
+      {
+        "message_id": "message_8d83c28fa1adec540508933d",
+        "role": "agent",
+        "created_timestamp": 1789491295629,
+        "content": "Great, Tom. To confirm, you want to book a follow-up appointment for your blood pressure on Friday, September 25th at 10 AM. Is that correct?",
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "message_id": "message_b2ba01bbedf57ff93c869e2d",
+        "role": "user",
+        "created_timestamp": 1789491296020,
+        "content": "Yes, that's it."
+      },
+      {
+        "message_id": "message_f07aa23483a3310476971aac",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491296835,
+        "tool_call_id": "call_eABH9zdIaVkIxrK9njrMtP05",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Tom Bergstrom\",\"date\":\"2026-09-25\",\"time\":\"10:00\",\"reason\":\"Follow-up on my blood pressure\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_bce894be0bff35e55f956d2f",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491297463,
+        "tool_call_id": "call_eABH9zdIaVkIxrK9njrMtP05",
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-089509\",\"booked\":{\"patient_name\":\"Tom Bergstrom\",\"date\":\"2026-09-25\",\"time\":\"10:00\",\"reason\":\"Follow-up on my blood pressure\",\"phone\":null}}",
+        "successful": true
+      },
+      {
+        "message_id": "message_0afb6de64fd5cbe3b7e19802",
+        "role": "agent",
+        "created_timestamp": 1789491298327,
+        "content": "Your appointment is all set, Tom, for Friday, September 25th at 10 AM for your blood pressure follow-up. If you need anything else, just let me know!",
+        "metadata": {
+          "response_id": 9
+        }
+      }
+    ],
+    "chat_cost": {
+      "combined_cost": 3.6,
+      "product_costs": [
+        {
+          "product": "gpt_4_1_mini_text_testing",
+          "cost": 3.6,
+          "unit_price": 0.4
+        }
+      ]
+    },
+    "data_storage_setting": "everything"
+  },
+  "driver_log": null,
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent stated 'Friday, September 25th at 10 AM' and the reason, then asked 'Is that correct?' and the caller replied 'Yes, that's it' before the book_appointment call was made."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "Both 3 PM (from the 09-22 check_availability result) and 10 AM (from the 09-25 check_availability result) were confirmed via tool calls before being stated, and the agent correctly re-checked availability after the date change."
+    }
+  },
+  "retell_latency": null,
+  "turn_timings": [
+    {
+      "said": "I'd like to book for Tuesday the twenty-second.",
+      "api_round_trip_ms": 1227
+    },
+    {
+      "said": "Three PM.",
+      "api_round_trip_ms": 2677
+    },
+    {
+      "said": "Sorry, actually \u2014 can we do Friday the twenty-fifth instead?",
+      "api_round_trip_ms": 1227
+    },
+    {
+      "said": "Ten AM.",
+      "api_round_trip_ms": 1922
+    },
+    {
+      "said": "Tom Bergstrom.",
+      "api_round_trip_ms": 1159
+    },
+    {
+      "said": "Follow-up on my blood pressure.",
+      "api_round_trip_ms": 2221
+    },
+    {
+      "said": "Yes, that's it.",
+      "api_round_trip_ms": 2862
+    }
+  ]
+}

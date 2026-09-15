@@ -1,0 +1,778 @@
+{
+  "result": {
+    "scenario_id": "s09_self_correction",
+    "persona": "self_correction",
+    "channel": "text",
+    "arm": "hardened",
+    "run_index": 0,
+    "call_id": "chat_6f25d738f86747bd34c43715383",
+    "started_at": "2026-09-15T17:02:49.787142+00:00",
+    "ended_at": "2026-09-15T17:03:04.365216+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Grace Lindqvist",
+        "actual": "Grace Lindqvist",
+        "normalized_expected": "grace lindqvist",
+        "normalized_actual": "grace lindqvist",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Grace Lindqvist' -> grace lindqvist matches expected 'Grace Lindqvist' -> grace lindqvist"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-29",
+        "actual": "2026-09-29",
+        "normalized_expected": "2026-09-29",
+        "normalized_actual": "2026-09-29",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-29' -> 2026-09-29 matches expected '2026-09-29' -> 2026-09-29"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "4pm",
+        "actual": "16:00",
+        "normalized_expected": "16:00",
+        "normalized_actual": "16:00",
+        "rule": "time.24h_unambiguous",
+        "reasoning": "'16:00' -> 16:00 matches expected '4pm' -> 16:00"
+      },
+      {
+        "slot": "phone",
+        "verdict": "PASS",
+        "expected": "5551234568",
+        "actual": "5551234568",
+        "normalized_expected": "5551234568",
+        "normalized_actual": "5551234568",
+        "rule": "phone.digits_last10",
+        "reasoning": "'5551234568' -> 5551234568 matches expected '5551234568' -> 5551234568"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "Annual physical",
+        "normalized_expected": "physical|annual|check",
+        "normalized_actual": "annual physical",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'physical' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Grace Lindqvist",
+            "date": "2026-09-29",
+            "time": "16:00",
+            "reason": "Annual physical",
+            "phone": "5551234568"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed (\"Yes, that's all correct.\"), then it booked",
+        "evidence": {
+          "readback": "Thank you. What is the full name of the patient for the appointment? I need that before checking availability for 4 PM on Tuesday, September 29th.",
+          "assent": "Yes, that's all correct.",
+          "date": "2026-09-29",
+          "time": "16:00"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "10:00",
+            "13:30",
+            "14:00",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1789491770221,
+        "agent_response_start_ms": 1789491770866,
+        "latency_ms": 645,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 1789491771223,
+        "agent_response_start_ms": 1789491771861,
+        "latency_ms": 638,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 1789491772258,
+        "agent_response_start_ms": 1789491773108,
+        "latency_ms": 850,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 1789491773439,
+        "agent_response_start_ms": 1789491774347,
+        "latency_ms": 908,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 1789491774729,
+        "agent_response_start_ms": 1789491775566,
+        "latency_ms": 837,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 1789491775952,
+        "agent_response_start_ms": 1789491776930,
+        "latency_ms": 978,
+        "note": ""
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 1789491777361,
+        "agent_response_start_ms": 1789491778556,
+        "latency_ms": 1195,
+        "note": ""
+      },
+      {
+        "turn_index": 7,
+        "caller_utterance_end_ms": 1789491780642,
+        "agent_response_start_ms": 1789491783794,
+        "latency_ms": 3152,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent read back date, time, name, phone and reason before booking, and caller replied 'Yes, that's all correct.'",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, name, phone and reason before booking, and caller replied 'Yes, that's all correct.'\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"4 PM was proposed by the caller earlier and confirmed as one of the slots returned by check_availability.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent stayed clear, patient, and professional while correcting mistakes without over-apologizing.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly handled the date correction, out-of-order phone number, and phone digit correction without confusion or repetition of wrong data.\"}}"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "4 PM was proposed by the caller earlier and confirmed as one of the slots returned by check_availability.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, name, phone and reason before booking, and caller replied 'Yes, that's all correct.'\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"4 PM was proposed by the caller earlier and confirmed as one of the slots returned by check_availability.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent stayed clear, patient, and professional while correcting mistakes without over-apologizing.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly handled the date correction, out-of-order phone number, and phone digit correction without confusion or repetition of wrong data.\"}}"
+      },
+      {
+        "check": "tone",
+        "rating": "good",
+        "rationale": "Agent stayed clear, patient, and professional while correcting mistakes without over-apologizing.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, name, phone and reason before booking, and caller replied 'Yes, that's all correct.'\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"4 PM was proposed by the caller earlier and confirmed as one of the slots returned by check_availability.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent stayed clear, patient, and professional while correcting mistakes without over-apologizing.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly handled the date correction, out-of-order phone number, and phone digit correction without confusion or repetition of wrong data.\"}}"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "Agent correctly handled the date correction, out-of-order phone number, and phone digit correction without confusion or repetition of wrong data.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, name, phone and reason before booking, and caller replied 'Yes, that's all correct.'\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"4 PM was proposed by the caller earlier and confirmed as one of the slots returned by check_availability.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent stayed clear, patient, and professional while correcting mistakes without over-apologizing.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly handled the date correction, out-of-order phone number, and phone digit correction without confusion or repetition of wrong data.\"}}"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "user",
+        "text": "I need an appointment on Monday the twenty-eighth.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491770221,
+        "end_ms": 1789491770221
+      },
+      {
+        "role": "agent",
+        "text": "Just to confirm, you mean Monday, September 28th, 2026?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491770866,
+        "end_ms": 1789491770866
+      },
+      {
+        "role": "user",
+        "text": "Actually no, sorry \u2014 Tuesday the twenty-ninth.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491771223,
+        "end_ms": 1789491771223
+      },
+      {
+        "role": "agent",
+        "text": "Got it, Tuesday, September 29th, 2026. What is the full name of the patient for the appointment?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491771861,
+        "end_ms": 1789491771861
+      },
+      {
+        "role": "user",
+        "text": "Four PM.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491772258,
+        "end_ms": 1789491772258
+      },
+      {
+        "role": "agent",
+        "text": "Thank you. What is the full name of the patient for the appointment? I need that before checking availability for 4 PM on Tuesday, September 29th.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491773108,
+        "end_ms": 1789491773108
+      },
+      {
+        "role": "user",
+        "text": "It's Grace Lindqvist.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491773439,
+        "end_ms": 1789491773439
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, Grace Lindqvist. And what is the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491774347,
+        "end_ms": 1789491774347
+      },
+      {
+        "role": "user",
+        "text": "My number is five five five, one two three, four five six seven.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491774729,
+        "end_ms": 1789491774729
+      },
+      {
+        "role": "agent",
+        "text": "Thank you for your phone number. Could you please tell me the reason for your visit? I need that to complete the appointment details.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491775566,
+        "end_ms": 1789491775566
+      },
+      {
+        "role": "user",
+        "text": "Sorry, that last part is wrong \u2014 it's four five six eight, not four five six seven.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491775952,
+        "end_ms": 1789491775952
+      },
+      {
+        "role": "agent",
+        "text": "Thanks for the correction. Your phone number is five five five, one two three, four five six eight. Now, could you please tell me the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491776930,
+        "end_ms": 1789491776930
+      },
+      {
+        "role": "user",
+        "text": "Annual physical.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491777361,
+        "end_ms": 1789491777361
+      },
+      {
+        "role": "agent",
+        "text": "Checking available times for Tuesday, September 29th.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491778556,
+        "end_ms": 1789491778556
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-29",
+          "execution_message": "Checking available times for Tuesday, September 29th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-29",
+          "slots": [
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "5 opening(s) on 2026-09-29"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "I have openings on Tuesday, September 29th at 10 AM, 1:30 PM, 2 PM, 3 PM, and 4 PM. You mentioned 4 PM earlier. Should I book your annual physical for 4 PM on Tuesday, September 29th for Grace Lindqvist, phone number 555-123-4568?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491780250,
+        "end_ms": 1789491780250
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's all correct.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491780642,
+        "end_ms": 1789491780642
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Grace Lindqvist",
+          "date": "2026-09-29",
+          "time": "16:00",
+          "reason": "Annual physical",
+          "phone": "5551234568"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-8B5909",
+          "booked": {
+            "patient_name": "Grace Lindqvist",
+            "date": "2026-09-29",
+            "time": "16:00",
+            "reason": "Annual physical",
+            "phone": "5551234568"
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your appointment for an annual physical is booked for 4 PM on Tuesday, September 29th for Grace Lindqvist. If you need anything else, just let me know!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491783794,
+        "end_ms": 1789491783794
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-29",
+          "execution_message": "Checking available times for Tuesday, September 29th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-29",
+          "slots": [
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "5 opening(s) on 2026-09-29"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Grace Lindqvist",
+          "date": "2026-09-29",
+          "time": "16:00",
+          "reason": "Annual physical",
+          "phone": "5551234568"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-8B5909",
+          "booked": {
+            "patient_name": "Grace Lindqvist",
+            "date": "2026-09-29",
+            "time": "16:00",
+            "reason": "Annual physical",
+            "phone": "5551234568"
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Grace Lindqvist",
+      "date": "2026-09-29",
+      "time": "16:00",
+      "reason": "Annual physical",
+      "phone": "5551234568"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "chat_id": "chat_6f25d738f86747bd34c43715383",
+    "chat_type": "api_chat",
+    "agent_id": "agent_30ca3df92aa7b4aa129b38135e",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-chat-hardened",
+    "retell_llm_dynamic_variables": {
+      "current_day": "Monday",
+      "current_date": "2026-09-14",
+      "current_date_spoken": "Monday, September 14, 2026"
+    },
+    "collected_dynamic_variables": {},
+    "chat_status": "ongoing",
+    "start_timestamp": 1789491769829,
+    "transcript": "User: I need an appointment on Monday the twenty-eighth.\nAgent: Just to confirm, you mean Monday, September 28th, 2026?\nUser: Actually no, sorry \u2014 Tuesday the twenty-ninth.\nAgent: Got it, Tuesday, September 29th, 2026. What is the full name of the patient for the appointment?\nUser: Four PM.\nAgent: Thank you. What is the full name of the patient for the appointment? I need that before checking availability for 4 PM on Tuesday, September 29th.\nUser: It's Grace Lindqvist.\nAgent: Thanks, Grace Lindqvist. And what is the reason for your visit?\nUser: My number is five five five, one two three, four five six seven.\nAgent: Thank you for your phone number. Could you please tell me the reason for your visit? I need that to complete the appointment details.\nUser: Sorry, that last part is wrong \u2014 it's four five six eight, not four five six seven.\nAgent: Thanks for the correction. Your phone number is five five five, one two three, four five six eight. Now, could you please tell me the reason for your visit?\nUser: Annual physical.\nAgent: Checking available times for Tuesday, September 29th.\nAgent: I have openings on Tuesday, September 29th at 10 AM, 1:30 PM, 2 PM, 3 PM, and 4 PM. You mentioned 4 PM earlier. Should I book your annual physical for 4 PM on Tuesday, September 29th for Grace Lindqvist, phone number 555-123-4568?\nUser: Yes, that's all correct.\nAgent: Your appointment for an annual physical is booked for 4 PM on Tuesday, September 29th for Grace Lindqvist. If you need anything else, just let me know!",
+    "message_with_tool_calls": [
+      {
+        "message_id": "message_8c9f11b4e56375c73612236d",
+        "role": "user",
+        "created_timestamp": 1789491770221,
+        "content": "I need an appointment on Monday the twenty-eighth."
+      },
+      {
+        "message_id": "message_e43ad8ebe0d41e6c6b15375c",
+        "role": "agent",
+        "created_timestamp": 1789491770866,
+        "content": "Just to confirm, you mean Monday, September 28th, 2026?",
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "message_id": "message_3a0cdb74706c45dca9205655",
+        "role": "user",
+        "created_timestamp": 1789491771223,
+        "content": "Actually no, sorry \u2014 Tuesday the twenty-ninth."
+      },
+      {
+        "message_id": "message_61f64424068033e5a69c3a90",
+        "role": "agent",
+        "created_timestamp": 1789491771861,
+        "content": "Got it, Tuesday, September 29th, 2026. What is the full name of the patient for the appointment?",
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "message_id": "message_751c8565f47cf30119413167",
+        "role": "user",
+        "created_timestamp": 1789491772258,
+        "content": "Four PM."
+      },
+      {
+        "message_id": "message_7c4a59f6291af3ecd53e448a",
+        "role": "agent",
+        "created_timestamp": 1789491773108,
+        "content": "Thank you. What is the full name of the patient for the appointment? I need that before checking availability for 4 PM on Tuesday, September 29th.",
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "message_id": "message_87281b9bdaa4e8be5e1a9444",
+        "role": "user",
+        "created_timestamp": 1789491773439,
+        "content": "It's Grace Lindqvist."
+      },
+      {
+        "message_id": "message_a2f91f3d6c096fd52a76774e",
+        "role": "agent",
+        "created_timestamp": 1789491774347,
+        "content": "Thanks, Grace Lindqvist. And what is the reason for your visit?",
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "message_id": "message_b26c56062b24d5e6bc4720af",
+        "role": "user",
+        "created_timestamp": 1789491774729,
+        "content": "My number is five five five, one two three, four five six seven."
+      },
+      {
+        "message_id": "message_f20ebd658c9a104fca7120b3",
+        "role": "agent",
+        "created_timestamp": 1789491775566,
+        "content": "Thank you for your phone number. Could you please tell me the reason for your visit? I need that to complete the appointment details.",
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "message_id": "message_96057f15788b6276ae5448c7",
+        "role": "user",
+        "created_timestamp": 1789491775952,
+        "content": "Sorry, that last part is wrong \u2014 it's four five six eight, not four five six seven."
+      },
+      {
+        "message_id": "message_886ad5bcef39871cddbb4500",
+        "role": "agent",
+        "created_timestamp": 1789491776930,
+        "content": "Thanks for the correction. Your phone number is five five five, one two three, four five six eight. Now, could you please tell me the reason for your visit?",
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "message_id": "message_c588299ea3689189bbaddc27",
+        "role": "user",
+        "created_timestamp": 1789491777361,
+        "content": "Annual physical."
+      },
+      {
+        "message_id": "message_f3ca1e937abf4fcd0c3aad96",
+        "role": "agent",
+        "created_timestamp": 1789491778556,
+        "content": "Checking available times for Tuesday, September 29th.",
+        "metadata": {
+          "response_id": 7
+        }
+      },
+      {
+        "message_id": "message_c2a536c3eff04e288c49a0c0",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491778557,
+        "tool_call_id": "call_5wa6nRLTvVpoEpF9F1gjxHnq",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-29\",\"execution_message\":\"Checking available times for Tuesday, September 29th.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_d33acec4a53b9f957db4d7a1",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491778697,
+        "tool_call_id": "call_5wa6nRLTvVpoEpF9F1gjxHnq",
+        "content": "{\"ok\":true,\"date\":\"2026-09-29\",\"slots\":[{\"time\":\"10:00\"},{\"time\":\"13:30\"},{\"time\":\"14:00\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"5 opening(s) on 2026-09-29\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_496ac714fec5b3a2554fde73",
+        "role": "agent",
+        "created_timestamp": 1789491780250,
+        "content": "I have openings on Tuesday, September 29th at 10 AM, 1:30 PM, 2 PM, 3 PM, and 4 PM. You mentioned 4 PM earlier. Should I book your annual physical for 4 PM on Tuesday, September 29th for Grace Lindqvist, phone number 555-123-4568?",
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "message_id": "message_5449b52547da4bb9971b8ceb",
+        "role": "user",
+        "created_timestamp": 1789491780642,
+        "content": "Yes, that's all correct."
+      },
+      {
+        "message_id": "message_61a597ea5471030e03f57c94",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491782679,
+        "tool_call_id": "call_UOk9EyvhU8wXN5WM3vqhO3Aq",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Grace Lindqvist\",\"date\":\"2026-09-29\",\"time\":\"16:00\",\"reason\":\"Annual physical\",\"phone\":\"5551234568\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_7c2b2eeb3730cbf974e8720c",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491782846,
+        "tool_call_id": "call_UOk9EyvhU8wXN5WM3vqhO3Aq",
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-8B5909\",\"booked\":{\"patient_name\":\"Grace Lindqvist\",\"date\":\"2026-09-29\",\"time\":\"16:00\",\"reason\":\"Annual physical\",\"phone\":\"5551234568\"}}",
+        "successful": true
+      },
+      {
+        "message_id": "message_2fb8340db7598b1819d1ed87",
+        "role": "agent",
+        "created_timestamp": 1789491783794,
+        "content": "Your appointment for an annual physical is booked for 4 PM on Tuesday, September 29th for Grace Lindqvist. If you need anything else, just let me know!",
+        "metadata": {
+          "response_id": 9
+        }
+      }
+    ],
+    "chat_cost": {
+      "product_costs": [
+        {
+          "unit_price": 0.4,
+          "product": "gpt_4_1_mini_text_testing",
+          "cost": 3.6
+        }
+      ],
+      "combined_cost": 3.6
+    },
+    "data_storage_setting": "everything"
+  },
+  "driver_log": null,
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent read back date, time, name, phone and reason before booking, and caller replied 'Yes, that's all correct.'"
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "4 PM was proposed by the caller earlier and confirmed as one of the slots returned by check_availability."
+    }
+  },
+  "retell_latency": null,
+  "turn_timings": [
+    {
+      "said": "I need an appointment on Monday the twenty-eighth.",
+      "api_round_trip_ms": 1190
+    },
+    {
+      "said": "Actually no, sorry \u2014 Tuesday the twenty-ninth.",
+      "api_round_trip_ms": 1027
+    },
+    {
+      "said": "Four PM.",
+      "api_round_trip_ms": 1192
+    },
+    {
+      "said": "It's Grace Lindqvist.",
+      "api_round_trip_ms": 1283
+    },
+    {
+      "said": "My number is five five five, one two three, four five six seven.",
+      "api_round_trip_ms": 1229
+    },
+    {
+      "said": "Sorry, that last part is wrong \u2014 it's four five six eight, not four five six seven.",
+      "api_round_trip_ms": 1357
+    },
+    {
+      "said": "Annual physical.",
+      "api_round_trip_ms": 3301
+    },
+    {
+      "said": "Yes, that's all correct.",
+      "api_round_trip_ms": 3550
+    }
+  ]
+}
