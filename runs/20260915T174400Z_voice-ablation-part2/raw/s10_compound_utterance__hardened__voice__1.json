@@ -1,0 +1,2359 @@
+{
+  "result": {
+    "scenario_id": "s10_compound_utterance",
+    "persona": "compound_utterance",
+    "channel": "voice",
+    "arm": "hardened",
+    "run_index": 1,
+    "call_id": "call_d8f4261cde57a3580dbdeb318af",
+    "started_at": "2026-09-15T18:32:07.601117+00:00",
+    "ended_at": "2026-09-15T18:33:14.033737+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "WRONG",
+        "expected": "Yusuf Karim",
+        "actual": "Youssef Karim",
+        "normalized_expected": "yusuf karim",
+        "normalized_actual": "youssef karim",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "agent captured 'Youssef Karim' -> youssef karim, expected 'Yusuf Karim' -> yusuf karim"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-17",
+        "actual": "2026-09-17",
+        "normalized_expected": "2026-09-17",
+        "normalized_actual": "2026-09-17",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-17' -> 2026-09-17 matches expected '2026-09-17' -> 2026-09-17"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "9:30am",
+        "actual": "09:30",
+        "normalized_expected": "09:30",
+        "normalized_actual": "09:30",
+        "rule": "time.24h_by_schema",
+        "reasoning": "'09:30' -> 09:30 matches expected '9:30am' -> 09:30"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "rash on arm",
+        "normalized_expected": "rash|skin|arm",
+        "normalized_actual": "rash on arm",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'rash' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Youssef Karim",
+            "date": "2026-09-17",
+            "time": "09:30",
+            "reason": "rash on arm"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed ('Yes. '), then it booked",
+        "evidence": {
+          "readback": "available times on Thursday, September 17th.We have an opening at 9:30 AM on Thursday, September 17th. Just to confirm, your full name is Youssef Karim, the appointment is for a rash on your arm, and the date and time are Thursday, September 17th at 9:30 AM. Is that all correct?",
+          "assent": "Yes. ",
+          "date": "2026-09-17",
+          "time": "09:30"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "11:00",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "denied_available_slot",
+        "verdict": "PASS",
+        "reasoning": "agent never denied a slot the tool had offered",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "11:00",
+            "15:00",
+            "16:00"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 7306,
+        "agent_response_start_ms": 9738,
+        "latency_ms": 2432,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 21846,
+        "agent_response_start_ms": 23540,
+        "latency_ms": 1694,
+        "note": "",
+        "involved_tool_call": true
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 40157,
+        "agent_response_start_ms": 42761,
+        "latency_ms": 2604,
+        "note": "",
+        "involved_tool_call": true
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": null,
+        "agent_response_start_ms": 42761,
+        "latency_ms": null,
+        "note": "channel did not supply timestamps",
+        "involved_tool_call": false
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent read back full name, reason, date and time and asked 'Is that all correct?' and the caller replied 'Yes' before the book_appointment call.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back full name, reason, date and time and asked 'Is that all correct?' and the caller replied 'Yes' before the book_appointment call.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 9:30 AM time offered matched a slot returned by check_availability, and was also the time the caller initially proposed.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent was clear, polite, and efficient, confirming details without being robotic or overly apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"After the unintelligible audio, the agent calmly asked the caller to repeat and offered a callback rather than getting confused or repeating prior steps.\"}}"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "The 9:30 AM time offered matched a slot returned by check_availability, and was also the time the caller initially proposed.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back full name, reason, date and time and asked 'Is that all correct?' and the caller replied 'Yes' before the book_appointment call.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 9:30 AM time offered matched a slot returned by check_availability, and was also the time the caller initially proposed.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent was clear, polite, and efficient, confirming details without being robotic or overly apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"After the unintelligible audio, the agent calmly asked the caller to repeat and offered a callback rather than getting confused or repeating prior steps.\"}}"
+      },
+      {
+        "check": "tone",
+        "rating": "good",
+        "rationale": "The agent was clear, polite, and efficient, confirming details without being robotic or overly apologetic.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back full name, reason, date and time and asked 'Is that all correct?' and the caller replied 'Yes' before the book_appointment call.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 9:30 AM time offered matched a slot returned by check_availability, and was also the time the caller initially proposed.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent was clear, polite, and efficient, confirming details without being robotic or overly apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"After the unintelligible audio, the agent calmly asked the caller to repeat and offered a callback rather than getting confused or repeating prior steps.\"}}"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "After the unintelligible audio, the agent calmly asked the caller to repeat and offered a callback rather than getting confused or repeating prior steps.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back full name, reason, date and time and asked 'Is that all correct?' and the caller replied 'Yes' before the book_appointment call.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 9:30 AM time offered matched a slot returned by check_availability, and was also the time the caller initially proposed.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent was clear, polite, and efficient, confirming details without being robotic or overly apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"After the unintelligible audio, the agent calmly asked the caller to repeat and offered a callback rather than getting confused or repeating prior steps.\"}}"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 245,
+        "end_ms": 3681
+      },
+      {
+        "role": "user",
+        "text": "Hi. This is Youssef Karim, and I need to come in Thursday, the seventeenth. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 3707,
+        "end_ms": 7306
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, Youssef Karim, and you said Thursday the 17th. Just to confirm, that's Thursday, September 17th, 2026, correct? Also, what time of day would you prefer for your appointment on that date?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 9738,
+        "end_ms": 19490
+      },
+      {
+        "role": "user",
+        "text": "Nine thirty AM, and it's for a rash on my arm. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 19367,
+        "end_ms": 21846
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-17",
+          "execution_message": "Checking available times on Thursday, September 17th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Checking ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 23540,
+        "end_ms": 23900
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-17",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-17"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "available times on Thursday, September 17th.We have an opening at 9:30 AM on Thursday, September 17th. Just to confirm, your full name is Youssef Karim, the appointment is for a rash on your arm, and the date and time are Thursday, September 17th at 9:30 AM. Is that all correct?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 23900,
+        "end_ms": 38958
+      },
+      {
+        "role": "user",
+        "text": "Yes. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 38716,
+        "end_ms": 40157
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Youssef Karim",
+          "date": "2026-09-17",
+          "time": "09:30",
+          "reason": "rash on arm"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-B4467B",
+          "booked": {
+            "patient_name": "Youssef Karim",
+            "date": "2026-09-17",
+            "time": "09:30",
+            "reason": "rash on arm",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "user",
+        "text": "(unintelligible audio)",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "I didn't catch that. Could you please repeat?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 42761,
+        "end_ms": 44990
+      },
+      {
+        "role": "agent",
+        "text": "Still there? If you need more help, I can call you back.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 56628,
+        "end_ms": 59367
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-17",
+          "execution_message": "Checking available times on Thursday, September 17th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-17",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-17"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Youssef Karim",
+          "date": "2026-09-17",
+          "time": "09:30",
+          "reason": "rash on arm"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-B4467B",
+          "booked": {
+            "patient_name": "Youssef Karim",
+            "date": "2026-09-17",
+            "time": "09:30",
+            "reason": "rash on arm",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Youssef Karim",
+      "date": "2026-09-17",
+      "time": "09:30",
+      "reason": "rash on arm"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "call_id": "call_d8f4261cde57a3580dbdeb318af",
+    "call_type": "web_call",
+    "agent_id": "agent_9fe992dcf8b51c940fa872290b",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-voice-hardened",
+    "retell_llm_dynamic_variables": {
+      "current_date": "2026-09-14",
+      "current_date_spoken": "Monday, September 14, 2026",
+      "current_day": "Monday"
+    },
+    "call_status": "ended",
+    "start_timestamp": 1789497128452,
+    "end_timestamp": 1789497188469,
+    "duration_ms": 60017,
+    "transcript": "Agent: Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?\nUser: Hi. This is Youssef Karim, and I need to come in Thursday, the seventeenth. \nAgent: Thanks, Youssef Karim, and you said Thursday the 17th. Just to confirm, that's Thursday, September 17th, 2026, correct? Also, what time of day would you prefer for your appointment on that date?\nUser: Nine thirty AM, and it's for a rash on my arm. \nAgent: Checking \nAgent: available times on Thursday, September 17th.We have an opening at 9:30 AM on Thursday, September 17th. Just to confirm, your full name is Youssef Karim, the appointment is for a rash on your arm, and the date and time are Thursday, September 17th at 9:30 AM. Is that all correct?\nUser: Yes. \nUser: (unintelligible audio)\nAgent: I didn't catch that. Could you please repeat?\nAgent: Still there? If you need more help, I can call you back.\n",
+    "transcript_object": [
+      {
+        "role": "agent",
+        "content": "Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?",
+        "words": [
+          {
+            "word": "Thanks ",
+            "start": 0.245,
+            "end": 0.524
+          },
+          {
+            "word": "for ",
+            "start": 0.524,
+            "end": 0.651
+          },
+          {
+            "word": "calling ",
+            "start": 0.651,
+            "end": 0.942
+          },
+          {
+            "word": "Lakeside ",
+            "start": 0.942,
+            "end": 1.301
+          },
+          {
+            "word": "Family ",
+            "start": 1.301,
+            "end": 1.591
+          },
+          {
+            "word": "Clinic, ",
+            "start": 1.591,
+            "end": 1.986
+          },
+          {
+            "word": "this ",
+            "start": 1.986,
+            "end": 2.23
+          },
+          {
+            "word": "is ",
+            "start": 2.23,
+            "end": 2.381
+          },
+          {
+            "word": "Robin. ",
+            "start": 2.381,
+            "end": 2.892
+          },
+          {
+            "word": "How ",
+            "start": 2.892,
+            "end": 3.055
+          },
+          {
+            "word": "can ",
+            "start": 3.055,
+            "end": 3.194
+          },
+          {
+            "word": "I ",
+            "start": 3.194,
+            "end": 3.264
+          },
+          {
+            "word": "help?",
+            "start": 3.264,
+            "end": 3.681
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Hi. This is Youssef Karim, and I need to come in Thursday, the seventeenth. ",
+        "words": [
+          {
+            "word": "Hi. ",
+            "start": 3.707,
+            "end": 4.1069998
+          },
+          {
+            "word": "This ",
+            "start": 4.1069998,
+            "end": 4.187
+          },
+          {
+            "word": "is ",
+            "start": 4.187,
+            "end": 4.3469999999999995
+          },
+          {
+            "word": "Youssef ",
+            "start": 4.3469999999999995,
+            "end": 4.667
+          },
+          {
+            "word": "Karim, ",
+            "start": 4.667,
+            "end": 5.2269997
+          },
+          {
+            "word": "and ",
+            "start": 5.2269997,
+            "end": 5.3870000000000005
+          },
+          {
+            "word": "I ",
+            "start": 5.3870000000000005,
+            "end": 5.547
+          },
+          {
+            "word": "need ",
+            "start": 5.547,
+            "end": 5.787
+          },
+          {
+            "word": "to ",
+            "start": 5.787,
+            "end": 5.947
+          },
+          {
+            "word": "come ",
+            "start": 5.947,
+            "end": 6.107
+          },
+          {
+            "word": "in ",
+            "start": 6.107,
+            "end": 6.3469996
+          },
+          {
+            "word": "Thursday, ",
+            "start": 6.3469996,
+            "end": 6.907
+          },
+          {
+            "word": "the ",
+            "start": 6.907,
+            "end": 7.067
+          },
+          {
+            "word": "seventeenth. ",
+            "start": 7.067,
+            "end": 7.3069997
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thanks, Youssef Karim, and you said Thursday the 17th. Just to confirm, that's Thursday, September 17th, 2026, correct? Also, what time of day would you prefer for your appointment on that date?",
+        "words": [
+          {
+            "word": "Thanks, ",
+            "start": 9.738,
+            "end": 10.086
+          },
+          {
+            "word": "Youssef ",
+            "start": 10.086,
+            "end": 10.423
+          },
+          {
+            "word": "Karim, ",
+            "start": 10.423,
+            "end": 10.771
+          },
+          {
+            "word": "and ",
+            "start": 10.771,
+            "end": 10.899
+          },
+          {
+            "word": "you ",
+            "start": 10.899,
+            "end": 11.026
+          },
+          {
+            "word": "said ",
+            "start": 11.026,
+            "end": 11.201
+          },
+          {
+            "word": "Thursday ",
+            "start": 11.201,
+            "end": 11.595
+          },
+          {
+            "word": "the ",
+            "start": 11.595,
+            "end": 11.7
+          },
+          {
+            "word": "17th.",
+            "start": 11.7,
+            "end": 12.431
+          },
+          {
+            "word": " Just ",
+            "start": 12.431,
+            "end": 12.652
+          },
+          {
+            "word": "to ",
+            "start": 12.652,
+            "end": 12.733
+          },
+          {
+            "word": "confirm, ",
+            "start": 12.733,
+            "end": 13.104
+          },
+          {
+            "word": "that's ",
+            "start": 13.104,
+            "end": 13.302
+          },
+          {
+            "word": "Thursday, ",
+            "start": 13.302,
+            "end": 13.731
+          },
+          {
+            "word": "September ",
+            "start": 13.731,
+            "end": 14.161
+          },
+          {
+            "word": "17th, ",
+            "start": 14.161,
+            "end": 14.916
+          },
+          {
+            "word": "2026, ",
+            "start": 14.916,
+            "end": 15.937
+          },
+          {
+            "word": "correct?",
+            "start": 15.937,
+            "end": 16.564
+          },
+          {
+            "word": " Also, ",
+            "start": 16.564,
+            "end": 16.901
+          },
+          {
+            "word": "what ",
+            "start": 16.901,
+            "end": 17.052
+          },
+          {
+            "word": "time ",
+            "start": 17.052,
+            "end": 17.226
+          },
+          {
+            "word": "of ",
+            "start": 17.226,
+            "end": 17.33
+          },
+          {
+            "word": "day ",
+            "start": 17.33,
+            "end": 17.458
+          },
+          {
+            "word": "would ",
+            "start": 17.458,
+            "end": 17.632
+          },
+          {
+            "word": "you ",
+            "start": 17.632,
+            "end": 17.748
+          },
+          {
+            "word": "prefer ",
+            "start": 17.748,
+            "end": 18.062
+          },
+          {
+            "word": "for ",
+            "start": 18.062,
+            "end": 18.224
+          },
+          {
+            "word": "your ",
+            "start": 18.224,
+            "end": 18.364
+          },
+          {
+            "word": "appointment ",
+            "start": 18.364,
+            "end": 18.758
+          },
+          {
+            "word": "on ",
+            "start": 18.758,
+            "end": 18.863
+          },
+          {
+            "word": "that ",
+            "start": 18.863,
+            "end": 19.025
+          },
+          {
+            "word": "date?",
+            "start": 19.025,
+            "end": 19.49
+          }
+        ],
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "role": "user",
+        "content": "Nine thirty AM, and it's for a rash on my arm. ",
+        "words": [
+          {
+            "word": "Nine ",
+            "start": 19.367,
+            "end": 19.686999999999998
+          },
+          {
+            "word": "thirty ",
+            "start": 19.686999999999998,
+            "end": 20.007001
+          },
+          {
+            "word": "AM, ",
+            "start": 20.007001,
+            "end": 20.407000999999998
+          },
+          {
+            "word": "and ",
+            "start": 20.407000999999998,
+            "end": 20.567
+          },
+          {
+            "word": "it's ",
+            "start": 20.567,
+            "end": 20.807
+          },
+          {
+            "word": "for ",
+            "start": 20.807,
+            "end": 20.887
+          },
+          {
+            "word": "a ",
+            "start": 20.887,
+            "end": 21.047
+          },
+          {
+            "word": "rash ",
+            "start": 21.047,
+            "end": 21.287
+          },
+          {
+            "word": "on ",
+            "start": 21.287,
+            "end": 21.447
+          },
+          {
+            "word": "my ",
+            "start": 21.447,
+            "end": 21.607
+          },
+          {
+            "word": "arm. ",
+            "start": 21.607,
+            "end": 21.846999999999998
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Checking ",
+        "words": [
+          {
+            "word": "Checking ",
+            "start": 23.54,
+            "end": 23.9
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "agent",
+        "content": "available times on Thursday, September 17th.We have an opening at 9:30 AM on Thursday, September 17th. Just to confirm, your full name is Youssef Karim, the appointment is for a rash on your arm, and the date and time are Thursday, September 17th at 9:30 AM. Is that all correct?",
+        "words": [
+          {
+            "word": "available ",
+            "start": 23.9,
+            "end": 24.26
+          },
+          {
+            "word": "times ",
+            "start": 24.26,
+            "end": 24.619
+          },
+          {
+            "word": "on ",
+            "start": 24.619,
+            "end": 24.759
+          },
+          {
+            "word": "Thursday, ",
+            "start": 24.759,
+            "end": 25.119
+          },
+          {
+            "word": "September ",
+            "start": 25.119,
+            "end": 25.479
+          },
+          {
+            "word": "17th.",
+            "start": 25.479,
+            "end": 26.187
+          },
+          {
+            "word": "We ",
+            "start": 26.187,
+            "end": 26.361
+          },
+          {
+            "word": "have ",
+            "start": 26.361,
+            "end": 26.593
+          },
+          {
+            "word": "an ",
+            "start": 26.593,
+            "end": 26.733
+          },
+          {
+            "word": "opening ",
+            "start": 26.733,
+            "end": 27.023
+          },
+          {
+            "word": "at ",
+            "start": 27.023,
+            "end": 27.139
+          },
+          {
+            "word": "9:30 ",
+            "start": 27.139,
+            "end": 27.569
+          },
+          {
+            "word": "AM ",
+            "start": 27.569,
+            "end": 27.917
+          },
+          {
+            "word": "on ",
+            "start": 27.917,
+            "end": 28.091
+          },
+          {
+            "word": "Thursday, ",
+            "start": 28.091,
+            "end": 28.555
+          },
+          {
+            "word": "September ",
+            "start": 28.555,
+            "end": 28.939
+          },
+          {
+            "word": "17th.",
+            "start": 28.939,
+            "end": 29.624
+          },
+          {
+            "word": " Just ",
+            "start": 29.624,
+            "end": 29.891
+          },
+          {
+            "word": "to ",
+            "start": 29.891,
+            "end": 29.984
+          },
+          {
+            "word": "confirm, ",
+            "start": 29.984,
+            "end": 30.332
+          },
+          {
+            "word": "your ",
+            "start": 30.332,
+            "end": 30.472
+          },
+          {
+            "word": "full ",
+            "start": 30.472,
+            "end": 30.669
+          },
+          {
+            "word": "name ",
+            "start": 30.669,
+            "end": 30.855
+          },
+          {
+            "word": "is ",
+            "start": 30.855,
+            "end": 30.971
+          },
+          {
+            "word": "Youssef ",
+            "start": 30.971,
+            "end": 31.342
+          },
+          {
+            "word": "Karim, ",
+            "start": 31.342,
+            "end": 31.958
+          },
+          {
+            "word": "the ",
+            "start": 31.958,
+            "end": 32.097
+          },
+          {
+            "word": "appointment ",
+            "start": 32.097,
+            "end": 32.608
+          },
+          {
+            "word": "is ",
+            "start": 32.608,
+            "end": 32.771
+          },
+          {
+            "word": "for ",
+            "start": 32.771,
+            "end": 32.933
+          },
+          {
+            "word": "a ",
+            "start": 32.933,
+            "end": 33.026
+          },
+          {
+            "word": "rash ",
+            "start": 33.026,
+            "end": 33.316
+          },
+          {
+            "word": "on ",
+            "start": 33.316,
+            "end": 33.444
+          },
+          {
+            "word": "your ",
+            "start": 33.444,
+            "end": 33.63
+          },
+          {
+            "word": "arm, ",
+            "start": 33.63,
+            "end": 34.071
+          },
+          {
+            "word": "and ",
+            "start": 34.071,
+            "end": 34.257
+          },
+          {
+            "word": "the ",
+            "start": 34.257,
+            "end": 34.373
+          },
+          {
+            "word": "date ",
+            "start": 34.373,
+            "end": 34.57
+          },
+          {
+            "word": "and ",
+            "start": 34.57,
+            "end": 34.675
+          },
+          {
+            "word": "time ",
+            "start": 34.675,
+            "end": 35
+          },
+          {
+            "word": "are ",
+            "start": 35,
+            "end": 35.209
+          },
+          {
+            "word": "Thursday, ",
+            "start": 35.209,
+            "end": 35.673
+          },
+          {
+            "word": "September ",
+            "start": 35.673,
+            "end": 36.149
+          },
+          {
+            "word": "17th ",
+            "start": 36.149,
+            "end": 36.718
+          },
+          {
+            "word": "at ",
+            "start": 36.718,
+            "end": 36.904
+          },
+          {
+            "word": "9:30 ",
+            "start": 36.904,
+            "end": 37.438
+          },
+          {
+            "word": "AM.",
+            "start": 37.438,
+            "end": 38.076
+          },
+          {
+            "word": " Is ",
+            "start": 38.076,
+            "end": 38.227
+          },
+          {
+            "word": "that ",
+            "start": 38.227,
+            "end": 38.366
+          },
+          {
+            "word": "all ",
+            "start": 38.366,
+            "end": 38.506
+          },
+          {
+            "word": "correct?",
+            "start": 38.506,
+            "end": 38.958
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes. ",
+        "words": [
+          {
+            "word": "Yes. ",
+            "start": 38.716997,
+            "end": 40.157000000000004
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "(unintelligible audio)",
+        "words": []
+      },
+      {
+        "role": "agent",
+        "content": "I didn't catch that. Could you please repeat?",
+        "words": [
+          {
+            "word": "I ",
+            "start": 42.761,
+            "end": 42.889
+          },
+          {
+            "word": "didn't ",
+            "start": 42.889,
+            "end": 43.086
+          },
+          {
+            "word": "catch ",
+            "start": 43.086,
+            "end": 43.318
+          },
+          {
+            "word": "that.",
+            "start": 43.318,
+            "end": 43.736
+          },
+          {
+            "word": " Could ",
+            "start": 43.736,
+            "end": 43.968
+          },
+          {
+            "word": "you ",
+            "start": 43.968,
+            "end": 44.154
+          },
+          {
+            "word": "please ",
+            "start": 44.154,
+            "end": 44.433
+          },
+          {
+            "word": "repeat?",
+            "start": 44.433,
+            "end": 44.99
+          }
+        ],
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "role": "agent",
+        "content": "Still there? If you need more help, I can call you back.",
+        "words": [
+          {
+            "word": "Still ",
+            "start": 56.628,
+            "end": 56.907
+          },
+          {
+            "word": "there?",
+            "start": 56.907,
+            "end": 57.417
+          },
+          {
+            "word": " If ",
+            "start": 57.417,
+            "end": 57.603
+          },
+          {
+            "word": "you ",
+            "start": 57.603,
+            "end": 57.707
+          },
+          {
+            "word": "need ",
+            "start": 57.707,
+            "end": 57.881
+          },
+          {
+            "word": "more ",
+            "start": 57.881,
+            "end": 58.044
+          },
+          {
+            "word": "help, ",
+            "start": 58.044,
+            "end": 58.334
+          },
+          {
+            "word": "I ",
+            "start": 58.334,
+            "end": 58.439
+          },
+          {
+            "word": "can ",
+            "start": 58.439,
+            "end": 58.59
+          },
+          {
+            "word": "call ",
+            "start": 58.59,
+            "end": 58.775
+          },
+          {
+            "word": "you ",
+            "start": 58.775,
+            "end": 58.891
+          },
+          {
+            "word": "back.",
+            "start": 58.891,
+            "end": 59.367
+          }
+        ],
+        "metadata": {
+          "response_id": 7
+        }
+      }
+    ],
+    "transcript_with_tool_calls": [
+      {
+        "role": "agent",
+        "content": "Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?",
+        "words": [
+          {
+            "word": "Thanks ",
+            "start": 0.245,
+            "end": 0.524
+          },
+          {
+            "word": "for ",
+            "start": 0.524,
+            "end": 0.651
+          },
+          {
+            "word": "calling ",
+            "start": 0.651,
+            "end": 0.942
+          },
+          {
+            "word": "Lakeside ",
+            "start": 0.942,
+            "end": 1.301
+          },
+          {
+            "word": "Family ",
+            "start": 1.301,
+            "end": 1.591
+          },
+          {
+            "word": "Clinic, ",
+            "start": 1.591,
+            "end": 1.986
+          },
+          {
+            "word": "this ",
+            "start": 1.986,
+            "end": 2.23
+          },
+          {
+            "word": "is ",
+            "start": 2.23,
+            "end": 2.381
+          },
+          {
+            "word": "Robin. ",
+            "start": 2.381,
+            "end": 2.892
+          },
+          {
+            "word": "How ",
+            "start": 2.892,
+            "end": 3.055
+          },
+          {
+            "word": "can ",
+            "start": 3.055,
+            "end": 3.194
+          },
+          {
+            "word": "I ",
+            "start": 3.194,
+            "end": 3.264
+          },
+          {
+            "word": "help?",
+            "start": 3.264,
+            "end": 3.681
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Hi. This is Youssef Karim, and I need to come in Thursday, the seventeenth. ",
+        "words": [
+          {
+            "word": "Hi. ",
+            "start": 3.707,
+            "end": 4.1069998
+          },
+          {
+            "word": "This ",
+            "start": 4.1069998,
+            "end": 4.187
+          },
+          {
+            "word": "is ",
+            "start": 4.187,
+            "end": 4.3469999999999995
+          },
+          {
+            "word": "Youssef ",
+            "start": 4.3469999999999995,
+            "end": 4.667
+          },
+          {
+            "word": "Karim, ",
+            "start": 4.667,
+            "end": 5.2269997
+          },
+          {
+            "word": "and ",
+            "start": 5.2269997,
+            "end": 5.3870000000000005
+          },
+          {
+            "word": "I ",
+            "start": 5.3870000000000005,
+            "end": 5.547
+          },
+          {
+            "word": "need ",
+            "start": 5.547,
+            "end": 5.787
+          },
+          {
+            "word": "to ",
+            "start": 5.787,
+            "end": 5.947
+          },
+          {
+            "word": "come ",
+            "start": 5.947,
+            "end": 6.107
+          },
+          {
+            "word": "in ",
+            "start": 6.107,
+            "end": 6.3469996
+          },
+          {
+            "word": "Thursday, ",
+            "start": 6.3469996,
+            "end": 6.907
+          },
+          {
+            "word": "the ",
+            "start": 6.907,
+            "end": 7.067
+          },
+          {
+            "word": "seventeenth. ",
+            "start": 7.067,
+            "end": 7.3069997
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thanks, Youssef Karim, and you said Thursday the 17th. Just to confirm, that's Thursday, September 17th, 2026, correct? Also, what time of day would you prefer for your appointment on that date?",
+        "words": [
+          {
+            "word": "Thanks, ",
+            "start": 9.738,
+            "end": 10.086
+          },
+          {
+            "word": "Youssef ",
+            "start": 10.086,
+            "end": 10.423
+          },
+          {
+            "word": "Karim, ",
+            "start": 10.423,
+            "end": 10.771
+          },
+          {
+            "word": "and ",
+            "start": 10.771,
+            "end": 10.899
+          },
+          {
+            "word": "you ",
+            "start": 10.899,
+            "end": 11.026
+          },
+          {
+            "word": "said ",
+            "start": 11.026,
+            "end": 11.201
+          },
+          {
+            "word": "Thursday ",
+            "start": 11.201,
+            "end": 11.595
+          },
+          {
+            "word": "the ",
+            "start": 11.595,
+            "end": 11.7
+          },
+          {
+            "word": "17th.",
+            "start": 11.7,
+            "end": 12.431
+          },
+          {
+            "word": " Just ",
+            "start": 12.431,
+            "end": 12.652
+          },
+          {
+            "word": "to ",
+            "start": 12.652,
+            "end": 12.733
+          },
+          {
+            "word": "confirm, ",
+            "start": 12.733,
+            "end": 13.104
+          },
+          {
+            "word": "that's ",
+            "start": 13.104,
+            "end": 13.302
+          },
+          {
+            "word": "Thursday, ",
+            "start": 13.302,
+            "end": 13.731
+          },
+          {
+            "word": "September ",
+            "start": 13.731,
+            "end": 14.161
+          },
+          {
+            "word": "17th, ",
+            "start": 14.161,
+            "end": 14.916
+          },
+          {
+            "word": "2026, ",
+            "start": 14.916,
+            "end": 15.937
+          },
+          {
+            "word": "correct?",
+            "start": 15.937,
+            "end": 16.564
+          },
+          {
+            "word": " Also, ",
+            "start": 16.564,
+            "end": 16.901
+          },
+          {
+            "word": "what ",
+            "start": 16.901,
+            "end": 17.052
+          },
+          {
+            "word": "time ",
+            "start": 17.052,
+            "end": 17.226
+          },
+          {
+            "word": "of ",
+            "start": 17.226,
+            "end": 17.33
+          },
+          {
+            "word": "day ",
+            "start": 17.33,
+            "end": 17.458
+          },
+          {
+            "word": "would ",
+            "start": 17.458,
+            "end": 17.632
+          },
+          {
+            "word": "you ",
+            "start": 17.632,
+            "end": 17.748
+          },
+          {
+            "word": "prefer ",
+            "start": 17.748,
+            "end": 18.062
+          },
+          {
+            "word": "for ",
+            "start": 18.062,
+            "end": 18.224
+          },
+          {
+            "word": "your ",
+            "start": 18.224,
+            "end": 18.364
+          },
+          {
+            "word": "appointment ",
+            "start": 18.364,
+            "end": 18.758
+          },
+          {
+            "word": "on ",
+            "start": 18.758,
+            "end": 18.863
+          },
+          {
+            "word": "that ",
+            "start": 18.863,
+            "end": 19.025
+          },
+          {
+            "word": "date?",
+            "start": 19.025,
+            "end": 19.49
+          }
+        ],
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "role": "user",
+        "content": "Nine thirty AM, and it's for a rash on my arm. ",
+        "words": [
+          {
+            "word": "Nine ",
+            "start": 19.367,
+            "end": 19.686999999999998
+          },
+          {
+            "word": "thirty ",
+            "start": 19.686999999999998,
+            "end": 20.007001
+          },
+          {
+            "word": "AM, ",
+            "start": 20.007001,
+            "end": 20.407000999999998
+          },
+          {
+            "word": "and ",
+            "start": 20.407000999999998,
+            "end": 20.567
+          },
+          {
+            "word": "it's ",
+            "start": 20.567,
+            "end": 20.807
+          },
+          {
+            "word": "for ",
+            "start": 20.807,
+            "end": 20.887
+          },
+          {
+            "word": "a ",
+            "start": 20.887,
+            "end": 21.047
+          },
+          {
+            "word": "rash ",
+            "start": 21.047,
+            "end": 21.287
+          },
+          {
+            "word": "on ",
+            "start": 21.287,
+            "end": 21.447
+          },
+          {
+            "word": "my ",
+            "start": 21.447,
+            "end": 21.607
+          },
+          {
+            "word": "arm. ",
+            "start": 21.607,
+            "end": 21.846999999999998
+          }
+        ]
+      },
+      {
+        "role": "tool_call_invocation",
+        "tool_call_id": "call_ZJshlPl1xOKJUeseVX2ujm0C",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-17\",\"execution_message\":\"Checking available times on Thursday, September 17th.\"}",
+        "time_sec": 23.353,
+        "type": "custom"
+      },
+      {
+        "role": "agent",
+        "content": "Checking ",
+        "words": [
+          {
+            "word": "Checking ",
+            "start": 23.54,
+            "end": 23.9
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "tool_call_result",
+        "tool_call_id": "call_ZJshlPl1xOKJUeseVX2ujm0C",
+        "successful": true,
+        "content": "{\"ok\":true,\"date\":\"2026-09-17\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"11:00\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-17\"}",
+        "time_sec": 23.758
+      },
+      {
+        "role": "agent",
+        "content": "available times on Thursday, September 17th.We have an opening at 9:30 AM on Thursday, September 17th. Just to confirm, your full name is Youssef Karim, the appointment is for a rash on your arm, and the date and time are Thursday, September 17th at 9:30 AM. Is that all correct?",
+        "words": [
+          {
+            "word": "available ",
+            "start": 23.9,
+            "end": 24.26
+          },
+          {
+            "word": "times ",
+            "start": 24.26,
+            "end": 24.619
+          },
+          {
+            "word": "on ",
+            "start": 24.619,
+            "end": 24.759
+          },
+          {
+            "word": "Thursday, ",
+            "start": 24.759,
+            "end": 25.119
+          },
+          {
+            "word": "September ",
+            "start": 25.119,
+            "end": 25.479
+          },
+          {
+            "word": "17th.",
+            "start": 25.479,
+            "end": 26.187
+          },
+          {
+            "word": "We ",
+            "start": 26.187,
+            "end": 26.361
+          },
+          {
+            "word": "have ",
+            "start": 26.361,
+            "end": 26.593
+          },
+          {
+            "word": "an ",
+            "start": 26.593,
+            "end": 26.733
+          },
+          {
+            "word": "opening ",
+            "start": 26.733,
+            "end": 27.023
+          },
+          {
+            "word": "at ",
+            "start": 27.023,
+            "end": 27.139
+          },
+          {
+            "word": "9:30 ",
+            "start": 27.139,
+            "end": 27.569
+          },
+          {
+            "word": "AM ",
+            "start": 27.569,
+            "end": 27.917
+          },
+          {
+            "word": "on ",
+            "start": 27.917,
+            "end": 28.091
+          },
+          {
+            "word": "Thursday, ",
+            "start": 28.091,
+            "end": 28.555
+          },
+          {
+            "word": "September ",
+            "start": 28.555,
+            "end": 28.939
+          },
+          {
+            "word": "17th.",
+            "start": 28.939,
+            "end": 29.624
+          },
+          {
+            "word": " Just ",
+            "start": 29.624,
+            "end": 29.891
+          },
+          {
+            "word": "to ",
+            "start": 29.891,
+            "end": 29.984
+          },
+          {
+            "word": "confirm, ",
+            "start": 29.984,
+            "end": 30.332
+          },
+          {
+            "word": "your ",
+            "start": 30.332,
+            "end": 30.472
+          },
+          {
+            "word": "full ",
+            "start": 30.472,
+            "end": 30.669
+          },
+          {
+            "word": "name ",
+            "start": 30.669,
+            "end": 30.855
+          },
+          {
+            "word": "is ",
+            "start": 30.855,
+            "end": 30.971
+          },
+          {
+            "word": "Youssef ",
+            "start": 30.971,
+            "end": 31.342
+          },
+          {
+            "word": "Karim, ",
+            "start": 31.342,
+            "end": 31.958
+          },
+          {
+            "word": "the ",
+            "start": 31.958,
+            "end": 32.097
+          },
+          {
+            "word": "appointment ",
+            "start": 32.097,
+            "end": 32.608
+          },
+          {
+            "word": "is ",
+            "start": 32.608,
+            "end": 32.771
+          },
+          {
+            "word": "for ",
+            "start": 32.771,
+            "end": 32.933
+          },
+          {
+            "word": "a ",
+            "start": 32.933,
+            "end": 33.026
+          },
+          {
+            "word": "rash ",
+            "start": 33.026,
+            "end": 33.316
+          },
+          {
+            "word": "on ",
+            "start": 33.316,
+            "end": 33.444
+          },
+          {
+            "word": "your ",
+            "start": 33.444,
+            "end": 33.63
+          },
+          {
+            "word": "arm, ",
+            "start": 33.63,
+            "end": 34.071
+          },
+          {
+            "word": "and ",
+            "start": 34.071,
+            "end": 34.257
+          },
+          {
+            "word": "the ",
+            "start": 34.257,
+            "end": 34.373
+          },
+          {
+            "word": "date ",
+            "start": 34.373,
+            "end": 34.57
+          },
+          {
+            "word": "and ",
+            "start": 34.57,
+            "end": 34.675
+          },
+          {
+            "word": "time ",
+            "start": 34.675,
+            "end": 35
+          },
+          {
+            "word": "are ",
+            "start": 35,
+            "end": 35.209
+          },
+          {
+            "word": "Thursday, ",
+            "start": 35.209,
+            "end": 35.673
+          },
+          {
+            "word": "September ",
+            "start": 35.673,
+            "end": 36.149
+          },
+          {
+            "word": "17th ",
+            "start": 36.149,
+            "end": 36.718
+          },
+          {
+            "word": "at ",
+            "start": 36.718,
+            "end": 36.904
+          },
+          {
+            "word": "9:30 ",
+            "start": 36.904,
+            "end": 37.438
+          },
+          {
+            "word": "AM.",
+            "start": 37.438,
+            "end": 38.076
+          },
+          {
+            "word": " Is ",
+            "start": 38.076,
+            "end": 38.227
+          },
+          {
+            "word": "that ",
+            "start": 38.227,
+            "end": 38.366
+          },
+          {
+            "word": "all ",
+            "start": 38.366,
+            "end": 38.506
+          },
+          {
+            "word": "correct?",
+            "start": 38.506,
+            "end": 38.958
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes. ",
+        "words": [
+          {
+            "word": "Yes. ",
+            "start": 38.716997,
+            "end": 40.157000000000004
+          }
+        ]
+      },
+      {
+        "role": "tool_call_invocation",
+        "tool_call_id": "call_Fksw8LZUgGbvedhNJvecuK4I",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Youssef Karim\",\"date\":\"2026-09-17\",\"time\":\"09:30\",\"reason\":\"rash on arm\"}",
+        "time_sec": 39.968,
+        "type": "custom"
+      },
+      {
+        "role": "tool_call_result",
+        "tool_call_id": "call_Fksw8LZUgGbvedhNJvecuK4I",
+        "successful": true,
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-B4467B\",\"booked\":{\"patient_name\":\"Youssef Karim\",\"date\":\"2026-09-17\",\"time\":\"09:30\",\"reason\":\"rash on arm\",\"phone\":null}}",
+        "time_sec": 40.129
+      },
+      {
+        "role": "user",
+        "content": "(unintelligible audio)",
+        "words": []
+      },
+      {
+        "role": "agent",
+        "content": "I didn't catch that. Could you please repeat?",
+        "words": [
+          {
+            "word": "I ",
+            "start": 42.761,
+            "end": 42.889
+          },
+          {
+            "word": "didn't ",
+            "start": 42.889,
+            "end": 43.086
+          },
+          {
+            "word": "catch ",
+            "start": 43.086,
+            "end": 43.318
+          },
+          {
+            "word": "that.",
+            "start": 43.318,
+            "end": 43.736
+          },
+          {
+            "word": " Could ",
+            "start": 43.736,
+            "end": 43.968
+          },
+          {
+            "word": "you ",
+            "start": 43.968,
+            "end": 44.154
+          },
+          {
+            "word": "please ",
+            "start": 44.154,
+            "end": 44.433
+          },
+          {
+            "word": "repeat?",
+            "start": 44.433,
+            "end": 44.99
+          }
+        ],
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "role": "agent",
+        "content": "Still there? If you need more help, I can call you back.",
+        "words": [
+          {
+            "word": "Still ",
+            "start": 56.628,
+            "end": 56.907
+          },
+          {
+            "word": "there?",
+            "start": 56.907,
+            "end": 57.417
+          },
+          {
+            "word": " If ",
+            "start": 57.417,
+            "end": 57.603
+          },
+          {
+            "word": "you ",
+            "start": 57.603,
+            "end": 57.707
+          },
+          {
+            "word": "need ",
+            "start": 57.707,
+            "end": 57.881
+          },
+          {
+            "word": "more ",
+            "start": 57.881,
+            "end": 58.044
+          },
+          {
+            "word": "help, ",
+            "start": 58.044,
+            "end": 58.334
+          },
+          {
+            "word": "I ",
+            "start": 58.334,
+            "end": 58.439
+          },
+          {
+            "word": "can ",
+            "start": 58.439,
+            "end": 58.59
+          },
+          {
+            "word": "call ",
+            "start": 58.59,
+            "end": 58.775
+          },
+          {
+            "word": "you ",
+            "start": 58.775,
+            "end": 58.891
+          },
+          {
+            "word": "back.",
+            "start": 58.891,
+            "end": 59.367
+          }
+        ],
+        "metadata": {
+          "response_id": 7
+        }
+      }
+    ],
+    "recording_url": "https://dxc03zgurdly9.cloudfront.net/c51a342c863828044ede0ca65c894820eaa275c53f1ff8f626940b82ac6033a1/recording.wav",
+    "recording_multi_channel_url": "https://dxc03zgurdly9.cloudfront.net/c51a342c863828044ede0ca65c894820eaa275c53f1ff8f626940b82ac6033a1/recording_multichannel.wav",
+    "public_log_url": "https://dxc03zgurdly9.cloudfront.net/c51a342c863828044ede0ca65c894820eaa275c53f1ff8f626940b82ac6033a1/public.log",
+    "disconnection_reason": "user_hangup",
+    "latency": {
+      "llm": {
+        "p90": 1202.5,
+        "p95": 1224.25,
+        "p50": 829.5,
+        "sum": 4463,
+        "num": 6,
+        "values": [
+          1,
+          968,
+          691,
+          1246,
+          398,
+          1159
+        ],
+        "p99": 1241.65,
+        "max": 1246,
+        "min": 1
+      },
+      "e2e": {
+        "min": 2431.000244140625,
+        "num": 1,
+        "p99": 2431.000244140625,
+        "p90": 2431.000244140625,
+        "max": 2431.000244140625,
+        "p95": 2431.000244140625,
+        "p50": 2431.000244140625,
+        "values": [
+          2431.000244140625
+        ],
+        "sum": 2431.000244140625
+      },
+      "tts": {
+        "p90": 220.99999999999997,
+        "p50": 184,
+        "max": 243,
+        "p95": 232,
+        "p99": 240.8,
+        "values": [
+          243,
+          188,
+          184,
+          168,
+          157
+        ],
+        "min": 157,
+        "sum": 940,
+        "num": 5
+      },
+      "asr": {
+        "p50": 131,
+        "p99": 228.01999999999998,
+        "values": [
+          131,
+          230,
+          0
+        ],
+        "min": 0,
+        "p90": 210.2,
+        "num": 3,
+        "sum": 361,
+        "p95": 220.1,
+        "max": 230
+      }
+    },
+    "metadata": {
+      "scenario_id": "s10_compound_utterance"
+    },
+    "call_cost": {
+      "total_duration_seconds": 61,
+      "combined_cost": 13.0396687,
+      "product_costs": [
+        {
+          "unit_price": 0.0916667,
+          "cost": 5.5916687,
+          "product": "retell_voice_engine"
+        },
+        {
+          "unit_price": 0.0666667,
+          "cost": 4.0666687,
+          "product": "elevenlabs_tts_03_2026"
+        },
+        {
+          "product": "gpt_4_1_mini",
+          "cost": 1.3013313,
+          "unit_price": 0.0213333
+        },
+        {
+          "cost": 2.08,
+          "product": "gpt_5_6_terra_text_testing",
+          "unit_price": 2.08
+        }
+      ],
+      "total_duration_unit_price": 0.1796667
+    },
+    "call_analysis": {
+      "in_voicemail": false,
+      "user_sentiment": "Neutral",
+      "call_successful": true,
+      "call_summary": "Youssef Karim scheduled an appointment for a rash on his arm on Thursday, September 17, 2026, at 9:30 AM. The appointment was successfully booked with confirmation number CLN-B4467B; the call ended after unintelligible audio and a follow-up prompt.",
+      "custom_analysis_data": {}
+    },
+    "data_storage_setting": "everything",
+    "opt_in_signed_url": false,
+    "llm_token_usage": {
+      "values": [
+        1147,
+        1210,
+        1179,
+        1219,
+        1347,
+        1423,
+        1538,
+        1533,
+        1566
+      ],
+      "average": 1351.3333333333333,
+      "num_requests": 9
+    },
+    "tool_calls": [
+      {
+        "tool_call_id": "call_ZJshlPl1xOKJUeseVX2ujm0C",
+        "success": true,
+        "type": "custom",
+        "start_time_sec": 23.353,
+        "latency_ms": 404.9999999999976,
+        "name": "check_availability"
+      },
+      {
+        "type": "custom",
+        "latency_ms": 160.99999999999426,
+        "start_time_sec": 39.968,
+        "name": "book_appointment",
+        "tool_call_id": "call_Fksw8LZUgGbvedhNJvecuK4I",
+        "success": true
+      }
+    ],
+    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6IndlYl9jYWxsX2Q4ZjQyNjFjZGU1N2EzNTgwZGJkZWIzMThhZiJ9LCJpc3MiOiJBUElVTXg5OFUyR2MyanIiLCJleHAiOjE3ODk0OTc3MjcsIm5iZiI6MTc4OTQ5NzEyNywic3ViIjoiY2xpZW50In0.cDxkuRIoXQOgt220UvbwSdiX1pWU9QVmP8V0G-ghrvw",
+    "transport": "livekit"
+  },
+  "driver_log": [
+    {
+      "t": 1789497128.812885,
+      "console": "publishing track {room: web_call_d8f4261cde57a3580dbdeb318af, roomID: , participant: client, pID: PA_6RcH93fPx2Lu, trackID: undefined}"
+    },
+    {
+      "t": 1789497128.813196,
+      "console": "Opus DTX will be disabled for stereo tracks by default. Enable them explicitly to make it work. {room: web_call_d8f4261cde57a3580dbdeb318af, roomID: , participant: client, pID: PA_6RcH93fPx2Lu, trackID: undefined}"
+    },
+    {
+      "t": 1789497128.813399,
+      "console": "Opus RED will be disabled for stereo tracks by default. Enable them explicitly to make it work."
+    },
+    {
+      "t": 1789497129.022634,
+      "console": "silence detected on local audio track {room: web_call_d8f4261cde57a3580dbdeb318af, roomID: , participant: client, pID: PA_6RcH93fPx2Lu, trackID: TR_AMJLDWEQQaMUaC}"
+    },
+    {
+      "t": 1789497129.091841,
+      "console": "silence detected on local audio track {room: web_call_d8f4261cde57a3580dbdeb318af, roomID: , participant: client, pID: PA_6RcH93fPx2Lu, trackID: TR_AMJLDWEQQaMUaC}"
+    },
+    {
+      "t": 1789497136.2861598,
+      "turn": 0,
+      "action": "spoke",
+      "said": "Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth."
+    },
+    {
+      "t": 1789497150.5963871,
+      "turn": 1,
+      "action": "spoke",
+      "said": "Nine thirty AM, and it's for a rash on my arm."
+    },
+    {
+      "t": 1789497168.558385,
+      "turn": 2,
+      "action": "spoke",
+      "said": "Yes, that's everything."
+    },
+    {
+      "t": 1789497188.41609,
+      "console": "disconnect from room {room: web_call_d8f4261cde57a3580dbdeb318af, roomID: RM_gqvcVACk3xdy, participant: client, pID: PA_6RcH93fPx2Lu}"
+    }
+  ],
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent read back full name, reason, date and time and asked 'Is that all correct?' and the caller replied 'Yes' before the book_appointment call."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "The 9:30 AM time offered matched a slot returned by check_availability, and was also the time the caller initially proposed."
+    }
+  },
+  "retell_latency": {
+    "llm": {
+      "p90": 1202.5,
+      "p95": 1224.25,
+      "p50": 829.5,
+      "sum": 4463,
+      "num": 6,
+      "values": [
+        1,
+        968,
+        691,
+        1246,
+        398,
+        1159
+      ],
+      "p99": 1241.65,
+      "max": 1246,
+      "min": 1
+    },
+    "e2e": {
+      "min": 2431.000244140625,
+      "num": 1,
+      "p99": 2431.000244140625,
+      "p90": 2431.000244140625,
+      "max": 2431.000244140625,
+      "p95": 2431.000244140625,
+      "p50": 2431.000244140625,
+      "values": [
+        2431.000244140625
+      ],
+      "sum": 2431.000244140625
+    },
+    "tts": {
+      "p90": 220.99999999999997,
+      "p50": 184,
+      "max": 243,
+      "p95": 232,
+      "p99": 240.8,
+      "values": [
+        243,
+        188,
+        184,
+        168,
+        157
+      ],
+      "min": 157,
+      "sum": 940,
+      "num": 5
+    },
+    "asr": {
+      "p50": 131,
+      "p99": 228.01999999999998,
+      "values": [
+        131,
+        230,
+        0
+      ],
+      "min": 0,
+      "p90": 210.2,
+      "num": 3,
+      "sum": 361,
+      "p95": 220.1,
+      "max": 230
+    }
+  },
+  "turn_timings": null
+}

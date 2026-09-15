@@ -864,3 +864,41 @@ confounded and labelled as such.
 **This is the fifth time a harness property has masqueraded as a platform finding**,
 and the first one I have caught *before* writing it up rather than after. That is
 mild progress.
+
+### B20. A false STRUCTURAL_TO_VOICE finding, caught by reading the slot detail
+
+The merged 2x2 initially classified `compound_utterance` as **STRUCTURAL_TO_VOICE** —
+100% in text under both prompts, 0% in voice under both. Textbook. Exactly the
+headline the experiment was built to produce, and I nearly wrote it up.
+
+The slot detail said otherwise. The only failing slot was `patient_name`:
+
+> expected `Yusuf Karim`, agent captured `Youssef Karim`
+
+Same name, different romanization. Date, time and reason were **correct in every
+voice run**. The agent handled the compound utterance flawlessly; my scenario had
+chosen a name whose spelling is genuinely ambiguous in English, so it was silently
+testing STT orthography while claiming to test compound-utterance handling.
+
+The scorer has an `aliases` field for exactly this and I had not used it. Declaring
+`["Youssef Karim", "Yousef Karim", "Yusef Karim"]` and re-scoring flipped all four
+voice runs to PASS, and the persona reclassified to **NOT_A_PROBLEM**.
+
+Three things worth keeping:
+
+1. **The fix cost nothing.** `make rescore` re-derived 82 runs against the corrected
+   scenario with no new calls. Had the primary score been an LLM judge, correcting
+   this would have meant paying for 82 re-gradings and accepting that some verdicts
+   would move for unrelated reasons.
+2. **A per-slot scorer is what made it visible.** A single pass/fail per run — which
+   is what Retell's native simulation testing produces — would have shown
+   `compound_utterance: 0/4 in voice` and nothing else. The finding would have been
+   published.
+3. **Choose scenario names adversarially, but for the right adversary.** "Yusuf" was
+   picked to be non-Anglo and realistic. It turned out to test transliteration.
+   `s02`'s "Okonkwo" -> "O'Connell" is a *different* name and stays a real failure;
+   `s09`'s "Lindqvist" -> "Linkfest" likewise. Only phonetically-identical variants
+   earn an alias.
+
+**Sixth defect of mine wearing an agent failure's costume**, and the second caught
+before publication rather than after.

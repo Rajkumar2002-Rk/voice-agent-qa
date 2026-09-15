@@ -1,0 +1,683 @@
+{
+  "result": {
+    "scenario_id": "s05_ambiguous_next_tuesday",
+    "persona": "ambiguous_date",
+    "channel": "text",
+    "arm": "naive",
+    "run_index": 1,
+    "call_id": "chat_2598aa2db9f336859718c87b657",
+    "started_at": "2026-09-15T16:56:37.301937+00:00",
+    "ended_at": "2026-09-15T16:56:53.574936+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Sandra Whitfield",
+        "actual": "Sandra Whitfield",
+        "normalized_expected": "sandra whitfield",
+        "normalized_actual": "sandra whitfield",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Sandra Whitfield' -> sandra whitfield matches expected 'Sandra Whitfield' -> sandra whitfield"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "next Tuesday",
+        "actual": "2026-09-22",
+        "normalized_expected": "2026-09-22",
+        "normalized_actual": "2026-09-22",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-22' -> 2026-09-22 matches expected 'next Tuesday' -> 2026-09-22"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "3pm",
+        "actual": "15:00",
+        "normalized_expected": "15:00",
+        "normalized_actual": "15:00",
+        "rule": "time.24h_unambiguous",
+        "reasoning": "'15:00' -> 15:00 matches expected '3pm' -> 15:00"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "My back's been hurting",
+        "normalized_expected": "back|spine|pain",
+        "normalized_actual": "my back's been hurting",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'back' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Sandra Whitfield",
+            "date": "2026-09-22",
+            "time": "15:00",
+            "reason": "My back's been hurting"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed ('Yes, that one.'), then it booked",
+        "evidence": {
+          "readback": "Next Tuesday, September 22nd, we have openings at 9:00, 9:30, 10:00, 13:30, 15:00, and 16:00. What time would you prefer? Also, may I have your name and the reason for your visit?",
+          "assent": "Yes, that one.",
+          "date": "2026-09-22",
+          "time": "15:00"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "13:30",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1789491397711,
+        "agent_response_start_ms": 1789491399458,
+        "latency_ms": 1747,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 1789491401713,
+        "agent_response_start_ms": 1789491403971,
+        "latency_ms": 2258,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 1789491404316,
+        "agent_response_start_ms": 1789491405365,
+        "latency_ms": 1049,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 1789491405712,
+        "agent_response_start_ms": 1789491407228,
+        "latency_ms": 1516,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 1789491407608,
+        "agent_response_start_ms": 1789491409183,
+        "latency_ms": 1575,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 1789491409511,
+        "agent_response_start_ms": 1789491413047,
+        "latency_ms": 3536,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent explicitly stated 'September 22nd at 3 PM' for back pain and asked 'Should I go ahead and book this for you?' and the caller replied 'Correct' before the book_appointment call was made.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent explicitly stated 'September 22nd at 3 PM' for back pain and asked 'Should I go ahead and book this for you?' and the caller replied 'Correct' before the book_appointment call was made.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 15:00 slot offered and booked was part of the list returned by check_availability (9:00, 9:30, 10:00, 13:30, 15:00, 16:00); no time outside that set was stated.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent remained clear, polite, and professional throughout, asking for missing details without being robotic or over-apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"When the caller vaguely said 'Yes, that one' without specifying a time, the agent calmly re-asked for the specific time and missing details rather than getting confused or repeating the same phrasing verbatim.\"}}"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "The 15:00 slot offered and booked was part of the list returned by check_availability (9:00, 9:30, 10:00, 13:30, 15:00, 16:00); no time outside that set was stated.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent explicitly stated 'September 22nd at 3 PM' for back pain and asked 'Should I go ahead and book this for you?' and the caller replied 'Correct' before the book_appointment call was made.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 15:00 slot offered and booked was part of the list returned by check_availability (9:00, 9:30, 10:00, 13:30, 15:00, 16:00); no time outside that set was stated.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent remained clear, polite, and professional throughout, asking for missing details without being robotic or over-apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"When the caller vaguely said 'Yes, that one' without specifying a time, the agent calmly re-asked for the specific time and missing details rather than getting confused or repeating the same phrasing verbatim.\"}}"
+      },
+      {
+        "check": "tone",
+        "rating": "good",
+        "rationale": "The agent remained clear, polite, and professional throughout, asking for missing details without being robotic or over-apologetic.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent explicitly stated 'September 22nd at 3 PM' for back pain and asked 'Should I go ahead and book this for you?' and the caller replied 'Correct' before the book_appointment call was made.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 15:00 slot offered and booked was part of the list returned by check_availability (9:00, 9:30, 10:00, 13:30, 15:00, 16:00); no time outside that set was stated.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent remained clear, polite, and professional throughout, asking for missing details without being robotic or over-apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"When the caller vaguely said 'Yes, that one' without specifying a time, the agent calmly re-asked for the specific time and missing details rather than getting confused or repeating the same phrasing verbatim.\"}}"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "When the caller vaguely said 'Yes, that one' without specifying a time, the agent calmly re-asked for the specific time and missing details rather than getting confused or repeating the same phrasing verbatim.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent explicitly stated 'September 22nd at 3 PM' for back pain and asked 'Should I go ahead and book this for you?' and the caller replied 'Correct' before the book_appointment call was made.\"},\n \"invented_availability\": {\"answer\": \"no\", \"why\": \"The 15:00 slot offered and booked was part of the list returned by check_availability (9:00, 9:30, 10:00, 13:30, 15:00, 16:00); no time outside that set was stated.\"},\n \"tone\": {\"answer\": \"good\", \"why\": \"The agent remained clear, polite, and professional throughout, asking for missing details without being robotic or over-apologetic.\"},\n \"handled_gracefully\": {\"answer\": \"yes\", \"why\": \"When the caller vaguely said 'Yes, that one' without specifying a time, the agent calmly re-asked for the specific time and missing details rather than getting confused or repeating the same phrasing verbatim.\"}}"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "user",
+        "text": "Can I get in next Tuesday?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491397711,
+        "end_ms": 1789491397711
+      },
+      {
+        "role": "agent",
+        "text": "Checking available appointment times for next Tuesday, September 22nd.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491399458,
+        "end_ms": 1789491399458
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-22",
+          "execution_message": "Checking available appointment times for next Tuesday, September 22nd."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-22",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-22"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Next Tuesday, September 22nd, we have openings at 9:00, 9:30, 10:00, 13:30, 15:00, and 16:00. What time would you prefer? Also, may I have your name and the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491401378,
+        "end_ms": 1789491401378
+      },
+      {
+        "role": "user",
+        "text": "Yes, that one.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491401713,
+        "end_ms": 1789491401713
+      },
+      {
+        "role": "agent",
+        "text": "Could you please tell me which time you prefer from the available slots on September 22nd? Also, I need your full name and the reason for your visit to book the appointment.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491403971,
+        "end_ms": 1789491403971
+      },
+      {
+        "role": "user",
+        "text": "Three PM is good.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491404316,
+        "end_ms": 1789491404316
+      },
+      {
+        "role": "agent",
+        "text": "Just to confirm, you'd like to book an appointment on September 22nd at 15:00. Could you please provide your full name and the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491405365,
+        "end_ms": 1789491405365
+      },
+      {
+        "role": "user",
+        "text": "Sandra Whitfield.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491405712,
+        "end_ms": 1789491405712
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, Sandra. And what is the reason for your visit on September 22nd at 3 PM?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491407228,
+        "end_ms": 1789491407228
+      },
+      {
+        "role": "user",
+        "text": "My back's been hurting.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491407608,
+        "end_ms": 1789491407608
+      },
+      {
+        "role": "agent",
+        "text": "Great, Sandra. To confirm, you want to book an appointment for your back pain on September 22nd at 3 PM. Should I go ahead and book this for you?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491409183,
+        "end_ms": 1789491409183
+      },
+      {
+        "role": "user",
+        "text": "Correct.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491409511,
+        "end_ms": 1789491409511
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Sandra Whitfield",
+          "date": "2026-09-22",
+          "time": "15:00",
+          "reason": "My back's been hurting"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-26C9DB",
+          "booked": {
+            "patient_name": "Sandra Whitfield",
+            "date": "2026-09-22",
+            "time": "15:00",
+            "reason": "My back's been hurting",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your appointment for back pain with us is all set for September 22nd at 3 PM, Sandra. If you need anything else, just let me know!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491413047,
+        "end_ms": 1789491413047
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-22",
+          "execution_message": "Checking available appointment times for next Tuesday, September 22nd."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-22",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-22"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Sandra Whitfield",
+          "date": "2026-09-22",
+          "time": "15:00",
+          "reason": "My back's been hurting"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-26C9DB",
+          "booked": {
+            "patient_name": "Sandra Whitfield",
+            "date": "2026-09-22",
+            "time": "15:00",
+            "reason": "My back's been hurting",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Sandra Whitfield",
+      "date": "2026-09-22",
+      "time": "15:00",
+      "reason": "My back's been hurting"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "chat_id": "chat_2598aa2db9f336859718c87b657",
+    "chat_type": "api_chat",
+    "agent_id": "agent_0ac6eba014957f7ec29cf53f7d",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-chat-naive",
+    "retell_llm_dynamic_variables": {
+      "current_date_spoken": "Monday, September 14, 2026",
+      "current_day": "Monday",
+      "current_date": "2026-09-14"
+    },
+    "collected_dynamic_variables": {},
+    "chat_status": "ongoing",
+    "start_timestamp": 1789491397456,
+    "transcript": "User: Can I get in next Tuesday?\nAgent: Checking available appointment times for next Tuesday, September 22nd.\nAgent: Next Tuesday, September 22nd, we have openings at 9:00, 9:30, 10:00, 13:30, 15:00, and 16:00. What time would you prefer? Also, may I have your name and the reason for your visit?\nUser: Yes, that one.\nAgent: Could you please tell me which time you prefer from the available slots on September 22nd? Also, I need your full name and the reason for your visit to book the appointment.\nUser: Three PM is good.\nAgent: Just to confirm, you'd like to book an appointment on September 22nd at 15:00. Could you please provide your full name and the reason for your visit?\nUser: Sandra Whitfield.\nAgent: Thanks, Sandra. And what is the reason for your visit on September 22nd at 3 PM?\nUser: My back's been hurting.\nAgent: Great, Sandra. To confirm, you want to book an appointment for your back pain on September 22nd at 3 PM. Should I go ahead and book this for you?\nUser: Correct.\nAgent: Your appointment for back pain with us is all set for September 22nd at 3 PM, Sandra. If you need anything else, just let me know!",
+    "message_with_tool_calls": [
+      {
+        "message_id": "message_f53b394b47172cd44a4b0171",
+        "role": "user",
+        "created_timestamp": 1789491397711,
+        "content": "Can I get in next Tuesday?"
+      },
+      {
+        "message_id": "message_819a33e1db06fd695140bf07",
+        "role": "agent",
+        "created_timestamp": 1789491399458,
+        "content": "Checking available appointment times for next Tuesday, September 22nd.",
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "message_id": "message_daa32103e8e0519f90a8719c",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491399459,
+        "tool_call_id": "call_AtPgyWfIrelZga34Td9wxK0G",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-22\",\"execution_message\":\"Checking available appointment times for next Tuesday, September 22nd.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_35058f19361836d9c54d6a0c",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491399603,
+        "tool_call_id": "call_AtPgyWfIrelZga34Td9wxK0G",
+        "content": "{\"ok\":true,\"date\":\"2026-09-22\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"13:30\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-22\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_edd41c36443c834707ea0448",
+        "role": "agent",
+        "created_timestamp": 1789491401378,
+        "content": "Next Tuesday, September 22nd, we have openings at 9:00, 9:30, 10:00, 13:30, 15:00, and 16:00. What time would you prefer? Also, may I have your name and the reason for your visit?",
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "message_id": "message_f803dd638bb2dc298d7946a2",
+        "role": "user",
+        "created_timestamp": 1789491401713,
+        "content": "Yes, that one."
+      },
+      {
+        "message_id": "message_05f01e49348ce8ac0c3f3b50",
+        "role": "agent",
+        "created_timestamp": 1789491403971,
+        "content": "Could you please tell me which time you prefer from the available slots on September 22nd? Also, I need your full name and the reason for your visit to book the appointment.",
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "message_id": "message_4c6098aa93adcd184361e829",
+        "role": "user",
+        "created_timestamp": 1789491404316,
+        "content": "Three PM is good."
+      },
+      {
+        "message_id": "message_2df2f10adcfd6b71a50446e8",
+        "role": "agent",
+        "created_timestamp": 1789491405365,
+        "content": "Just to confirm, you'd like to book an appointment on September 22nd at 15:00. Could you please provide your full name and the reason for your visit?",
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "message_id": "message_9ed9f253de7968dd46d033b6",
+        "role": "user",
+        "created_timestamp": 1789491405712,
+        "content": "Sandra Whitfield."
+      },
+      {
+        "message_id": "message_5c4b9629b12ee4b1e4e38a30",
+        "role": "agent",
+        "created_timestamp": 1789491407228,
+        "content": "Thanks, Sandra. And what is the reason for your visit on September 22nd at 3 PM?",
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "message_id": "message_b568859420387c3e584827b5",
+        "role": "user",
+        "created_timestamp": 1789491407608,
+        "content": "My back's been hurting."
+      },
+      {
+        "message_id": "message_c7a510982a7be91e4d1abd1e",
+        "role": "agent",
+        "created_timestamp": 1789491409183,
+        "content": "Great, Sandra. To confirm, you want to book an appointment for your back pain on September 22nd at 3 PM. Should I go ahead and book this for you?",
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "message_id": "message_e089f6999a3fc1b9674be7d9",
+        "role": "user",
+        "created_timestamp": 1789491409511,
+        "content": "Correct."
+      },
+      {
+        "message_id": "message_4271478cace5130960fae2c4",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491411185,
+        "tool_call_id": "call_MZUXWHCn3Y5w1km7eQ1IDT2l",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Sandra Whitfield\",\"date\":\"2026-09-22\",\"time\":\"15:00\",\"reason\":\"My back's been hurting\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_45597f564f0811f9da081a8a",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491411405,
+        "tool_call_id": "call_MZUXWHCn3Y5w1km7eQ1IDT2l",
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-26C9DB\",\"booked\":{\"patient_name\":\"Sandra Whitfield\",\"date\":\"2026-09-22\",\"time\":\"15:00\",\"reason\":\"My back's been hurting\",\"phone\":null}}",
+        "successful": true
+      },
+      {
+        "message_id": "message_1868f5f0a85a866f98114eb1",
+        "role": "agent",
+        "created_timestamp": 1789491413047,
+        "content": "Your appointment for back pain with us is all set for September 22nd at 3 PM, Sandra. If you need anything else, just let me know!",
+        "metadata": {
+          "response_id": 7
+        }
+      }
+    ],
+    "chat_cost": {
+      "combined_cost": 2.8000000000000003,
+      "product_costs": [
+        {
+          "product": "gpt_4_1_mini_text_testing",
+          "unit_price": 0.4,
+          "cost": 2.8000000000000003
+        }
+      ]
+    },
+    "data_storage_setting": "everything"
+  },
+  "driver_log": null,
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent explicitly stated 'September 22nd at 3 PM' for back pain and asked 'Should I go ahead and book this for you?' and the caller replied 'Correct' before the book_appointment call was made."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "The 15:00 slot offered and booked was part of the list returned by check_availability (9:00, 9:30, 10:00, 13:30, 15:00, 16:00); no time outside that set was stated."
+    }
+  },
+  "retell_latency": null,
+  "turn_timings": [
+    {
+      "said": "Can I get in next Tuesday?",
+      "api_round_trip_ms": 4000
+    },
+    {
+      "said": "Yes, that one.",
+      "api_round_trip_ms": 2592
+    },
+    {
+      "said": "Three PM is good.",
+      "api_round_trip_ms": 1396
+    },
+    {
+      "said": "Sandra Whitfield.",
+      "api_round_trip_ms": 1896
+    },
+    {
+      "said": "My back's been hurting.",
+      "api_round_trip_ms": 1908
+    },
+    {
+      "said": "Correct.",
+      "api_round_trip_ms": 3894
+    }
+  ]
+}

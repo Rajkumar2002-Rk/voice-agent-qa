@@ -1,0 +1,2266 @@
+{
+  "result": {
+    "scenario_id": "s02_barge_in",
+    "persona": "barge_in",
+    "channel": "voice",
+    "arm": "naive",
+    "run_index": 1,
+    "call_id": "call_7e2bb110497f095dc369c558040",
+    "started_at": "2026-09-15T17:24:52.718398+00:00",
+    "ended_at": "2026-09-15T17:25:55.099904+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "WRONG",
+        "expected": "David Okonkwo",
+        "actual": "David O'Connell",
+        "normalized_expected": "david okonkwo",
+        "normalized_actual": "david oconnell",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "agent captured \"David O'Connell\" -> david oconnell, expected 'David Okonkwo' -> david okonkwo"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-17",
+        "actual": "2026-09-17",
+        "normalized_expected": "2026-09-17",
+        "normalized_actual": "2026-09-17",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-17' -> 2026-09-17 matches expected '2026-09-17' -> 2026-09-17"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "9am",
+        "actual": "09:00",
+        "normalized_expected": "09:00",
+        "normalized_actual": "09:00",
+        "rule": "time.24h_by_schema",
+        "reasoning": "'09:00' -> 09:00 matches expected '9am' -> 09:00"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "flu shot",
+        "normalized_expected": "flu|shot|vaccin|immuni",
+        "normalized_actual": "flu shot",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'flu' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "David O'Connell",
+            "date": "2026-09-17",
+            "time": "09:00",
+            "reason": "flu shot"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed ('Yep. Correct. '), then it booked",
+        "evidence": {
+          "readback": "Got it, David. You want a flu shot appointment on Thursday, September 17th at 9:00 AM. Should I go ahead and book that for you?",
+          "assent": "Yep. Correct. ",
+          "date": "2026-09-17",
+          "time": "09:00"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "11:00",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "denied_available_slot",
+        "verdict": "PASS",
+        "reasoning": "agent never denied a slot the tool had offered",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "11:00",
+            "15:00",
+            "16:00"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1478,
+        "agent_response_start_ms": 960,
+        "latency_ms": -518,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 3498,
+        "agent_response_start_ms": 4637,
+        "latency_ms": 1139,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 8638,
+        "agent_response_start_ms": 13754,
+        "latency_ms": 5116,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 16388,
+        "agent_response_start_ms": 16040,
+        "latency_ms": -348,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 16708,
+        "agent_response_start_ms": 19190,
+        "latency_ms": 2482,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 18348,
+        "agent_response_start_ms": 19190,
+        "latency_ms": 842,
+        "note": ""
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 25747,
+        "agent_response_start_ms": 29456,
+        "latency_ms": 3709,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent read back 'flu shot appointment on Thursday, September 17th at 9:00 AM' and asked 'Should I go ahead and book that for you?' and the caller replied 'Yep. Correct.' before the book_appointment call.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'flu shot appointment on Thursday, September 17th at 9:00 AM' and asked 'Should I go ahead and book that for you?' and the caller replied 'Yep. Correct.' before the book_appointment call.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:00 AM time was one of the slots returned by check_availability, and was also stated by the caller ('Nine... AM').\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent was clear and polite, but ended with a redundant duplicate confirmation message, which feels slightly repetitive/robotic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite being talked over during the greeting and while reading availability, the agent did not lose track of the collected slot and successfully gathered name, time, and reason before confirming and booking.\"}}\n```"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "The 9:00 AM time was one of the slots returned by check_availability, and was also stated by the caller ('Nine... AM').",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'flu shot appointment on Thursday, September 17th at 9:00 AM' and asked 'Should I go ahead and book that for you?' and the caller replied 'Yep. Correct.' before the book_appointment call.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:00 AM time was one of the slots returned by check_availability, and was also stated by the caller ('Nine... AM').\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent was clear and polite, but ended with a redundant duplicate confirmation message, which feels slightly repetitive/robotic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite being talked over during the greeting and while reading availability, the agent did not lose track of the collected slot and successfully gathered name, time, and reason before confirming and booking.\"}}\n```"
+      },
+      {
+        "check": "tone",
+        "rating": "acceptable",
+        "rationale": "The agent was clear and polite, but ended with a redundant duplicate confirmation message, which feels slightly repetitive/robotic.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'flu shot appointment on Thursday, September 17th at 9:00 AM' and asked 'Should I go ahead and book that for you?' and the caller replied 'Yep. Correct.' before the book_appointment call.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:00 AM time was one of the slots returned by check_availability, and was also stated by the caller ('Nine... AM').\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent was clear and polite, but ended with a redundant duplicate confirmation message, which feels slightly repetitive/robotic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite being talked over during the greeting and while reading availability, the agent did not lose track of the collected slot and successfully gathered name, time, and reason before confirming and booking.\"}}\n```"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "Despite being talked over during the greeting and while reading availability, the agent did not lose track of the collected slot and successfully gathered name, time, and reason before confirming and booking.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'flu shot appointment on Thursday, September 17th at 9:00 AM' and asked 'Should I go ahead and book that for you?' and the caller replied 'Yep. Correct.' before the book_appointment call.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:00 AM time was one of the slots returned by check_availability, and was also stated by the caller ('Nine... AM').\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent was clear and polite, but ended with a redundant duplicate confirmation message, which feels slightly repetitive/robotic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite being talked over during the greeting and while reading availability, the agent did not lose track of the collected slot and successfully gathered name, time, and reason before confirming and booking.\"}}\n```"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thanks for calling ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 252,
+        "end_ms": 960
+      },
+      {
+        "role": "user",
+        "text": "Yeah. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1237,
+        "end_ms": 1478
+      },
+      {
+        "role": "agent",
+        "text": "Lakeside Family Clinic, ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 960,
+        "end_ms": 1958
+      },
+      {
+        "role": "user",
+        "text": "Hi. I need an appointment for Thursday. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1738,
+        "end_ms": 3498
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-17",
+          "execution_message": "Checking available times for Thursday, September 17th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Checking ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 4637,
+        "end_ms": 5020
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-17",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-17"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "available times for Thursday, September 17th.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 5020,
+        "end_ms": 7563
+      },
+      {
+        "role": "user",
+        "text": "David O'Connell. Co, ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 7318,
+        "end_ms": 8638
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, David. For your appointment on ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 13754,
+        "end_ms": 16040
+      },
+      {
+        "role": "user",
+        "text": "Nine ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 16148,
+        "end_ms": 16388
+      },
+      {
+        "role": "agent",
+        "text": "Thursday, ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 16040,
+        "end_ms": 16400
+      },
+      {
+        "role": "user",
+        "text": "AM. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 16388,
+        "end_ms": 16708
+      },
+      {
+        "role": "user",
+        "text": "Just a flu shot. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 17547,
+        "end_ms": 18348
+      },
+      {
+        "role": "agent",
+        "text": "Got it, David. You want a flu shot appointment on Thursday, September 17th at 9:00 AM. Should I go ahead and book that for you?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 19190,
+        "end_ms": 25367
+      },
+      {
+        "role": "user",
+        "text": "Yep. Correct. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 25188,
+        "end_ms": 25747
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "David O'Connell",
+          "date": "2026-09-17",
+          "time": "09:00",
+          "reason": "flu shot"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-98AA1E",
+          "booked": {
+            "patient_name": "David O'Connell",
+            "date": "2026-09-17",
+            "time": "09:00",
+            "reason": "flu shot",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your flu shot appointment is all set for Thursday, September 17th at 9:00 AM, David. If you need anything else, just let me know!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 29456,
+        "end_ms": 35911
+      },
+      {
+        "role": "agent",
+        "text": "Just a quick reminder, David\u2014your flu shot appointment is scheduled for Thursday, September 17th at 9:00 AM. Let me know if you have any questions!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 47497,
+        "end_ms": 55345
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-17",
+          "execution_message": "Checking available times for Thursday, September 17th."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-17",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-17"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "David O'Connell",
+          "date": "2026-09-17",
+          "time": "09:00",
+          "reason": "flu shot"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-98AA1E",
+          "booked": {
+            "patient_name": "David O'Connell",
+            "date": "2026-09-17",
+            "time": "09:00",
+            "reason": "flu shot",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "David O'Connell",
+      "date": "2026-09-17",
+      "time": "09:00",
+      "reason": "flu shot"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "call_id": "call_7e2bb110497f095dc369c558040",
+    "call_type": "web_call",
+    "agent_id": "agent_2c1df0ae89268f34572572217c",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-voice-naive",
+    "retell_llm_dynamic_variables": {
+      "current_date": "2026-09-14",
+      "current_day": "Monday",
+      "current_date_spoken": "Monday, September 14, 2026"
+    },
+    "call_status": "ended",
+    "start_timestamp": 1789493093579,
+    "end_timestamp": 1789493149565,
+    "duration_ms": 55986,
+    "transcript": "Agent: Thanks for calling \nUser: Yeah. \nAgent: Lakeside Family Clinic, \nUser: Hi. I need an appointment for Thursday. \nAgent: Checking \nAgent: available times for Thursday, September 17th.\nUser: David O'Connell. Co, \nAgent: Thanks, David. For your appointment on \nUser: Nine \nAgent: Thursday, \nUser: AM. \nUser: Just a flu shot. \nAgent: Got it, David. You want a flu shot appointment on Thursday, September 17th at 9:00 AM. Should I go ahead and book that for you?\nUser: Yep. Correct. \nAgent: Your flu shot appointment is all set for Thursday, September 17th at 9:00 AM, David. If you need anything else, just let me know!\nAgent: Just a quick reminder, David\u2014your flu shot appointment is scheduled for Thursday, September 17th at 9:00 AM. Let me know if you have any questions!\n",
+    "transcript_object": [
+      {
+        "role": "agent",
+        "content": "Thanks for calling ",
+        "words": [
+          {
+            "word": "Thanks ",
+            "start": 0.252,
+            "end": 0.519
+          },
+          {
+            "word": "for ",
+            "start": 0.519,
+            "end": 0.658
+          },
+          {
+            "word": "calling ",
+            "start": 0.658,
+            "end": 0.96
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yeah. ",
+        "words": [
+          {
+            "word": "Yeah. ",
+            "start": 1.23799995,
+            "end": 1.478
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Lakeside Family Clinic, ",
+        "words": [
+          {
+            "word": "Lakeside ",
+            "start": 0.96,
+            "end": 1.354
+          },
+          {
+            "word": "Family ",
+            "start": 1.354,
+            "end": 1.656
+          },
+          {
+            "word": "Clinic, ",
+            "start": 1.656,
+            "end": 1.958
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Hi. I need an appointment for Thursday. ",
+        "words": [
+          {
+            "word": "Hi. ",
+            "start": 1.738,
+            "end": 2.218
+          },
+          {
+            "word": "I ",
+            "start": 2.218,
+            "end": 2.2979999
+          },
+          {
+            "word": "need ",
+            "start": 2.2979999,
+            "end": 2.458
+          },
+          {
+            "word": "an ",
+            "start": 2.458,
+            "end": 2.6179998
+          },
+          {
+            "word": "appointment ",
+            "start": 2.6179998,
+            "end": 2.938
+          },
+          {
+            "word": "for ",
+            "start": 2.938,
+            "end": 3.1779998000000003
+          },
+          {
+            "word": "Thursday. ",
+            "start": 3.1779998000000003,
+            "end": 3.498
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Checking ",
+        "words": [
+          {
+            "word": "Checking ",
+            "start": 4.637,
+            "end": 5.02
+          }
+        ],
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "role": "agent",
+        "content": "available times for Thursday, September 17th.",
+        "words": [
+          {
+            "word": "available ",
+            "start": 5.02,
+            "end": 5.403
+          },
+          {
+            "word": "times ",
+            "start": 5.403,
+            "end": 5.763
+          },
+          {
+            "word": "for ",
+            "start": 5.763,
+            "end": 6.077
+          },
+          {
+            "word": "Thursday, ",
+            "start": 6.077,
+            "end": 6.472
+          },
+          {
+            "word": "September ",
+            "start": 6.472,
+            "end": 6.901
+          },
+          {
+            "word": "17th.",
+            "start": 6.901,
+            "end": 7.563
+          }
+        ],
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "role": "user",
+        "content": "David O'Connell. Co, ",
+        "words": [
+          {
+            "word": "David ",
+            "start": 7.318,
+            "end": 7.7179997
+          },
+          {
+            "word": "O'Connell. ",
+            "start": 7.7179997,
+            "end": 8.1979998
+          },
+          {
+            "word": "Co, ",
+            "start": 8.238,
+            "end": 8.638
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thanks, David. For your appointment on ",
+        "words": [
+          {
+            "word": "Thanks, ",
+            "start": 13.754,
+            "end": 14.067
+          },
+          {
+            "word": "David.",
+            "start": 14.067,
+            "end": 14.59
+          },
+          {
+            "word": " For ",
+            "start": 15.123666748046874,
+            "end": 15.344666748046874
+          },
+          {
+            "word": "your ",
+            "start": 15.344666748046874,
+            "end": 15.495666748046874
+          },
+          {
+            "word": "appointment ",
+            "start": 15.495666748046874,
+            "end": 15.924666748046874
+          },
+          {
+            "word": "on ",
+            "start": 15.924666748046874,
+            "end": 16.040666748046874
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "Nine ",
+        "words": [
+          {
+            "word": "Nine ",
+            "start": 16.148,
+            "end": 16.388001
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thursday, ",
+        "words": [
+          {
+            "word": "Thursday, ",
+            "start": 16.040666748046874,
+            "end": 16.400666748046874
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "AM. ",
+        "words": [
+          {
+            "word": "AM. ",
+            "start": 16.388001,
+            "end": 16.708
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "Just a flu shot. ",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 17.547998999999997,
+            "end": 17.868
+          },
+          {
+            "word": "a ",
+            "start": 17.868,
+            "end": 17.948
+          },
+          {
+            "word": "flu ",
+            "start": 17.948,
+            "end": 18.188
+          },
+          {
+            "word": "shot. ",
+            "start": 18.188,
+            "end": 18.348
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Got it, David. You want a flu shot appointment on Thursday, September 17th at 9:00 AM. Should I go ahead and book that for you?",
+        "words": [
+          {
+            "word": "Got ",
+            "start": 19.19,
+            "end": 19.422
+          },
+          {
+            "word": "it, ",
+            "start": 19.422,
+            "end": 19.562
+          },
+          {
+            "word": "David.",
+            "start": 19.562,
+            "end": 20.026
+          },
+          {
+            "word": " You ",
+            "start": 20.026,
+            "end": 20.212
+          },
+          {
+            "word": "want ",
+            "start": 20.212,
+            "end": 20.374
+          },
+          {
+            "word": "a ",
+            "start": 20.374,
+            "end": 20.432
+          },
+          {
+            "word": "flu ",
+            "start": 20.432,
+            "end": 20.618
+          },
+          {
+            "word": "shot ",
+            "start": 20.618,
+            "end": 20.804
+          },
+          {
+            "word": "appointment ",
+            "start": 20.804,
+            "end": 21.233
+          },
+          {
+            "word": "on ",
+            "start": 21.233,
+            "end": 21.35
+          },
+          {
+            "word": "Thursday, ",
+            "start": 21.35,
+            "end": 21.686
+          },
+          {
+            "word": "September ",
+            "start": 21.686,
+            "end": 22.069
+          },
+          {
+            "word": "17th ",
+            "start": 22.069,
+            "end": 22.534
+          },
+          {
+            "word": "at ",
+            "start": 22.534,
+            "end": 22.661
+          },
+          {
+            "word": "9:00 ",
+            "start": 22.661,
+            "end": 23.021
+          },
+          {
+            "word": "AM.",
+            "start": 23.021,
+            "end": 23.602
+          },
+          {
+            "word": " Should ",
+            "start": 23.602,
+            "end": 23.857
+          },
+          {
+            "word": "I ",
+            "start": 23.857,
+            "end": 24.113
+          },
+          {
+            "word": "go ",
+            "start": 24.113,
+            "end": 24.252
+          },
+          {
+            "word": "ahead ",
+            "start": 24.252,
+            "end": 24.415
+          },
+          {
+            "word": "and ",
+            "start": 24.415,
+            "end": 24.519
+          },
+          {
+            "word": "book ",
+            "start": 24.519,
+            "end": 24.693
+          },
+          {
+            "word": "that ",
+            "start": 24.693,
+            "end": 24.867
+          },
+          {
+            "word": "for ",
+            "start": 24.867,
+            "end": 25.03
+          },
+          {
+            "word": "you?",
+            "start": 25.03,
+            "end": 25.367
+          }
+        ],
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yep. Correct. ",
+        "words": [
+          {
+            "word": "Yep. ",
+            "start": 25.188,
+            "end": 25.587999999999997
+          },
+          {
+            "word": "Correct. ",
+            "start": 25.587999999999997,
+            "end": 25.747999999999998
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Your flu shot appointment is all set for Thursday, September 17th at 9:00 AM, David. If you need anything else, just let me know!",
+        "words": [
+          {
+            "word": "Your ",
+            "start": 29.456,
+            "end": 29.677
+          },
+          {
+            "word": "flu ",
+            "start": 29.677,
+            "end": 29.897
+          },
+          {
+            "word": "shot ",
+            "start": 29.897,
+            "end": 30.083
+          },
+          {
+            "word": "appointment ",
+            "start": 30.083,
+            "end": 30.547
+          },
+          {
+            "word": "is ",
+            "start": 30.547,
+            "end": 30.733
+          },
+          {
+            "word": "all ",
+            "start": 30.733,
+            "end": 30.942
+          },
+          {
+            "word": "set ",
+            "start": 30.942,
+            "end": 31.139
+          },
+          {
+            "word": "for ",
+            "start": 31.139,
+            "end": 31.313
+          },
+          {
+            "word": "Thursday, ",
+            "start": 31.313,
+            "end": 31.72
+          },
+          {
+            "word": "September ",
+            "start": 31.72,
+            "end": 32.114
+          },
+          {
+            "word": "17th ",
+            "start": 32.114,
+            "end": 32.614
+          },
+          {
+            "word": "at ",
+            "start": 32.614,
+            "end": 32.741
+          },
+          {
+            "word": "9:00 ",
+            "start": 32.741,
+            "end": 33.264
+          },
+          {
+            "word": "AM, ",
+            "start": 33.264,
+            "end": 33.531
+          },
+          {
+            "word": "David.",
+            "start": 33.531,
+            "end": 34.053
+          },
+          {
+            "word": " If ",
+            "start": 34.053,
+            "end": 34.227
+          },
+          {
+            "word": "you ",
+            "start": 34.227,
+            "end": 34.343
+          },
+          {
+            "word": "need ",
+            "start": 34.343,
+            "end": 34.517
+          },
+          {
+            "word": "anything ",
+            "start": 34.517,
+            "end": 34.831
+          },
+          {
+            "word": "else, ",
+            "start": 34.831,
+            "end": 35.086
+          },
+          {
+            "word": "just ",
+            "start": 35.086,
+            "end": 35.26
+          },
+          {
+            "word": "let ",
+            "start": 35.26,
+            "end": 35.388
+          },
+          {
+            "word": "me ",
+            "start": 35.388,
+            "end": 35.481
+          },
+          {
+            "word": "know!",
+            "start": 35.481,
+            "end": 35.911
+          }
+        ],
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "role": "agent",
+        "content": "Just a quick reminder, David\u2014your flu shot appointment is scheduled for Thursday, September 17th at 9:00 AM. Let me know if you have any questions!",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 47.497,
+            "end": 47.729
+          },
+          {
+            "word": "a ",
+            "start": 47.729,
+            "end": 47.799
+          },
+          {
+            "word": "quick ",
+            "start": 47.799,
+            "end": 48.054
+          },
+          {
+            "word": "reminder, ",
+            "start": 48.054,
+            "end": 48.53
+          },
+          {
+            "word": "David\u2014your ",
+            "start": 48.53,
+            "end": 49.111
+          },
+          {
+            "word": "flu ",
+            "start": 49.111,
+            "end": 49.331
+          },
+          {
+            "word": "shot ",
+            "start": 49.331,
+            "end": 49.563
+          },
+          {
+            "word": "appointment ",
+            "start": 49.563,
+            "end": 50.028
+          },
+          {
+            "word": "is ",
+            "start": 50.028,
+            "end": 50.155
+          },
+          {
+            "word": "scheduled ",
+            "start": 50.155,
+            "end": 50.527
+          },
+          {
+            "word": "for ",
+            "start": 50.527,
+            "end": 50.678
+          },
+          {
+            "word": "Thursday, ",
+            "start": 50.678,
+            "end": 51.154
+          },
+          {
+            "word": "September ",
+            "start": 51.154,
+            "end": 51.676
+          },
+          {
+            "word": "17th ",
+            "start": 51.676,
+            "end": 52.268
+          },
+          {
+            "word": "at ",
+            "start": 52.268,
+            "end": 52.489
+          },
+          {
+            "word": "9:00 ",
+            "start": 52.489,
+            "end": 53.139
+          },
+          {
+            "word": "AM.",
+            "start": 53.139,
+            "end": 53.766
+          },
+          {
+            "word": " Let ",
+            "start": 53.766,
+            "end": 53.963
+          },
+          {
+            "word": "me ",
+            "start": 53.963,
+            "end": 54.033
+          },
+          {
+            "word": "know ",
+            "start": 54.033,
+            "end": 54.149
+          },
+          {
+            "word": "if ",
+            "start": 54.149,
+            "end": 54.23
+          },
+          {
+            "word": "you ",
+            "start": 54.23,
+            "end": 54.335
+          },
+          {
+            "word": "have ",
+            "start": 54.335,
+            "end": 54.474
+          },
+          {
+            "word": "any ",
+            "start": 54.474,
+            "end": 54.602
+          },
+          {
+            "word": "questions!",
+            "start": 54.602,
+            "end": 55.345
+          }
+        ],
+        "metadata": {
+          "response_id": 9
+        }
+      }
+    ],
+    "transcript_with_tool_calls": [
+      {
+        "role": "agent",
+        "content": "Thanks for calling ",
+        "words": [
+          {
+            "word": "Thanks ",
+            "start": 0.252,
+            "end": 0.519
+          },
+          {
+            "word": "for ",
+            "start": 0.519,
+            "end": 0.658
+          },
+          {
+            "word": "calling ",
+            "start": 0.658,
+            "end": 0.96
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yeah. ",
+        "words": [
+          {
+            "word": "Yeah. ",
+            "start": 1.23799995,
+            "end": 1.478
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Lakeside Family Clinic, ",
+        "words": [
+          {
+            "word": "Lakeside ",
+            "start": 0.96,
+            "end": 1.354
+          },
+          {
+            "word": "Family ",
+            "start": 1.354,
+            "end": 1.656
+          },
+          {
+            "word": "Clinic, ",
+            "start": 1.656,
+            "end": 1.958
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Hi. I need an appointment for Thursday. ",
+        "words": [
+          {
+            "word": "Hi. ",
+            "start": 1.738,
+            "end": 2.218
+          },
+          {
+            "word": "I ",
+            "start": 2.218,
+            "end": 2.2979999
+          },
+          {
+            "word": "need ",
+            "start": 2.2979999,
+            "end": 2.458
+          },
+          {
+            "word": "an ",
+            "start": 2.458,
+            "end": 2.6179998
+          },
+          {
+            "word": "appointment ",
+            "start": 2.6179998,
+            "end": 2.938
+          },
+          {
+            "word": "for ",
+            "start": 2.938,
+            "end": 3.1779998000000003
+          },
+          {
+            "word": "Thursday. ",
+            "start": 3.1779998000000003,
+            "end": 3.498
+          }
+        ]
+      },
+      {
+        "role": "tool_call_invocation",
+        "tool_call_id": "call_cQDfJ7CW9kyrfbzW2BxVkStj",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-17\",\"execution_message\":\"Checking available times for Thursday, September 17th.\"}",
+        "time_sec": 4.597,
+        "type": "custom"
+      },
+      {
+        "role": "agent",
+        "content": "Checking ",
+        "words": [
+          {
+            "word": "Checking ",
+            "start": 4.637,
+            "end": 5.02
+          }
+        ],
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "role": "tool_call_result",
+        "tool_call_id": "call_cQDfJ7CW9kyrfbzW2BxVkStj",
+        "successful": true,
+        "content": "{\"ok\":true,\"date\":\"2026-09-17\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"11:00\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-17\"}",
+        "time_sec": 4.744
+      },
+      {
+        "role": "agent",
+        "content": "available times for Thursday, September 17th.",
+        "words": [
+          {
+            "word": "available ",
+            "start": 5.02,
+            "end": 5.403
+          },
+          {
+            "word": "times ",
+            "start": 5.403,
+            "end": 5.763
+          },
+          {
+            "word": "for ",
+            "start": 5.763,
+            "end": 6.077
+          },
+          {
+            "word": "Thursday, ",
+            "start": 6.077,
+            "end": 6.472
+          },
+          {
+            "word": "September ",
+            "start": 6.472,
+            "end": 6.901
+          },
+          {
+            "word": "17th.",
+            "start": 6.901,
+            "end": 7.563
+          }
+        ],
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "role": "user",
+        "content": "David O'Connell. Co, ",
+        "words": [
+          {
+            "word": "David ",
+            "start": 7.318,
+            "end": 7.7179997
+          },
+          {
+            "word": "O'Connell. ",
+            "start": 7.7179997,
+            "end": 8.1979998
+          },
+          {
+            "word": "Co, ",
+            "start": 8.238,
+            "end": 8.638
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thanks, David. For your appointment on ",
+        "words": [
+          {
+            "word": "Thanks, ",
+            "start": 13.754,
+            "end": 14.067
+          },
+          {
+            "word": "David.",
+            "start": 14.067,
+            "end": 14.59
+          },
+          {
+            "word": " For ",
+            "start": 15.123666748046874,
+            "end": 15.344666748046874
+          },
+          {
+            "word": "your ",
+            "start": 15.344666748046874,
+            "end": 15.495666748046874
+          },
+          {
+            "word": "appointment ",
+            "start": 15.495666748046874,
+            "end": 15.924666748046874
+          },
+          {
+            "word": "on ",
+            "start": 15.924666748046874,
+            "end": 16.040666748046874
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "Nine ",
+        "words": [
+          {
+            "word": "Nine ",
+            "start": 16.148,
+            "end": 16.388001
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thursday, ",
+        "words": [
+          {
+            "word": "Thursday, ",
+            "start": 16.040666748046874,
+            "end": 16.400666748046874
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "AM. ",
+        "words": [
+          {
+            "word": "AM. ",
+            "start": 16.388001,
+            "end": 16.708
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "Just a flu shot. ",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 17.547998999999997,
+            "end": 17.868
+          },
+          {
+            "word": "a ",
+            "start": 17.868,
+            "end": 17.948
+          },
+          {
+            "word": "flu ",
+            "start": 17.948,
+            "end": 18.188
+          },
+          {
+            "word": "shot. ",
+            "start": 18.188,
+            "end": 18.348
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Got it, David. You want a flu shot appointment on Thursday, September 17th at 9:00 AM. Should I go ahead and book that for you?",
+        "words": [
+          {
+            "word": "Got ",
+            "start": 19.19,
+            "end": 19.422
+          },
+          {
+            "word": "it, ",
+            "start": 19.422,
+            "end": 19.562
+          },
+          {
+            "word": "David.",
+            "start": 19.562,
+            "end": 20.026
+          },
+          {
+            "word": " You ",
+            "start": 20.026,
+            "end": 20.212
+          },
+          {
+            "word": "want ",
+            "start": 20.212,
+            "end": 20.374
+          },
+          {
+            "word": "a ",
+            "start": 20.374,
+            "end": 20.432
+          },
+          {
+            "word": "flu ",
+            "start": 20.432,
+            "end": 20.618
+          },
+          {
+            "word": "shot ",
+            "start": 20.618,
+            "end": 20.804
+          },
+          {
+            "word": "appointment ",
+            "start": 20.804,
+            "end": 21.233
+          },
+          {
+            "word": "on ",
+            "start": 21.233,
+            "end": 21.35
+          },
+          {
+            "word": "Thursday, ",
+            "start": 21.35,
+            "end": 21.686
+          },
+          {
+            "word": "September ",
+            "start": 21.686,
+            "end": 22.069
+          },
+          {
+            "word": "17th ",
+            "start": 22.069,
+            "end": 22.534
+          },
+          {
+            "word": "at ",
+            "start": 22.534,
+            "end": 22.661
+          },
+          {
+            "word": "9:00 ",
+            "start": 22.661,
+            "end": 23.021
+          },
+          {
+            "word": "AM.",
+            "start": 23.021,
+            "end": 23.602
+          },
+          {
+            "word": " Should ",
+            "start": 23.602,
+            "end": 23.857
+          },
+          {
+            "word": "I ",
+            "start": 23.857,
+            "end": 24.113
+          },
+          {
+            "word": "go ",
+            "start": 24.113,
+            "end": 24.252
+          },
+          {
+            "word": "ahead ",
+            "start": 24.252,
+            "end": 24.415
+          },
+          {
+            "word": "and ",
+            "start": 24.415,
+            "end": 24.519
+          },
+          {
+            "word": "book ",
+            "start": 24.519,
+            "end": 24.693
+          },
+          {
+            "word": "that ",
+            "start": 24.693,
+            "end": 24.867
+          },
+          {
+            "word": "for ",
+            "start": 24.867,
+            "end": 25.03
+          },
+          {
+            "word": "you?",
+            "start": 25.03,
+            "end": 25.367
+          }
+        ],
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yep. Correct. ",
+        "words": [
+          {
+            "word": "Yep. ",
+            "start": 25.188,
+            "end": 25.587999999999997
+          },
+          {
+            "word": "Correct. ",
+            "start": 25.587999999999997,
+            "end": 25.747999999999998
+          }
+        ]
+      },
+      {
+        "role": "tool_call_invocation",
+        "tool_call_id": "call_AV56nm1DQhOuFBsvxFdyscXO",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"David O'Connell\",\"date\":\"2026-09-17\",\"time\":\"09:00\",\"reason\":\"flu shot\"}",
+        "time_sec": 27.669,
+        "type": "custom"
+      },
+      {
+        "role": "tool_call_result",
+        "tool_call_id": "call_AV56nm1DQhOuFBsvxFdyscXO",
+        "successful": true,
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-98AA1E\",\"booked\":{\"patient_name\":\"David O'Connell\",\"date\":\"2026-09-17\",\"time\":\"09:00\",\"reason\":\"flu shot\",\"phone\":null}}",
+        "time_sec": 28.041
+      },
+      {
+        "role": "agent",
+        "content": "Your flu shot appointment is all set for Thursday, September 17th at 9:00 AM, David. If you need anything else, just let me know!",
+        "words": [
+          {
+            "word": "Your ",
+            "start": 29.456,
+            "end": 29.677
+          },
+          {
+            "word": "flu ",
+            "start": 29.677,
+            "end": 29.897
+          },
+          {
+            "word": "shot ",
+            "start": 29.897,
+            "end": 30.083
+          },
+          {
+            "word": "appointment ",
+            "start": 30.083,
+            "end": 30.547
+          },
+          {
+            "word": "is ",
+            "start": 30.547,
+            "end": 30.733
+          },
+          {
+            "word": "all ",
+            "start": 30.733,
+            "end": 30.942
+          },
+          {
+            "word": "set ",
+            "start": 30.942,
+            "end": 31.139
+          },
+          {
+            "word": "for ",
+            "start": 31.139,
+            "end": 31.313
+          },
+          {
+            "word": "Thursday, ",
+            "start": 31.313,
+            "end": 31.72
+          },
+          {
+            "word": "September ",
+            "start": 31.72,
+            "end": 32.114
+          },
+          {
+            "word": "17th ",
+            "start": 32.114,
+            "end": 32.614
+          },
+          {
+            "word": "at ",
+            "start": 32.614,
+            "end": 32.741
+          },
+          {
+            "word": "9:00 ",
+            "start": 32.741,
+            "end": 33.264
+          },
+          {
+            "word": "AM, ",
+            "start": 33.264,
+            "end": 33.531
+          },
+          {
+            "word": "David.",
+            "start": 33.531,
+            "end": 34.053
+          },
+          {
+            "word": " If ",
+            "start": 34.053,
+            "end": 34.227
+          },
+          {
+            "word": "you ",
+            "start": 34.227,
+            "end": 34.343
+          },
+          {
+            "word": "need ",
+            "start": 34.343,
+            "end": 34.517
+          },
+          {
+            "word": "anything ",
+            "start": 34.517,
+            "end": 34.831
+          },
+          {
+            "word": "else, ",
+            "start": 34.831,
+            "end": 35.086
+          },
+          {
+            "word": "just ",
+            "start": 35.086,
+            "end": 35.26
+          },
+          {
+            "word": "let ",
+            "start": 35.26,
+            "end": 35.388
+          },
+          {
+            "word": "me ",
+            "start": 35.388,
+            "end": 35.481
+          },
+          {
+            "word": "know!",
+            "start": 35.481,
+            "end": 35.911
+          }
+        ],
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "role": "agent",
+        "content": "Just a quick reminder, David\u2014your flu shot appointment is scheduled for Thursday, September 17th at 9:00 AM. Let me know if you have any questions!",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 47.497,
+            "end": 47.729
+          },
+          {
+            "word": "a ",
+            "start": 47.729,
+            "end": 47.799
+          },
+          {
+            "word": "quick ",
+            "start": 47.799,
+            "end": 48.054
+          },
+          {
+            "word": "reminder, ",
+            "start": 48.054,
+            "end": 48.53
+          },
+          {
+            "word": "David\u2014your ",
+            "start": 48.53,
+            "end": 49.111
+          },
+          {
+            "word": "flu ",
+            "start": 49.111,
+            "end": 49.331
+          },
+          {
+            "word": "shot ",
+            "start": 49.331,
+            "end": 49.563
+          },
+          {
+            "word": "appointment ",
+            "start": 49.563,
+            "end": 50.028
+          },
+          {
+            "word": "is ",
+            "start": 50.028,
+            "end": 50.155
+          },
+          {
+            "word": "scheduled ",
+            "start": 50.155,
+            "end": 50.527
+          },
+          {
+            "word": "for ",
+            "start": 50.527,
+            "end": 50.678
+          },
+          {
+            "word": "Thursday, ",
+            "start": 50.678,
+            "end": 51.154
+          },
+          {
+            "word": "September ",
+            "start": 51.154,
+            "end": 51.676
+          },
+          {
+            "word": "17th ",
+            "start": 51.676,
+            "end": 52.268
+          },
+          {
+            "word": "at ",
+            "start": 52.268,
+            "end": 52.489
+          },
+          {
+            "word": "9:00 ",
+            "start": 52.489,
+            "end": 53.139
+          },
+          {
+            "word": "AM.",
+            "start": 53.139,
+            "end": 53.766
+          },
+          {
+            "word": " Let ",
+            "start": 53.766,
+            "end": 53.963
+          },
+          {
+            "word": "me ",
+            "start": 53.963,
+            "end": 54.033
+          },
+          {
+            "word": "know ",
+            "start": 54.033,
+            "end": 54.149
+          },
+          {
+            "word": "if ",
+            "start": 54.149,
+            "end": 54.23
+          },
+          {
+            "word": "you ",
+            "start": 54.23,
+            "end": 54.335
+          },
+          {
+            "word": "have ",
+            "start": 54.335,
+            "end": 54.474
+          },
+          {
+            "word": "any ",
+            "start": 54.474,
+            "end": 54.602
+          },
+          {
+            "word": "questions!",
+            "start": 54.602,
+            "end": 55.345
+          }
+        ],
+        "metadata": {
+          "response_id": 9
+        }
+      }
+    ],
+    "recording_url": "https://dxc03zgurdly9.cloudfront.net/a4665ccbc4c0074ce306f21fbbe404e5d8645e68719d582f278eff6e01b0f8d8/recording.wav",
+    "recording_multi_channel_url": "https://dxc03zgurdly9.cloudfront.net/a4665ccbc4c0074ce306f21fbbe404e5d8645e68719d582f278eff6e01b0f8d8/recording_multichannel.wav",
+    "public_log_url": "https://dxc03zgurdly9.cloudfront.net/a4665ccbc4c0074ce306f21fbbe404e5d8645e68719d582f278eff6e01b0f8d8/public.log",
+    "disconnection_reason": "user_hangup",
+    "latency": {
+      "llm": {
+        "min": 2,
+        "p95": 3180.65,
+        "max": 3258,
+        "p50": 692,
+        "p90": 3103.3,
+        "num": 8,
+        "values": [
+          2,
+          510,
+          724,
+          3037,
+          660,
+          554,
+          3258,
+          1195
+        ],
+        "p99": 3242.5299999999997,
+        "sum": 9940
+      },
+      "e2e": {
+        "sum": 6916,
+        "p50": 1069,
+        "num": 3,
+        "p99": 5035.0599999999995,
+        "p90": 4306.599999999999,
+        "max": 5116,
+        "min": 731,
+        "values": [
+          5116,
+          1069,
+          731
+        ],
+        "p95": 4711.299999999999
+      },
+      "tts": {
+        "max": 248,
+        "p50": 185.5,
+        "min": 143,
+        "values": [
+          248,
+          152,
+          190,
+          143,
+          183,
+          155,
+          192,
+          188
+        ],
+        "p99": 244.07999999999998,
+        "num": 8,
+        "p90": 208.79999999999998,
+        "p95": 228.39999999999998,
+        "sum": 1451
+      },
+      "asr": {
+        "p50": 149,
+        "values": [
+          193,
+          149,
+          92,
+          0,
+          231
+        ],
+        "p99": 229.48,
+        "p90": 215.79999999999998,
+        "p95": 223.39999999999998,
+        "min": 0,
+        "num": 5,
+        "sum": 665,
+        "max": 231
+      }
+    },
+    "metadata": {
+      "scenario_id": "s02_barge_in"
+    },
+    "call_cost": {
+      "total_duration_seconds": 56,
+      "combined_cost": 12.1413352,
+      "product_costs": [
+        {
+          "product": "retell_voice_engine",
+          "cost": 5.1333352,
+          "unit_price": 0.0916667
+        },
+        {
+          "unit_price": 0.0666667,
+          "product": "elevenlabs_tts_03_2026",
+          "cost": 3.7333352
+        },
+        {
+          "cost": 1.1946648,
+          "product": "gpt_4_1_mini",
+          "unit_price": 0.0213333
+        },
+        {
+          "product": "gpt_5_6_terra_text_testing",
+          "cost": 2.08,
+          "unit_price": 2.08
+        }
+      ],
+      "total_duration_unit_price": 0.1796667
+    },
+    "call_analysis": {
+      "call_summary": "David O'Connell scheduled a flu shot appointment at Lakeside Family Clinic for Thursday, September 17, 2026 at 9:00 AM. The appointment was successfully booked with confirmation number CLN-98AA1E.",
+      "in_voicemail": false,
+      "call_successful": true,
+      "custom_analysis_data": {},
+      "user_sentiment": "Positive"
+    },
+    "data_storage_setting": "everything",
+    "opt_in_signed_url": false,
+    "llm_token_usage": {
+      "values": [
+        435,
+        442,
+        563,
+        571,
+        582,
+        605,
+        615,
+        643,
+        663,
+        762,
+        819
+      ],
+      "average": 609.0909090909091,
+      "num_requests": 11
+    },
+    "tool_calls": [
+      {
+        "latency_ms": 146.99999999999935,
+        "success": true,
+        "tool_call_id": "call_cQDfJ7CW9kyrfbzW2BxVkStj",
+        "type": "custom",
+        "start_time_sec": 4.597,
+        "name": "check_availability"
+      },
+      {
+        "start_time_sec": 27.669,
+        "name": "book_appointment",
+        "tool_call_id": "call_AV56nm1DQhOuFBsvxFdyscXO",
+        "success": true,
+        "latency_ms": 371.9999999999999,
+        "type": "custom"
+      }
+    ],
+    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6IndlYl9jYWxsXzdlMmJiMTEwNDk3ZjA5NWRjMzY5YzU1ODA0MCJ9LCJpc3MiOiJBUElVTXg5OFUyR2MyanIiLCJleHAiOjE3ODk0OTM2OTIsIm5iZiI6MTc4OTQ5MzA5Miwic3ViIjoiY2xpZW50In0.AyeJtrw4D597-OlcC9GjX5yvAdM6hDzz_IKWltRooeY",
+    "transport": "livekit"
+  },
+  "driver_log": [
+    {
+      "t": 1789493093.93462,
+      "console": "publishing track {room: web_call_7e2bb110497f095dc369c558040, roomID: , participant: client, pID: PA_wmdRW3UCxV4t, trackID: undefined}"
+    },
+    {
+      "t": 1789493093.935661,
+      "console": "Opus DTX will be disabled for stereo tracks by default. Enable them explicitly to make it work. {room: web_call_7e2bb110497f095dc369c558040, roomID: , participant: client, pID: PA_wmdRW3UCxV4t, trackID: undefined}"
+    },
+    {
+      "t": 1789493093.93599,
+      "console": "Opus RED will be disabled for stereo tracks by default. Enable them explicitly to make it work."
+    },
+    {
+      "t": 1789493094.137981,
+      "console": "silence detected on local audio track {room: web_call_7e2bb110497f095dc369c558040, roomID: , participant: client, pID: PA_wmdRW3UCxV4t, trackID: TR_AMx7LG3YbHsski}"
+    },
+    {
+      "t": 1789493094.214313,
+      "console": "silence detected on local audio track {room: web_call_7e2bb110497f095dc369c558040, roomID: , participant: client, pID: PA_wmdRW3UCxV4t, trackID: TR_AMx7LG3YbHsski}"
+    },
+    {
+      "t": 1789493094.74524,
+      "turn": 0,
+      "action": "barge_in",
+      "after_ms": 700
+    },
+    {
+      "t": 1789493097.290868,
+      "turn": 0,
+      "action": "spoke",
+      "said": "Yeah hi I need an appointment for Thursday."
+    },
+    {
+      "t": 1789493102.555228,
+      "turn": 1,
+      "action": "spoke",
+      "said": "David Okonkwo. O-K-O-N-K-W-O."
+    },
+    {
+      "t": 1789493109.663167,
+      "turn": 2,
+      "action": "barge_in",
+      "after_ms": 900
+    },
+    {
+      "t": 1789493110.19226,
+      "turn": 2,
+      "action": "spoke",
+      "said": "Nine AM."
+    },
+    {
+      "t": 1789493112.155874,
+      "turn": 3,
+      "action": "spoke",
+      "said": "Just a flu shot."
+    },
+    {
+      "t": 1789493119.5161989,
+      "turn": 4,
+      "action": "spoke",
+      "said": "Yep, correct."
+    },
+    {
+      "t": 1789493149.52614,
+      "console": "disconnect from room {room: web_call_7e2bb110497f095dc369c558040, roomID: RM_i9Hhs282fYvU, participant: client, pID: PA_wmdRW3UCxV4t}"
+    }
+  ],
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent read back 'flu shot appointment on Thursday, September 17th at 9:00 AM' and asked 'Should I go ahead and book that for you?' and the caller replied 'Yep. Correct.' before the book_appointment call."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "The 9:00 AM time was one of the slots returned by check_availability, and was also stated by the caller ('Nine... AM')."
+    }
+  },
+  "retell_latency": {
+    "llm": {
+      "min": 2,
+      "p95": 3180.65,
+      "max": 3258,
+      "p50": 692,
+      "p90": 3103.3,
+      "num": 8,
+      "values": [
+        2,
+        510,
+        724,
+        3037,
+        660,
+        554,
+        3258,
+        1195
+      ],
+      "p99": 3242.5299999999997,
+      "sum": 9940
+    },
+    "e2e": {
+      "sum": 6916,
+      "p50": 1069,
+      "num": 3,
+      "p99": 5035.0599999999995,
+      "p90": 4306.599999999999,
+      "max": 5116,
+      "min": 731,
+      "values": [
+        5116,
+        1069,
+        731
+      ],
+      "p95": 4711.299999999999
+    },
+    "tts": {
+      "max": 248,
+      "p50": 185.5,
+      "min": 143,
+      "values": [
+        248,
+        152,
+        190,
+        143,
+        183,
+        155,
+        192,
+        188
+      ],
+      "p99": 244.07999999999998,
+      "num": 8,
+      "p90": 208.79999999999998,
+      "p95": 228.39999999999998,
+      "sum": 1451
+    },
+    "asr": {
+      "p50": 149,
+      "values": [
+        193,
+        149,
+        92,
+        0,
+        231
+      ],
+      "p99": 229.48,
+      "p90": 215.79999999999998,
+      "p95": 223.39999999999998,
+      "min": 0,
+      "num": 5,
+      "sum": 665,
+      "max": 231
+    }
+  },
+  "turn_timings": null
+}
