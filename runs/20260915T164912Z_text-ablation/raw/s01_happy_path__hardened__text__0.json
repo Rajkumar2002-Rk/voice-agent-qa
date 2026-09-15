@@ -1,0 +1,718 @@
+{
+  "result": {
+    "scenario_id": "s01_happy_path",
+    "persona": "happy_path",
+    "channel": "text",
+    "arm": "hardened",
+    "run_index": 0,
+    "call_id": "chat_91151e61ac878a0223b4a340e43",
+    "started_at": "2026-09-15T16:50:06.417544+00:00",
+    "ended_at": "2026-09-15T16:50:17.746410+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Maria Delgado",
+        "actual": "Maria Delgado",
+        "normalized_expected": "maria delgado",
+        "normalized_actual": "maria delgado",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Maria Delgado' -> maria delgado matches expected 'Maria Delgado' -> maria delgado"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-22",
+        "actual": "2026-09-22",
+        "normalized_expected": "2026-09-22",
+        "normalized_actual": "2026-09-22",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-22' -> 2026-09-22 matches expected '2026-09-22' -> 2026-09-22"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "3pm",
+        "actual": "15:00",
+        "normalized_expected": "15:00",
+        "normalized_actual": "15:00",
+        "rule": "time.24h_unambiguous",
+        "reasoning": "'15:00' -> 15:00 matches expected '3pm' -> 15:00"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "knee pain",
+        "normalized_expected": "knee|leg|joint",
+        "normalized_actual": "knee pain",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'knee' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Maria Delgado",
+            "date": "2026-09-22",
+            "time": "15:00",
+            "reason": "knee pain"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed (\"Yes, that's right.\"), then it booked",
+        "evidence": {
+          "readback": "You mentioned 3 PM on Tuesday the 22nd of September. Could you please tell me the reason for your visit?",
+          "assent": "Yes, that's right.",
+          "date": "2026-09-22",
+          "time": "15:00"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "13:30",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1789491006677,
+        "agent_response_start_ms": 1789491007494,
+        "latency_ms": 817,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 1789491007858,
+        "agent_response_start_ms": 1789491008619,
+        "latency_ms": 761,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 1789491008962,
+        "agent_response_start_ms": 1789491009699,
+        "latency_ms": 737,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 1789491010101,
+        "agent_response_start_ms": 1789491010950,
+        "latency_ms": 849,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 1789491011322,
+        "agent_response_start_ms": 1789491012079,
+        "latency_ms": 757,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 1789491013686,
+        "agent_response_start_ms": 1789491014693,
+        "latency_ms": 1007,
+        "note": ""
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 1789491015205,
+        "agent_response_start_ms": 1789491017185,
+        "latency_ms": 1980,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent read back 'Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain' and asked 'Is that correct?', receiving 'Yes, that's correct.' before calling book_appointment.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain' and asked 'Is that correct?', receiving 'Yes, that's correct.' before calling book_appointment.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 3 PM time was proposed by the caller and confirmed as available via the check_availability tool result before booking.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent was clear, polite, efficient, and not overly apologetic or robotic throughout.\"},\n \"handled_gracefully\":       {\"answer\": \"not_applicable\", \"why\": \"The caller was cooperative and gave clean information without interruptions, quietness, or off-script requests.\"}}"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "The 3 PM time was proposed by the caller and confirmed as available via the check_availability tool result before booking.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain' and asked 'Is that correct?', receiving 'Yes, that's correct.' before calling book_appointment.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 3 PM time was proposed by the caller and confirmed as available via the check_availability tool result before booking.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent was clear, polite, efficient, and not overly apologetic or robotic throughout.\"},\n \"handled_gracefully\":       {\"answer\": \"not_applicable\", \"why\": \"The caller was cooperative and gave clean information without interruptions, quietness, or off-script requests.\"}}"
+      },
+      {
+        "check": "tone",
+        "rating": "good",
+        "rationale": "The agent was clear, polite, efficient, and not overly apologetic or robotic throughout.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain' and asked 'Is that correct?', receiving 'Yes, that's correct.' before calling book_appointment.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 3 PM time was proposed by the caller and confirmed as available via the check_availability tool result before booking.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent was clear, polite, efficient, and not overly apologetic or robotic throughout.\"},\n \"handled_gracefully\":       {\"answer\": \"not_applicable\", \"why\": \"The caller was cooperative and gave clean information without interruptions, quietness, or off-script requests.\"}}"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "not_applicable",
+        "rationale": "The caller was cooperative and gave clean information without interruptions, quietness, or off-script requests.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back 'Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain' and asked 'Is that correct?', receiving 'Yes, that's correct.' before calling book_appointment.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 3 PM time was proposed by the caller and confirmed as available via the check_availability tool result before booking.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"The agent was clear, polite, efficient, and not overly apologetic or robotic throughout.\"},\n \"handled_gracefully\":       {\"answer\": \"not_applicable\", \"why\": \"The caller was cooperative and gave clean information without interruptions, quietness, or off-script requests.\"}}"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "user",
+        "text": "Hi, I'd like to book an appointment please.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491006677,
+        "end_ms": 1789491006677
+      },
+      {
+        "role": "agent",
+        "text": "Sure! May I have the full name of the patient for the appointment?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491007494,
+        "end_ms": 1789491007494
+      },
+      {
+        "role": "user",
+        "text": "My name is Maria Delgado.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491007858,
+        "end_ms": 1789491007858
+      },
+      {
+        "role": "agent",
+        "text": "Thank you, Maria Delgado. What date would you like to schedule your appointment for?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491008619,
+        "end_ms": 1789491008619
+      },
+      {
+        "role": "user",
+        "text": "Tuesday the twenty-second of September.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491008962,
+        "end_ms": 1789491008962
+      },
+      {
+        "role": "agent",
+        "text": "Just so I have it right \u2014 that's Tuesday the 22nd of September?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491009699,
+        "end_ms": 1789491009699
+      },
+      {
+        "role": "user",
+        "text": "Three PM works.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491010101,
+        "end_ms": 1789491010101
+      },
+      {
+        "role": "agent",
+        "text": "You mentioned 3 PM on Tuesday the 22nd of September. Could you please tell me the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491010950,
+        "end_ms": 1789491010950
+      },
+      {
+        "role": "user",
+        "text": "It's for knee pain, it's been bothering me for a couple weeks.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491011322,
+        "end_ms": 1789491011322
+      },
+      {
+        "role": "agent",
+        "text": "Checking available times for Tuesday the 22nd of September.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491012079,
+        "end_ms": 1789491012079
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-22",
+          "execution_message": "Checking available times for Tuesday the 22nd of September."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-22",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-22"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "We have openings on Tuesday the 22nd of September at 9 AM, 9:30 AM, 10 AM, 1:30 PM, 3 PM, and 4 PM. You mentioned 3 PM earlier. Would you like to book your appointment for 3 PM on that day?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491013285,
+        "end_ms": 1789491013285
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's right.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491013686,
+        "end_ms": 1789491013686
+      },
+      {
+        "role": "agent",
+        "text": "To confirm, you want to book an appointment for Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain. Is that correct?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491014693,
+        "end_ms": 1789491014693
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's correct.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491015205,
+        "end_ms": 1789491015205
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Maria Delgado",
+          "date": "2026-09-22",
+          "time": "15:00",
+          "reason": "knee pain"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-235E04",
+          "booked": {
+            "patient_name": "Maria Delgado",
+            "date": "2026-09-22",
+            "time": "15:00",
+            "reason": "knee pain",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your appointment is booked for Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain. If you need anything else, just let me know!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491017185,
+        "end_ms": 1789491017185
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-22",
+          "execution_message": "Checking available times for Tuesday the 22nd of September."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-22",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-22"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Maria Delgado",
+          "date": "2026-09-22",
+          "time": "15:00",
+          "reason": "knee pain"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-235E04",
+          "booked": {
+            "patient_name": "Maria Delgado",
+            "date": "2026-09-22",
+            "time": "15:00",
+            "reason": "knee pain",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Maria Delgado",
+      "date": "2026-09-22",
+      "time": "15:00",
+      "reason": "knee pain"
+    },
+    "followups_used": 1,
+    "error": null
+  },
+  "raw": {
+    "chat_id": "chat_91151e61ac878a0223b4a340e43",
+    "chat_type": "api_chat",
+    "agent_id": "agent_30ca3df92aa7b4aa129b38135e",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-chat-hardened",
+    "collected_dynamic_variables": {},
+    "chat_status": "ongoing",
+    "start_timestamp": 1789491006463,
+    "transcript": "User: Hi, I'd like to book an appointment please.\nAgent: Sure! May I have the full name of the patient for the appointment?\nUser: My name is Maria Delgado.\nAgent: Thank you, Maria Delgado. What date would you like to schedule your appointment for?\nUser: Tuesday the twenty-second of September.\nAgent: Just so I have it right \u2014 that's Tuesday the 22nd of September?\nUser: Three PM works.\nAgent: You mentioned 3 PM on Tuesday the 22nd of September. Could you please tell me the reason for your visit?\nUser: It's for knee pain, it's been bothering me for a couple weeks.\nAgent: Checking available times for Tuesday the 22nd of September.\nAgent: We have openings on Tuesday the 22nd of September at 9 AM, 9:30 AM, 10 AM, 1:30 PM, 3 PM, and 4 PM. You mentioned 3 PM earlier. Would you like to book your appointment for 3 PM on that day?\nUser: Yes, that's right.\nAgent: To confirm, you want to book an appointment for Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain. Is that correct?\nUser: Yes, that's correct.\nAgent: Your appointment is booked for Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain. If you need anything else, just let me know!",
+    "message_with_tool_calls": [
+      {
+        "message_id": "message_1c76c4f67a9f7f164d91a238",
+        "role": "user",
+        "created_timestamp": 1789491006677,
+        "content": "Hi, I'd like to book an appointment please."
+      },
+      {
+        "message_id": "message_0d3f8678171e0495af50f39c",
+        "role": "agent",
+        "created_timestamp": 1789491007494,
+        "content": "Sure! May I have the full name of the patient for the appointment?",
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "message_id": "message_1a9054e0466525f023862e54",
+        "role": "user",
+        "created_timestamp": 1789491007858,
+        "content": "My name is Maria Delgado."
+      },
+      {
+        "message_id": "message_718761407783b0f2ceac98ab",
+        "role": "agent",
+        "created_timestamp": 1789491008619,
+        "content": "Thank you, Maria Delgado. What date would you like to schedule your appointment for?",
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "message_id": "message_d01fd392f7ccf60807cdc8b0",
+        "role": "user",
+        "created_timestamp": 1789491008962,
+        "content": "Tuesday the twenty-second of September."
+      },
+      {
+        "message_id": "message_ca1595dc2bbc7d9e7e43c915",
+        "role": "agent",
+        "created_timestamp": 1789491009699,
+        "content": "Just so I have it right \u2014 that's Tuesday the 22nd of September?",
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "message_id": "message_9fb192d64f0baffa35d135e8",
+        "role": "user",
+        "created_timestamp": 1789491010101,
+        "content": "Three PM works."
+      },
+      {
+        "message_id": "message_ab71c71359a595b482c83f93",
+        "role": "agent",
+        "created_timestamp": 1789491010950,
+        "content": "You mentioned 3 PM on Tuesday the 22nd of September. Could you please tell me the reason for your visit?",
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "message_id": "message_1e7cfcab06315751f9f8036b",
+        "role": "user",
+        "created_timestamp": 1789491011322,
+        "content": "It's for knee pain, it's been bothering me for a couple weeks."
+      },
+      {
+        "message_id": "message_d78bc3d8ea04b470418a53e7",
+        "role": "agent",
+        "created_timestamp": 1789491012079,
+        "content": "Checking available times for Tuesday the 22nd of September.",
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "message_id": "message_0d34173d6c6bceba4fd30cd6",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491012080,
+        "tool_call_id": "call_TQ4GRnKQt7eJKRNkvO0o8GeZ",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-22\",\"execution_message\":\"Checking available times for Tuesday the 22nd of September.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_6191fed198520d6a3cb7700d",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491012223,
+        "tool_call_id": "call_TQ4GRnKQt7eJKRNkvO0o8GeZ",
+        "content": "{\"ok\":true,\"date\":\"2026-09-22\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"13:30\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-22\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_5a492c7af1abf23b1d80272f",
+        "role": "agent",
+        "created_timestamp": 1789491013285,
+        "content": "We have openings on Tuesday the 22nd of September at 9 AM, 9:30 AM, 10 AM, 1:30 PM, 3 PM, and 4 PM. You mentioned 3 PM earlier. Would you like to book your appointment for 3 PM on that day?",
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "message_id": "message_e73ed61924dd70f9a34a05f7",
+        "role": "user",
+        "created_timestamp": 1789491013686,
+        "content": "Yes, that's right."
+      },
+      {
+        "message_id": "message_77657833a418912118cba158",
+        "role": "agent",
+        "created_timestamp": 1789491014693,
+        "content": "To confirm, you want to book an appointment for Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain. Is that correct?",
+        "metadata": {
+          "response_id": 7
+        }
+      },
+      {
+        "message_id": "message_df5aa2216cc4e608975be0c3",
+        "role": "user",
+        "created_timestamp": 1789491015205,
+        "content": "Yes, that's correct."
+      },
+      {
+        "message_id": "message_b1119cc5a0257c34344ace11",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491016233,
+        "tool_call_id": "call_6VCD0dfqBtwBhmGzbFczJK0a",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Maria Delgado\",\"date\":\"2026-09-22\",\"time\":\"15:00\",\"reason\":\"knee pain\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_68477ada9d001cc9155ad45a",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491016368,
+        "tool_call_id": "call_6VCD0dfqBtwBhmGzbFczJK0a",
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-235E04\",\"booked\":{\"patient_name\":\"Maria Delgado\",\"date\":\"2026-09-22\",\"time\":\"15:00\",\"reason\":\"knee pain\",\"phone\":null}}",
+        "successful": true
+      },
+      {
+        "message_id": "message_da76f18824a27e5d082ca842",
+        "role": "agent",
+        "created_timestamp": 1789491017185,
+        "content": "Your appointment is booked for Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain. If you need anything else, just let me know!",
+        "metadata": {
+          "response_id": 8
+        }
+      }
+    ],
+    "chat_cost": {
+      "product_costs": [
+        {
+          "unit_price": 0.4,
+          "cost": 3.2,
+          "product": "gpt_4_1_mini_text_testing"
+        }
+      ],
+      "combined_cost": 3.2
+    },
+    "data_storage_setting": "everything"
+  },
+  "driver_log": null,
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent read back 'Maria Delgado on Tuesday, September 22nd at 3 PM for knee pain' and asked 'Is that correct?', receiving 'Yes, that's correct.' before calling book_appointment."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "The 3 PM time was proposed by the caller and confirmed as available via the check_availability tool result before booking."
+    }
+  },
+  "retell_latency": null,
+  "turn_timings": [
+    {
+      "said": "Hi, I'd like to book an appointment please.",
+      "api_round_trip_ms": 1234
+    },
+    {
+      "said": "My name is Maria Delgado.",
+      "api_round_trip_ms": 1104
+    },
+    {
+      "said": "Tuesday the twenty-second of September.",
+      "api_round_trip_ms": 1141
+    },
+    {
+      "said": "Three PM works.",
+      "api_round_trip_ms": 1212
+    },
+    {
+      "said": "It's for knee pain, it's been bothering me for a couple weeks.",
+      "api_round_trip_ms": 2340
+    },
+    {
+      "said": "Yes, that's right.",
+      "api_round_trip_ms": 1457
+    }
+  ]
+}

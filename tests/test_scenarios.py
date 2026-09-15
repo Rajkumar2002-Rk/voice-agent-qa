@@ -94,3 +94,39 @@ class TestEachScenario:
             else:
                 r = score_slot(name, exp, exp.expected, sc.reference_date)
             assert r.verdict == Verdict.PASS, f"{sc.id}.{name}: {r.reasoning}"
+
+
+def test_every_scenario_supplies_the_agent_a_date():
+    """Regression: the agent was never told what day it is, so it resolved
+    'Tuesday the 22nd' to 2024-08-22 — its training-era notion of now. Every
+    relative date in the experiment was skewed by ~2 years."""
+    from harness.channels.base import dynamic_variables
+    for sc in SCENARIOS:
+        v = dynamic_variables(sc)
+        assert v["current_date"] == sc.reference_date.isoformat()
+        assert v["current_day"] == sc.reference_date.strftime("%A")
+
+
+def test_both_prompts_carry_the_date_context_identically():
+    """The date block is context, not hardening — it must not differ by arm.
+
+    Compared as a literal block rather than by regex: the naive prompt has no
+    heading after this section, so a `(?=\n## |\Z)` lookahead swallows the rest
+    of the file and reports a spurious difference.
+    """
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1] / "agent" / "prompts"
+    block = (
+        "## Today's date\n\n"
+        "Today is {{current_day}}, {{current_date}}. Resolve every relative date "
+        "the caller\ngives you (\"next Tuesday\", \"the 3rd\", \"tomorrow\") against "
+        "that date, and pass\n`check_availability` and `book_appointment` an "
+        "explicit YYYY-MM-DD."
+    )
+    for arm in ("naive", "hardened"):
+        text = (root / f"{arm}.md").read_text()
+        assert "{{current_date}}" in text, f"{arm} prompt lacks the date variable"
+        assert block in text, (
+            f"{arm} prompt's date block differs from the canonical one — "
+            f"that would be a confound between arms"
+        )

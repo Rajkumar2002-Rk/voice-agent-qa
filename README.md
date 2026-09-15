@@ -51,18 +51,32 @@ Being precise about this, because "runnable" is the whole claim.
 
 | Component | Status |
 |---|---|
-| Deterministic scorer + normalisation | **Verified.** 140 tests, no network, no API key. |
+| Deterministic scorer + normalisation | **Verified.** 164 tests, no network, no API key. |
 | Scenario set (10 scenarios, 8 personas) | **Verified.** Self-consistency tested — every scenario is satisfiable by a perfect agent. |
 | Clinic tool server | **Verified.** Deterministic availability, exercised in tests. |
 | Report generator | **Verified** against a fabricated run fixture. |
-| Text channel (Chat API) | **Written, not yet run against a live account.** |
-| Voice channel (WebRTC web call) | **Written, not yet run against a live account.** Highest risk — see below. |
-| Findings writeup | **Pending real runs.** `docs/findings.md` is a scaffold. |
+| Text channel (Chat API) | **Verified live.** Passed first attempt. |
+| Voice channel (WebRTC web call) | **Verified live.** Real audio, real barge-in timing, real turn latency. |
+| Findings writeup | **In progress.** Text ablation run; voice ablation pending. |
 
 `runs/_synthetic_example/` contains **fabricated** numbers used only to test the
 reporter. It is stamped `SYNTHETIC: true`. Nothing in the findings comes from it.
 
----
+`runs/_discarded_pilot_scorer_bug/` contains four **invalid** runs, kept deliberately
+as evidence. Read its README — it is the concrete case where the scorer confidently
+accused the agent of hallucinating times it had read correctly off the tool.
+
+### Known limitations of the scorer itself
+
+Stated here rather than only in the findings, because they change how to read output:
+
+- **The hallucination check under-reports.** It suppresses utterances matching an
+  opening-hours pattern, so an agent saying "I'm open at 2pm" (meaning the slot) is
+  invisible to it. No deterministic fix found.
+- **The scripted caller is open-loop.** It cannot answer an unanticipated question.
+  A bounded follow-up ("Yes, that's correct." ×3) keeps this from silently failing
+  agents that ask more clarifying questions; `followups_used` is reported per run.
+- **A reproducible verdict is not a correct one.** See the discarded pilot.
 
 ## What web calls can and cannot test
 

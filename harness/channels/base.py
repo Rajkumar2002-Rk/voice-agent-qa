@@ -82,3 +82,20 @@ def captured_slots_from_events(events: list[Event]) -> dict[str, Any]:
     if not books:
         return {}
     return {k: v for k, v in books[-1].args.items() if v not in (None, "")}
+
+
+def dynamic_variables(scenario) -> dict[str, str]:
+    """Tell the agent what day it is.
+
+    Without this the model falls back on its training-era notion of "now" — in
+    practice 2024 — and every relative or partial date the caller gives is
+    resolved against the wrong year. The scenario's pinned reference_date is the
+    single source of truth for both the agent and the scorer, which is what makes
+    "next Tuesday" mean the same thing to both.
+    """
+    d = scenario.reference_date
+    return {
+        "current_date": d.isoformat(),
+        "current_day": d.strftime("%A"),
+        "current_date_spoken": d.strftime("%A, %B %-d, %Y"),
+    }

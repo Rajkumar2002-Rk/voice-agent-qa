@@ -390,3 +390,50 @@ This asymmetry favours the hardened arm and cannot be designed away without
 abandoning the "first draft vs hardened" framing. It must be stated plainly in the
 findings rather than buried, and the honest reading of any hardened-arm margin is:
 *this is what a prompt looks like after one round of looking at failures.*
+
+### B14. The agent was never told what day it is — every date was ~2 years off
+
+Killed the second ablation attempt at run 7. `s04_mind_change/naive#0` scored 0/4,
+and the tool log showed why:
+
+```
+USER   I'd like to book for Tuesday the twenty-second.
+TOOL   check_availability({"date": "2024-08-22"})
+```
+
+**August 2024.** The scenario's `reference_date` is 2026-09-14, so the expected date
+was 2026-09-22. The agent was out by two years and a month.
+
+Cause: nothing in the system ever told the agent the current date. Retell does not
+inject one, my prompts did not mention one, and I passed no dynamic variables. With
+no anchor, the model fell back on its training-era notion of "now" — 2024 — and
+resolved every relative and partial date against that.
+
+The knock-on effects were entirely convincing as agent failures:
+- the clinic reported Friday the 25th as closed, because 2024-08-25 is a *Sunday*
+- the agent looped asking for "the exact date" because nothing it had made sense
+- three scenarios turn on relative dates and all of them were quietly invalid
+
+**Scope: this invalidated the entire date dimension of the experiment**, which is
+the dimension three scenarios are built on and every other scenario touches.
+
+Fixed by making the scenario's `reference_date` the single source of truth for the
+agent as well as the scorer: both prompts carry an identical `## Today's date` block
+using `{{current_day}}` / `{{current_date}}`, and both channels pass
+`retell_llm_dynamic_variables` built from `reference_date`. A test asserts the block
+is byte-identical across arms, since a difference there would be a confound rather
+than hardening. Verified: the agent now calls `check_availability` with 2026-09-22.
+
+**The part worth writing up.** Earlier I "fixed" the hardened agent demanding the
+caller confirm the year (F1) by adding "assume the current year" to the prompt. That
+was treating a symptom. The agent asked for the year because *it genuinely did not
+know what year it was* — the most reasonable thing it could have done with the
+context it had. I read a sensible question as pedantry, patched the prompt to
+suppress it, and moved on. The underlying bug was mine and sat undetected for two
+more runs.
+
+That is the third time in this project a real defect wore the costume of an agent
+failure (see also B12, B13). The pattern is consistent enough to be the spine of the
+findings: **when your harness and the agent disagree, the harness is a serious
+suspect — and a confident, well-formatted failure report is exactly what a harness
+bug looks like from the outside.**

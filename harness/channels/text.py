@@ -20,7 +20,7 @@ from typing import Any
 
 from ..retell_client import RetellClient
 from ..schema import CallerTurn, Event, Scenario
-from .base import captured_slots_from_events, flatten_transcript
+from .base import captured_slots_from_events, dynamic_variables, flatten_transcript
 
 
 def _speakable(turns: list[CallerTurn]) -> list[CallerTurn]:
@@ -32,7 +32,9 @@ def run_text_scenario(
     client: RetellClient, agent_id: str, scenario: Scenario
 ) -> dict[str, Any]:
     started = datetime.now(UTC).isoformat()
-    chat = client.create_chat(agent_id)
+    chat = client.create_chat(
+        agent_id, retell_llm_dynamic_variables=dynamic_variables(scenario)
+    )
     chat_id = chat["chat_id"]
 
     turn_timings: list[dict[str, Any]] = []

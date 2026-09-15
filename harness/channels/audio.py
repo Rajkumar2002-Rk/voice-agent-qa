@@ -37,7 +37,7 @@ from typing import Any
 
 from ..retell_client import RetellClient
 from ..schema import Scenario
-from .base import captured_slots_from_events, flatten_transcript
+from .base import captured_slots_from_events, dynamic_variables, flatten_transcript
 
 PAGE = Path(__file__).parent / "page" / "harness.html"
 VENDOR = PAGE.parent / "vendor"
@@ -104,7 +104,11 @@ def run_voice_scenario(
     _ensure_vendor()
     started = datetime.now(UTC).isoformat()
 
-    call = client.create_web_call(agent_id, metadata={"scenario_id": scenario.id})
+    call = client.create_web_call(
+        agent_id,
+        metadata={"scenario_id": scenario.id},
+        retell_llm_dynamic_variables=dynamic_variables(scenario),
+    )
     call_id = call["call_id"]
     access_token = call["access_token"]
 
