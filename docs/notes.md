@@ -823,3 +823,40 @@ count is an upper bound.
 Worth carrying into any eval design: **enumerate your checks in pairs.** For every
 "did it say something untrue", write the matching "did it fail to say something
 true". The second is usually harder to detect and usually matters more.
+
+### B19 (confound, unfixed). Fixtures have no silence padding, and short turns suffer
+
+`s09_self_correction/naive/voice#0` scored 0/5 — no booking at all. The repaired
+"Four PM." fixture was audible this time (-2.0 dBFS), but STT transcribed it as
+**"For"**, dropping the time entirely. "Grace Lindqvist" came through as
+**"Grace Linkfest"**. With no usable time the agent never booked.
+
+Tempting conclusion: *STT degrades badly on short utterances.* I measured before
+writing that down, and it does not survive:
+
+| fixture | duration | leading silence |
+|---|---|---|
+| `s09_self_correction_t02` ("Four PM.") | 0.50s | **0s** |
+| `s04_mind_change_t03` ("Ten AM.") | 0.46s | **0s** |
+| `s01_happy_path_t00` (long) | 2.14s | **0s** |
+
+Every fixture starts at full amplitude on sample zero. A half-second clip with a hard
+attack and no VAD ramp-up is a poor model of a human saying "four PM" — a real caller
+has breath, onset, and room tone around the words. Losing the first phoneme of a
+0.5s burst is at least as likely to be an artifact of that as a property of Retell's
+STT.
+
+**So this result is confounded and cannot be reported as an agent or platform
+finding.** The honest statement is: *short caller utterances failed to transcribe,
+under a stimulus that does not resemble natural speech onset.*
+
+Not fixed, deliberately. The remaining runs are mid-flight and padding the fixtures
+now would mean s09 ran against different audio than s01-s08 — the same silent
+inconsistency I refused to introduce with the prompt edit earlier. The fix is
+~250ms of leading and trailing silence in `harness.tts`, then a re-run of the
+short-utterance scenarios, and it is written up as outstanding work rather than
+quietly applied.
+
+**This is the fifth time a harness property has masqueraded as a platform finding**,
+and the first one I have caught *before* writing it up rather than after. That is
+mild progress.
