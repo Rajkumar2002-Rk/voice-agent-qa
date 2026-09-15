@@ -42,11 +42,35 @@ class BudgetExceeded(RuntimeError):
     pass
 
 
+LEDGER = RUNS / "_spend_ledger.jsonl"
+
+
+def lifetime_spend() -> float:
+    """Everything this harness has ever charged, across all runs.
+
+    Read from an append-only ledger rather than by summing spend.json files,
+    because those are only written when a run *finishes* — three runs were
+    killed mid-batch today and their cost vanished from the accounting
+    entirely, which is how a $10 credit ran out while the tracker read $8.
+    """
+    if not LEDGER.exists():
+        return 0.0
+    total = 0.0
+    for line in LEDGER.read_text().splitlines():
+        if line.strip():
+            try:
+                total += json.loads(line).get("usd", 0.0)
+            except json.JSONDecodeError:
+                continue
+    return total
+
+
 class Budget:
     def __init__(self, limit_usd: float):
         self.limit = limit_usd
         self.spent = 0.0
         self.detail: list[dict[str, Any]] = []
+        LEDGER.parent.mkdir(parents=True, exist_ok=True)
 
     def estimate(self, voice_runs: int, text_runs: int, avg_call_s: float) -> float:
         return voice_runs * (avg_call_s / 60) * VOICE_USD_PER_MIN + text_runs * TEXT_USD_PER_RUN
@@ -54,8 +78,12 @@ class Budget:
     def charge(self, kind: str, seconds: float, label: str) -> None:
         cost = (seconds / 60) * VOICE_USD_PER_MIN if kind == "voice" else TEXT_USD_PER_RUN
         self.spent += cost
-        self.detail.append({"label": label, "kind": kind, "seconds": round(seconds, 1),
-                            "usd": round(cost, 4), "cumulative_usd": round(self.spent, 4)})
+        rec = {"label": label, "kind": kind, "seconds": round(seconds, 1),
+               "usd": round(cost, 4), "cumulative_usd": round(self.spent, 4)}
+        self.detail.append(rec)
+        # append immediately: a killed run must not erase what it already spent
+        with LEDGER.open("a") as fh:
+            fh.write(json.dumps({"ts": datetime.now(UTC).isoformat(), **rec}) + "\n")
         if self.spent > self.limit:
             raise BudgetExceeded(
                 f"spend ${self.spent:.2f} exceeded MAX_SPEND_USD=${self.limit:.2f} "
@@ -164,7 +192,10 @@ def main() -> int:
     if skipped:
         print(f"skipped (channel not meaningful for scenario): "
               f"{', '.join(f'{a}/{b}' for a, b in sorted(set(skipped)))}")
+    lifetime = lifetime_spend()
     print(f"estimated spend: ${est:.2f}  (guard at ${max_spend:.2f})")
+    print(f"lifetime spend by this harness: ${lifetime:.2f}"
+          + (f"  [+ ${est:.2f} would be ${lifetime + est:.2f}]" if est else ""))
     print(f"judge: {provider or 'disabled'}{'/' + model if model else ''}")
 
     if est > max_spend:

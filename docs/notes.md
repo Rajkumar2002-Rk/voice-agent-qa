@@ -902,3 +902,39 @@ Three things worth keeping:
 
 **Sixth defect of mine wearing an agent failure's costume**, and the second caught
 before publication rather than after.
+
+---
+
+## Postscript: the budget guard failed, and the failure mode is instructive
+
+Retell emailed to say the $10 credit was exhausted. My tracker read **$8.09**.
+
+The gap was not a bad per-minute rate — if anything my $0.16/min was *pessimistic*
+against Retell's actual ~$0.05-0.10. The gap was **unaccounted runs**:
+
+- `spend.json` is written when a run **finishes**.
+- I killed three runs today: two aborted text attempts, and voice batch 1 (15 calls,
+  ~22 minutes) stopped after finding the silent-fixture bug.
+- Every one of those calls was billed by Retell and recorded by me as **zero**.
+
+Actual usage: **45 unique voice calls, 70 minutes**, plus ~40 text/chat runs, LLM
+tokens and TTS renders. That is a $10 credit.
+
+The guard's design was wrong in two ways:
+
+1. **Spend was held in memory and persisted only at the end.** The one thing a budget
+   guard must survive is the run ending badly, and this one only worked if the run
+   ended well. Now an append-only ledger (`runs/_spend_ledger.jsonl`) is written on
+   every charge, so a `kill -9` loses at most the call in flight.
+2. **It had no concept of cumulative spend.** Each invocation started from $0, so
+   "guard at $9.99" meant $9.99 *per run*, and I ran eight of them. The runner now
+   prints lifetime spend before starting, so the number that matters is visible at
+   the moment of the decision.
+
+Backfilled 75 entries from the runs that completed. The killed runs are permanently
+unrecoverable — which is itself the point: **an accounting system that loses data on
+abnormal termination has no accounting system.**
+
+The wider lesson for anyone building this: a cost guard that only counts successful
+work will always understate, because the expensive part of an experiment is the
+attempts you throw away. Today that was three batches out of eight.
