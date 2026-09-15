@@ -79,3 +79,31 @@ def test_synthetic_generation_is_byte_stable(tmp_path):
         }
 
     assert snapshot() == snapshot(), "regenerating the fixture is not deterministic"
+
+
+def test_readme_test_count_is_not_stale():
+    """The README claims a test count. Keep it honest automatically.
+
+    Small thing, but this project's whole argument is that documentation
+    drifting from reality is how confident wrong answers get published.
+    """
+    import re
+    import subprocess
+    import sys
+
+    readme = (ROOT / "README.md").read_text()
+    m = re.search(r"\*\*Verified\.\*\* (\d+) tests", readme)
+    assert m, "README no longer states a test count in the expected form"
+    claimed = int(m.group(1))
+
+    out = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q"],
+        cwd=ROOT, capture_output=True, text=True,
+    ).stdout
+    m2 = re.search(r"(\d+) tests? collected", out)
+    assert m2, f"could not parse collection output: {out[-300:]}"
+    actual = int(m2.group(1))
+
+    assert claimed == actual, (
+        f"README says {claimed} tests, suite has {actual}. Update the README."
+    )
