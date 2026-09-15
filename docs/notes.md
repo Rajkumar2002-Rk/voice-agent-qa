@@ -633,3 +633,56 @@ Consequences, both benign here but worth knowing:
 Checked rather than assumed, which is the only reason I know. The general habit worth
 keeping: when two channels share a helper, verify the data it depends on exists on
 both paths, not just the one you tested.
+
+---
+
+## Day 1 — voice ablation, first real voice-only failure
+
+`s02_barge_in/naive/voice#0` — 3/4 slots. The failing slot is the whole point of
+running voice at all.
+
+**Caller said:** "David Okonkwo. O-K-O-N-K-W-O." — spelled out, letter by letter.
+**STT heard:** `"David O'Connell co"`
+**Agent booked:** `patient_name: "David O'Connell"`
+
+The scorer caught it exactly: `agent captured "David O'Connell" -> david oconnell,
+expected 'David Okonkwo' -> david okonkwo`.
+
+### Why this is the finding the experiment was built for
+
+This failure **cannot occur in the text channel**. Not "is less likely" — cannot.
+The text arm passes the string "David Okonkwo" straight into the model with perfect
+fidelity. Every text run of this scenario would capture the name correctly forever,
+and a text-only QA suite would report the agent as flawless at name capture.
+
+It is also not a harness artifact, and I checked before claiming that. The driver log
+shows both barge-ins firing on schedule (700ms and 900ms into the agent's turns), and
+the transcript shows the agent's greeting being genuinely chopped mid-word:
+
+```
+AGENT  Thanks for calling Lakeside
+USER   Yeah.
+AGENT  Family Clinic, this
+USER   Hi. I need an appointment for Thursday.
+```
+
+So the synthetic-microphone rig is producing real interruption at the audio layer,
+and the STT failure is downstream of that, in Retell's actual pipeline.
+
+### The compounding failure is worse than the transcription error
+
+STT mishearing an unusual name is expected and forgivable. What isn't: the caller
+**spelled it out** — "O-K-O-N-K-W-O" — and that verification signal was destroyed by
+the same mis-transcription. The agent then booked the wrong name without ever reading
+it back for confirmation, and told the caller their appointment was "all set."
+
+A clinic gets a patient record under a name that doesn't exist. Nobody notices until
+the patient arrives.
+
+The naive prompt has nothing to say about names. The hardened one says *"full name.
+Spell-check it back if it's unusual."* Whether that instruction survives contact with
+a mis-transcription is now an empirical question with data coming — and it is a much
+sharper test than anything the text channel could pose, because the agent cannot
+recover a signal the STT already lost. My expectation, recorded before the hardened
+runs land: **the hardened prompt will not fix this**, because it cannot know the name
+was unusual when STT handed it a common one. "O'Connell" reads as perfectly ordinary.
