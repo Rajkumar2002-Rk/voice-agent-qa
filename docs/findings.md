@@ -326,6 +326,15 @@ no PSTN jitter or packet loss, no carrier echo, no DTMF. An agent that passes he
 still fail on a real phone line. This is the single biggest gap between this harness
 and production QA, and it is a deliberate cost trade.
 
+**Determinism stops at the microphone.** The caller audio is byte-identical across
+runs by construction, and the scorer is deterministic — but STT is not. The same
+committed WAV of "David Okonkwo. O-K-O-N-K-W-O." transcribed as `David O'Connell`
+on two runs and `David O'Conk Co` on a third. So a deterministic scorer plus a
+deterministic caller does **not** produce a deterministic experiment when the channel
+between them is stochastic. Voice results need higher n than text results to mean the
+same thing — which is the opposite of what the budget allows, and why the voice arm
+runs at n=2 while text runs at n=3.
+
 **Scripted callers, not humans.** Fixed TTS fixtures, byte-identical every run. That
 buys reproducibility and costs realism: one synthetic voice, consistent prosody, no
 accents, no real disfluency. Real callers fail in ways this cannot generate. The

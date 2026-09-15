@@ -686,3 +686,37 @@ sharper test than anything the text channel could pose, because the agent cannot
 recover a signal the STT already lost. My expectation, recorded before the hardened
 runs land: **the hardened prompt will not fix this**, because it cannot know the name
 was unusual when STT handed it a common one. "O'Connell" reads as perfectly ordinary.
+
+### Prediction confirmed: nothing fixed the mis-transcribed name
+
+All four `s02_barge_in` runs failed the `patient_name` slot.
+
+| arm | run | captured |
+|---|---|---|
+| naive | #0 | `David O'Connell` |
+| naive | #1 | `David O'Connell` |
+| hardened | #0 | `David O'Connell` |
+| hardened | #1 | `David O'Conk Co` |
+
+The prediction I logged before these landed — that the hardened prompt's
+*"spell-check it back if it's unusual"* rule would not save it — holds. The rule
+cannot fire on a name the agent has no reason to doubt. "O'Connell" is an ordinary
+surname; the agent has no access to the audio, only to the transcript, and the
+transcript looks entirely plausible.
+
+**This is the cleanest STRUCTURAL_TO_VOICE result in the set.** The information was
+destroyed upstream of the language model. No prompt can recover it, because prompts
+operate on text and the loss happened before text existed. The levers that would
+actually help are all elsewhere: a phonetic-alphabet confirmation flow, a custom
+vocabulary or keyword-boost list for surnames, a different STT model, or spelling
+capture via DTMF.
+
+One more thing worth noting: the same committed WAV produced **two different
+transcriptions** across runs (`O'Connell` twice, `O'Conk Co` once). The caller side
+of this experiment is byte-identical by design, and the pipeline is still
+non-deterministic — so the reproducibility this harness offers stops at the
+microphone. That is a real limit on the determinism claim and belongs in the caveats,
+not buried here: **a deterministic scorer and a deterministic caller do not add up to
+a deterministic experiment when the channel in between is stochastic.** It is an
+argument for higher n on voice than on text, which is the opposite of what the budget
+allows.
