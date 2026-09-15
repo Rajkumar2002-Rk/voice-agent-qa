@@ -612,3 +612,24 @@ Two things worth keeping from this:
   model of *why* it should work was broken. The falsified prediction is the finding.
 - **It goes in the "expected to matter, didn't" column.** I expected prompt coverage
   of a field to be necessary for capture. It wasn't.
+
+### Retell API asymmetry: chat tool webhooks carry no call_id
+
+The clinic tool log accumulated 97 entries under `unknown.jsonl` and only a handful
+under real `call_*.jsonl` files. Cause: **voice** calls post the tool webhook with a
+`call` object containing `call_id`; **chat** posts the arguments at the top level
+with no call wrapper and no identifier.
+
+Consequences, both benign here but worth knowing:
+
+- Text-run tool calls cannot be attributed to a specific chat from the server log
+  alone. Not a problem for scoring, which reads tool calls out of the transcript, but
+  it would break any per-conversation analysis built on the tool log.
+- The voice channel's `_has_booked()` — which decides whether to keep offering
+  follow-ups — relies on that `call_id`. It works, because voice supplies one. Had
+  the asymmetry run the other way, the follow-up fix would have silently never fired
+  and I'd have been back to three wasted turns per call while believing it fixed.
+
+Checked rather than assumed, which is the only reason I know. The general habit worth
+keeping: when two channels share a helper, verify the data it depends on exists on
+both paths, not just the one you tested.
