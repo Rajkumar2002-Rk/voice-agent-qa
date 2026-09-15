@@ -1,12 +1,58 @@
 # voice-agent-qa
 
-A deterministic QA harness for Retell voice agents: scripted adversarial callers, a
-rules-based scorer that tells you **which slot** was wrong and **what the agent
-actually captured**, and a controlled ablation across two prompt arms and two
-channels.
+[![tests](https://github.com/Rajkumar2002-Rk/voice-agent-qa/actions/workflows/test.yml/badge.svg)](https://github.com/Rajkumar2002-Rk/voice-agent-qa/actions/workflows/test.yml)
+[![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![tests](https://img.shields.io/badge/tests-188%20passing-brightgreen)]()
 
-Built as a working answer to a specific question — *what does it take to
-continuously QA a voice agent?* — against Retell's own API.
+A deterministic QA harness for [Retell](https://retellai.com) voice agents: scripted
+adversarial callers, a rules-based scorer that names **which slot** was wrong and
+**what the agent actually captured**, and a controlled ablation across two prompt
+arms and two channels.
+
+**82 real runs against a live Retell account. Every transcript committed.**
+
+---
+
+## Headline results
+
+| channel | naive prompt | hardened prompt |
+|---|---|---|
+| text (Chat API) | 95% | 95% |
+| voice (WebRTC) | 75% | 80% |
+
+**Prompt hardening bought nothing measurable.** Six of nine adversarial personas were
+never broken by either prompt. The one failure nothing fixed is structural:
+
+> Caller says **"David Okonkwo. O-K-O-N-K-W-O."** — spelling it out.
+> STT produces **"David O'Connell"**. The agent books the wrong name and confirms it.
+
+The information was destroyed upstream of the language model, along with the caller's
+own error-correction. The hardened prompt's *"spell-check unusual names"* rule cannot
+fire, because "O'Connell" looks entirely ordinary. **A text-only QA suite reports this
+agent as flawless at name capture, forever.**
+
+The LLM judge agreed with the deterministic scorer **146/146** — which cuts against
+the premise this was built on, and is written up as such in
+[docs/findings.md](docs/findings.md).
+
+## The uncomfortable finding
+
+Six defects in *this harness* produced confident, plausible, entirely false reports of
+agent failure before I caught them. Two produced **exactly the failure signature their
+scenario predicted**:
+
+- A silent audio fixture made the agent look like it failed to update state after a
+  caller changed their mind.
+- A units bug made it look like the agent hallucinated availability ~30% of the time.
+
+Each one is written up in [docs/notes.md](docs/notes.md) with how it would have
+shipped as a finding. The tooling that resulted — `make preflight`,
+`make check-fixtures`, `make rescore` — exists because each check's absence already
+cost a batch of real calls.
+
+**The expensive part of an eval harness is not the scoring. It is earning the right to
+believe the output.**
 
 ---
 
