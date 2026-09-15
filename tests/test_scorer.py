@@ -383,3 +383,51 @@ class TestBookingDetectionFromToolLog:
         monkeypatch.setattr(audio, "TOOL_LOG_DIR", tmp_path)
         (tmp_path / "call3.jsonl").write_text('{"tool": "book_app')
         assert audio._has_booked("call3") is False
+
+
+class TestDeniedAvailableSlot:
+    """The mirror of invented_availability, added after s06 showed the agent
+    telling a caller 2 PM was unavailable when the tool had just returned it —
+    and the invention check passing, because it only looks the other way."""
+
+    def _events(self, slots, agent_text):
+        return [
+            ev("tool_call", name="check_availability", args={"date": "2026-10-05"}),
+            ev("tool_result", name="check_availability",
+               result={"slots": [{"time": t} for t in slots]}),
+            ev("agent", agent_text),
+        ]
+
+    def test_denying_an_offered_slot_is_caught(self, base_scenario):
+        from harness.scorer import check_denied_available_slot
+        r = check_denied_available_slot(base_scenario(), self._events(
+            ["13:30", "14:00", "15:00"], "We don't have a 2:00 PM slot, sorry."))
+        assert r.verdict == Verdict.WRONG
+        assert r.evidence["denied"][0]["canonical"] == "14:00"
+
+    def test_denying_a_slot_that_really_is_unavailable_is_fine(self, base_scenario):
+        from harness.scorer import check_denied_available_slot
+        r = check_denied_available_slot(base_scenario(), self._events(
+            ["13:30", "15:00"], "We don't have a 2:00 PM slot, sorry."))
+        assert r.verdict == Verdict.PASS
+
+    def test_offering_a_slot_is_not_a_denial(self, base_scenario):
+        from harness.scorer import check_denied_available_slot
+        r = check_denied_available_slot(base_scenario(), self._events(
+            ["14:00"], "We have 2:00 PM available."))
+        assert r.verdict == Verdict.PASS
+
+    def test_not_applicable_when_tool_returned_nothing(self, base_scenario):
+        from harness.scorer import check_denied_available_slot
+        r = check_denied_available_slot(base_scenario(), self._events(
+            [], "The clinic is closed that day."))
+        assert r.verdict == Verdict.NOT_APPLICABLE
+
+    def test_known_weakness_mixed_utterance(self, base_scenario):
+        """Documented false positive: '2 PM isn't available but 3 PM is' names
+        an available time inside a denial sentence. Asserted so the limitation
+        is visible rather than discovered later."""
+        from harness.scorer import check_denied_available_slot
+        r = check_denied_available_slot(base_scenario(), self._events(
+            ["15:00"], "2:00 PM is not available, but 3:00 PM is."))
+        assert r.verdict == Verdict.WRONG  # <- known over-report

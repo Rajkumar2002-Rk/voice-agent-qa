@@ -487,3 +487,54 @@ corrupt-log case, since a half-written JSON line must never crash a live call.
 drift shows up as a plausible cross-channel difference. Anything compared across
 arms or channels should share one implementation — the same reason both channels
 already flatten transcripts through one function.
+
+### F2 / B16. The hallucination check was one-directional — it missed the opposite failure
+
+`s06_ambiguous_third_closed/naive#0`. The tool returned availability for 2026-10-05:
+`['09:00','09:30','10:00','13:30','14:00','15:00','16:00']` — **including 14:00**.
+The agent then said:
+
+> "We don't have a 2:00 PM slot, but we do have 1:30 PM or 2:00 PM is not available.
+> Would you like to choose 1:30 PM or 3:00 PM instead?"
+
+It denied a slot the tool had just returned — and the sentence is incoherent on top
+of that. It then booked 13:30 instead of the expected 14:00, so the `time` slot was
+correctly scored WRONG.
+
+But `invented_availability` returned **PASS**, and correctly so by its own
+definition: it only looks for times the agent states that the tool did *not* return.
+Stating that an offered time is unavailable is the mirror-image failure, and the
+check was blind to it by construction.
+
+This matters commercially more than invention does. An agent that invents a slot
+creates a scheduling conflict someone notices. An agent that refuses bookings it
+could have taken loses revenue silently — nobody files a ticket for an appointment
+they didn't make.
+
+Added `check_denied_available_slot`. It is explicitly **heuristic** — it needs a
+negation cue in the same utterance as an offered time — and one of its tests asserts
+a known false positive ("2 PM is not available, but 3 PM is") so the weakness is
+visible in the suite rather than discovered later by someone trusting the number.
+
+**The generalisable bit:** every check I wrote asks "did the agent say something
+untrue?" None asked "did the agent fail to say something true?" Omission is harder
+to detect and, in a booking flow, more expensive. Worth a deliberate pass over any
+eval suite asking which half of that pair each check covers.
+
+### Tooling: `make rescore`
+
+Today cost two batches to scorer bugs, and the fix each time meant re-running calls.
+It shouldn't have. Every run commits its flattened event list and the agent's own
+tool-call arguments, so a scorer fix can be applied to data already paid for:
+
+    make rescore DIR=runs/<dir>            # dry run, shows every verdict that moves
+    make rescore DIR=runs/<dir> WRITE=1    # applies, keeping a .bak
+
+This is the actual dividend of keeping the primary score deterministic and the
+transcripts committed. An LLM-judged suite cannot do it — re-grading means paying
+for inference again and getting different answers. A rules-based one re-derives the
+same verdicts for free, and a *fixed* scorer re-derives better ones.
+
+It also makes scorer fixes safe to make late: the denial check above was added after
+the run started, and the completed runs can be brought up to it without spending a
+cent.

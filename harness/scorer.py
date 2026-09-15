@@ -375,6 +375,69 @@ def check_invented_availability(
     )
 
 
+# Negation cues that turn "2:00 PM" into "we don't have 2:00 PM". Deliberately
+# narrow: this check is heuristic, and a false accusation is worse than a miss.
+_DENIAL_RE = re.compile(
+    r"\b(?:do\s?n[o']t have|does\s?n[o']t have|not available|isn[o']?t available|"
+    r"no (?:openings?|slots?|availability)|unavailable|already booked|fully booked)\b",
+    re.IGNORECASE,
+)
+
+
+def check_denied_available_slot(
+    scenario: Scenario, events: list[Event]
+) -> BehaviourResult:
+    """Did the agent tell the caller a time was unavailable that the tool offered?
+
+    The mirror image of invented_availability, and it was missing. A clinic agent
+    that refuses bookings it could have taken is arguably worse for the business
+    than one that invents them, and the invention check is blind to it by
+    construction: it only looks at times the agent states that the tool did NOT
+    return.
+
+    Heuristic, and labelled as such: it requires a negation cue in the SAME
+    utterance as a time the tool returned. That misses denials split across
+    sentences and can fire on "2 PM is not available, but 2:30 is" phrasing where
+    both times appear. Evidence carries the full utterance so every hit is
+    auditable.
+    """
+    offered: set[str] = set()
+    for e in events:
+        if e.role == "tool_result" and e.name == AVAILABILITY_TOOL:
+            for slot in e.result.get("slots", []) or []:
+                n = normalize_time(str(slot.get("time", slot)), context="structured")
+                if n.ok and n.value:
+                    offered.add(n.value)
+
+    if not offered:
+        return BehaviourResult(
+            check="denied_available_slot", verdict=Verdict.NOT_APPLICABLE,
+            reasoning="the availability tool never returned any slots",
+        )
+
+    denials: list[dict[str, object]] = []
+    for e in events:
+        if e.role != "agent" or not e.text or not _DENIAL_RE.search(e.text):
+            continue
+        for raw, canon in extract_times(e.text, skip_hours_context=False):
+            if canon in offered:
+                denials.append({"said": raw, "canonical": canon, "utterance": e.text})
+
+    if denials:
+        return BehaviourResult(
+            check="denied_available_slot", verdict=Verdict.WRONG,
+            reasoning=f"agent told the caller {len(denials)} time(s) were "
+                      f"unavailable that {AVAILABILITY_TOOL} had returned as open "
+                      f"(heuristic check — see evidence)",
+            evidence={"denied": denials, "tool_offered": sorted(offered)},
+        )
+    return BehaviourResult(
+        check="denied_available_slot", verdict=Verdict.PASS,
+        reasoning="agent never denied a slot the tool had offered",
+        evidence={"tool_offered": sorted(offered)},
+    )
+
+
 def check_tool_expectations(scenario: Scenario, events: list[Event]) -> list[BehaviourResult]:
     out: list[BehaviourResult] = []
     called = {e.name for e in events if e.role == "tool_call" and e.name}
@@ -443,6 +506,7 @@ def score_run(
         check_booking_discipline(scenario, events),
         check_confirmed_before_booking(scenario, events),
         check_invented_availability(scenario, events),
+        check_denied_available_slot(scenario, events),
         *check_tool_expectations(scenario, events),
     ]
     return slots, behaviours, compute_latencies(events)

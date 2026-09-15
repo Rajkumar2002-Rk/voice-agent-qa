@@ -1,5 +1,5 @@
 .PHONY: help install install-audio test lint check-key tunnel serve provision \
-        preflight smoke smoke-voice run-text run-full report synthetic clean
+        preflight smoke rescore smoke-voice run-text run-full report synthetic clean
 
 PY := .venv/bin/python
 PIP := uv pip install --python .venv/bin/python
@@ -52,6 +52,10 @@ run-text: ## full text ablation (cheap)
 
 run-full: ## full 2x2 ablation — costs real credits, check the estimate first
 	$(PY) -m harness.runner --arms naive hardened --channels text voice --repeats 3 --label full-ablation
+
+rescore: ## re-score a finished run with the current scorer (free). usage: make rescore DIR=runs/... [WRITE=1]
+	@test -n "$(DIR)" || (echo "usage: make rescore DIR=runs/<dir> [WRITE=1]"; exit 1)
+	$(PY) -m harness.rescore $(DIR) $(if $(WRITE),--write,)
 
 report: ## render a run directory. usage: make report DIR=runs/2026...
 	@test -n "$(DIR)" || (echo "usage: make report DIR=runs/<dir>"; exit 1)
