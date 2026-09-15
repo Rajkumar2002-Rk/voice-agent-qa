@@ -44,6 +44,11 @@ jobs:
           git diff --exit-code -- runs/_synthetic_example \
             || (echo "::error::regenerating the fixture changed files" && exit 1)
 
+      - name: Caller fixtures are audible
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          .venv/bin/python scripts/check_fixtures.py
+
       - name: No API keys committed
         run: |
           if grep -rIE "key_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}" \

@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -47,6 +48,39 @@ def _ffmpeg(*args: str) -> None:
 def _to_wav48(src: Path, dst: Path) -> None:
     _ffmpeg("-i", str(src), "-ar", str(TARGET_RATE), "-ac", "1",
             "-c:a", "pcm_s16le", str(dst))
+
+
+class SilentRender(RuntimeError):
+    pass
+
+
+def _peak_dbfs(path: Path) -> float:
+    """Peak level of a rendered clip, via ffmpeg's volumedetect."""
+    r = subprocess.run(
+        ["ffmpeg", "-i", str(path), "-af", "volumedetect", "-f", "null", "-"],
+        capture_output=True, text=True, check=False,
+    )
+    m = re.search(r"max_volume:\s*(-?[\d.]+) dB", r.stderr)
+    return float(m.group(1)) if m else -999.0
+
+
+# Healthy TTS output peaks around -7 dBFS. Two clips came back near-silent
+# (-46 dB) and were played into live calls as nothing at all — the agent heard
+# no answer, looped, and the scenario scored as an agent failure. Validate every
+# render; a fixture that cannot be heard is worse than a missing one, because a
+# missing one fails loudly.
+MIN_PEAK_DBFS = -20.0
+
+
+def _verify(path: Path, text: str) -> None:
+    if not path.exists() or path.stat().st_size < 2000:
+        raise SilentRender(f"{path.name}: file missing or too small for {text!r}")
+    peak = _peak_dbfs(path)
+    if peak < MIN_PEAK_DBFS:
+        raise SilentRender(
+            f"{path.name}: peak {peak:.1f} dBFS is below {MIN_PEAK_DBFS} dBFS — "
+            f"the render of {text!r} is effectively silent"
+        )
 
 
 def _synthesize(text: str, dst: Path, voice: str) -> None:
@@ -109,7 +143,19 @@ def build(force: bool = False) -> None:
                     continue
 
             print(f"  rendering {name}: {turn.say[:60]!r}")
-            _synthesize(turn.say, dst, voice)
+            for attempt in range(1, 6):
+                _synthesize(turn.say, dst, voice)
+                try:
+                    _verify(dst, turn.say)
+                    break
+                except SilentRender as e:
+                    print(f"    attempt {attempt}: {e}")
+                    if attempt == 5:
+                        raise SystemExit(
+                            f"TTS produced silent audio for {turn.say!r} five "
+                            f"times. Refusing to ship a fixture that cannot "
+                            f"be heard."
+                        ) from e
             manifest[name] = {"text": turn.say, "voice": voice, "digest": digest}
             raw["turns"][i]["audio_file"] = name
             rendered += 1

@@ -720,3 +720,50 @@ not buried here: **a deterministic scorer and a deterministic caller do not add 
 a deterministic experiment when the channel in between is stochastic.** It is an
 argument for higher n on voice than on text, which is the opposite of what the budget
 allows.
+
+### B18. Two caller fixtures were silent, and the scenarios failed because of it
+
+Stopped the voice ablation at run 15. `s04_mind_change/hardened#0` scored 0/4, and
+the transcript showed the agent asking for a time over and over while the caller
+appeared to ignore it.
+
+The caller had not ignored it. The driver log confirmed the harness played turn 3
+("Ten AM.") on schedule — but the **fixture itself was near-silent**:
+
+| fixture | text | peak |
+|---|---|---|
+| `s04_mind_change_t03.wav` | "Ten AM." | **-46.7 dBFS** |
+| `s09_self_correction_t02.wav` | "Four PM." | **-43.8 dBFS** |
+
+Healthy fixtures peak around -7 dBFS. These were played into live calls as nothing
+at all.
+
+**The damage was worse than a lost turn.** In `s04`, both naive runs then booked
+15:00 — the time from *before* the caller changed their mind. That is precisely the
+carry-forward failure the mind-change scenario was built to detect, and it would have
+been written up as the agent failing to update state. The real cause was that the new
+time was never spoken. A textbook false positive: the scenario "worked", produced the
+expected failure signature, and was measuring my broken audio.
+
+Three sub-lessons, all cheap in hindsight:
+
+1. **I validated the text of every fixture and never the audio.** The manifest
+   recorded the intended words, file sizes looked plausible, and both clips were the
+   right duration (0.55s). Nothing short of listening — or measuring — would catch it.
+2. **My first scan for this was itself broken.** `grep -oE '\-?[0-9.]+' | head -1`
+   on `max_volume: -46.7 dB` matched the `0` in `Parsed_volumedetect_0` and reported
+   zero problems across all 53 files. I nearly concluded the fixtures were fine. A
+   check that cannot fail is worse than no check.
+3. **The failure is transient, not deterministic.** "Four PM." rendered silent five
+   times in a row, then fine on the sixth; a direct probe of the same string produced
+   -6.0 dBFS immediately. So a retry is the right fix, but only with verification —
+   without measuring the output, retrying achieves nothing.
+
+Now: `harness.tts` verifies every render is above -20 dBFS and retries up to five
+times before refusing to ship; `scripts/check_fixtures.py` audits the whole set;
+`make check-fixtures` runs it; and CI enforces it so a silent clip cannot be committed.
+
+**The pattern, again.** This is the fourth defect of mine that arrived disguised as an
+agent failure, and the most convincing yet — because it produced *exactly the failure
+the scenario predicted*. A harness bug that generates a plausible negative result is
+far more dangerous than one that crashes.
