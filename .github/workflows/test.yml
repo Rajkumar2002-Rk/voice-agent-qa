@@ -1,0 +1,53 @@
+name: tests
+
+# The whole point of the scorer is that it needs no API key, no network and no
+# model. If this workflow ever needs a secret, the determinism claim has broken.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: |
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install --python .venv/bin/python -e ".[dev]"
+
+      - name: Lint
+        run: .venv/bin/python -m ruff check harness agent tests scripts
+
+      - name: Tests
+        run: .venv/bin/python -m pytest tests/ -v
+
+      - name: Report generator runs end to end
+        run: |
+          .venv/bin/python scripts/make_synthetic_run.py
+          .venv/bin/python -m harness.report runs/_synthetic_example
+
+      - name: Synthetic fixture is byte-stable
+        run: |
+          .venv/bin/python scripts/make_synthetic_run.py
+          git diff --exit-code -- runs/_synthetic_example \
+            || (echo "::error::regenerating the fixture changed files" && exit 1)
+
+      - name: No API keys committed
+        run: |
+          if grep -rIE "key_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}" \
+               --exclude-dir=.git --exclude-dir=.venv . ; then
+            echo "::error::possible credential in the tree"; exit 1
+          fi
+          test ! -f .env || (echo "::error::.env is committed"; exit 1)
