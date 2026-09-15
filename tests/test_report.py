@@ -98,7 +98,7 @@ def test_readme_test_count_is_not_stale():
 
     out = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q"],
-        cwd=ROOT, capture_output=True, text=True,
+        cwd=ROOT, capture_output=True, text=True, check=False,
     ).stdout
     m2 = re.search(r"(\d+) tests? collected", out)
     assert m2, f"could not parse collection output: {out[-300:]}"
