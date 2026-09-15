@@ -193,110 +193,150 @@ is blunt: an agent saying *"I'm open at 2pm"* — meaning the slot — is now in
 it. No deterministic fix found. **This check under-reports**, and should be read that
 way rather than as a clean signal.
 
-## 4. Text ablation results — the hardened prompt did not help
+## 4. Results — 82 runs across the full 2x2
 
-42 runs, 7 scenarios x 2 arms x 3 repeats, text channel. Raw transcripts committed
-under `runs/20260915T165252Z_text-ablation/`. $0.42.
+Text: 7 scenarios x 2 arms x 3 repeats. Voice: 10 scenarios x 2 arms x 2 repeats.
+All raw transcripts committed under `runs/`. Total spend ~$8.
 
 | channel | naive | hardened |
 |---|---|---|
 | text | **20/21 (95%)** | **20/21 (95%)** |
+| voice | **15/20 (75%)** | **16/20 (80%)** |
 
-A dead tie. Not "hardened won narrowly" — literally the same number, arrived at by
-failing different things.
+**The hardened prompt did not measurably help.** Text is a dead tie. Voice differs by
+a single run at n=2, which is noise, not a result.
 
-| persona | naive | hardened |
+### Per-persona classification
+
+| persona | naive/text | hard/text | naive/voice | hard/voice | verdict |
+|---|---|---|---|---|---|
+| happy_path | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
+| mind_change | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
+| ambiguous_date | 83% | 100% | 100% | 100% | NOT_A_PROBLEM |
+| out_of_scope | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
+| compound_utterance | 100% | 100% | 100% | 100% | NOT_A_PROBLEM |
+| background_noise | — | — | 100% | 100% | NOT_A_PROBLEM |
+| long_silence | — | — | 50% | 100% | FIXED_BY_PROMPT |
+| **barge_in** | — | — | **0%** | **0%** | **NOTHING_FIXED** |
+| self_correction | 100% | 67% | 0% | 0% | REGRESSED |
+
+Six of nine personas were never a problem for either prompt. That is the headline,
+and it is a negative result.
+
+### The one failure nothing fixed: barge_in
+
+0% in both arms, and the cause is identical in all four runs. The caller says
+**"David Okonkwo. O-K-O-N-K-W-O."** — spelling it out. STT produces
+**"David O'Connell co"** (and once "David O'Conk Co"). The agent books the wrong
+name and tells the caller it is confirmed.
+
+This is the cleanest structural-to-voice result in the set, and the reasoning is not
+statistical:
+
+- **The information was destroyed upstream of the language model.** The agent sees
+  only the transcript, and "O'Connell" is a perfectly ordinary surname with no signal
+  that anything went wrong.
+- **The caller's own error-correction mechanism was destroyed with it.** Spelling the
+  name out is exactly what a human does to disambiguate, and the mis-transcription
+  ate the spelling too.
+- **The hardened prompt has a rule for this** — *"full name. Spell-check it back if
+  it's unusual."* It cannot fire. The name does not look unusual.
+
+I recorded that prediction before the hardened runs executed; it held. No prompt can
+recover a signal that never reached text. The levers that would work are elsewhere:
+keyword boosting or a custom vocabulary for surnames, a phonetic-alphabet
+confirmation flow, DTMF spelling capture, or a different STT model.
+
+**A text-only QA suite reports this agent as flawless at name capture, forever.**
+
+### long_silence: the only thing the prompt appears to have fixed — at n=2
+
+Naive 1/2, hardened 2/2. One run. The mechanism is plausible (the hardened prompt
+says to check in once and then offer a callback, and the transcripts show it doing
+exactly that), but a single run at n=2 cannot support a claim and I am not making
+one.
+
+### self_correction: REGRESSED, and confounded
+
+Text 100% -> 67% is one run at n=3. Voice is 0% in both arms, but that is **not an
+agent result** — it is B19. The "Four PM." fixture is a 0.5s clip with no leading
+silence, and STT rendered it "For", losing the time. Both arms are handicapped
+identically so the comparison survives; the absolute number is unusable. Flagged, and
+the padding fix is implemented but deliberately not applied (see §6).
+
+## 5. LLM judge vs. deterministic scorer — 146/146
+
+The judge (`claude-sonnet-5`) graded two checks the rules also cover, across all 82
+runs: **146/146 agreement, zero disagreements, zero "unclear"**.
+
+This cuts against the premise I started from. I expected to demonstrate judge
+unreliability and measured the opposite.
+
+**The honest reading is less flattering to the judge than 100% suggests.** 71 of 82
+runs pass; the conversations are short; both checks have visually obvious answers in
+the transcript. A grader answering "yes, confirmed / no, not invented" uniformly
+would have scored ~144/146. The judge was almost never required to catch a subtle
+failure because there were almost none to catch. So this is **not** evidence that an
+LLM judge is reliable for slot correctness — it is evidence that on easy data it was
+not the bottleneck, and that my assumption it would visibly disagree was wrong.
+
+Notably, the judge was also *right when my scorer was wrong*: during the morning-slot
+bug it reported "not invented", because it was reading the transcript correctly and
+the agent genuinely had not invented anything.
+
+**So the case for determinism does not rest on the judge being bad.** It rests on
+what determinism actually bought, which is measurable:
+
+- **Free re-derivation.** The `compound_utterance` scenario bug (§6) was corrected
+  and all 82 runs re-scored with zero API calls. An LLM-judged suite would have meant
+  paying for 146 re-gradings and accepting drift in unrelated verdicts.
+- **Per-slot attribution.** The same bug was *only visible* because the report named
+  the failing slot and its captured value. One verdict per run — which is what
+  Retell's native simulation testing produces — would have shown
+  `compound_utterance: 0/4 voice` and I would have published it.
+- **Reproducibility of the verdict** (though not of the channel — see caveats).
+
+## 6. Latency
+
+Split by whether a tool round-trip happened inside the turn, because a tool turn here
+includes a webhook to a laptop behind a cloudflared tunnel — test rig, not agent.
+
+| | n | median |
 |---|---|---|
-| ambiguous_date | 5/6 (83%) | 6/6 (100%) |
-| self_correction | 3/3 (100%) | 2/3 (67%) |
-| happy_path, mind_change, out_of_scope, compound_utterance | 100% | 100% |
+| conversational turns | 191 | **1331 ms** |
+| turns containing a tool call | 72 | **2635 ms** |
 
-The hardened prompt won one run on ambiguous dates and lost one on self-correction.
-Net zero.
+A tool call roughly doubles the turn. Some of that is my tunnel and should not be
+attributed to Retell. The conversational median of ~1.3s is the more meaningful
+number, and p90s in the 2.5-4s range appear across both arms.
 
-### The single naive failure is a real bug worth reading
+The hardened prompt is consistently slower in conversational terms, and that shows up
+in follow-ups needed:
 
-`s06/naive#0` booked 13:30 when the caller asked for 2 PM. The tool had returned
-`14:00` as available. The agent said:
+| arm | channel | runs needing a nudge | mean |
+|---|---|---|---|
+| naive | text | 1/21 | 0.05 |
+| hardened | text | 4/21 | 0.19 |
+| naive | voice | 4/20 | 0.20 |
+| hardened | voice | 6/20 | 0.40 |
 
-> "We don't have a 2:00 PM slot, but we do have 1:30 PM or 2:00 PM is not available.
-> Would you like to choose 1:30 PM or 3:00 PM instead?"
+Roughly double in both channels. Same accuracy, more turns to reach it — real caller
+patience and per-minute cost spent for no measured gain.
 
-It denied an available slot, contradicted itself mid-sentence, and booked the wrong
-time. The `time` slot was correctly scored WRONG — but note that the *invention*
-check passed, because inventing and wrongly-denying are different failures and only
-the first was implemented (see 3.x). This one run is what prompted the new
-`denied_available_slot` check.
+## 7. What this actually says
 
-### The single hardened failure — and why I am not telling a story about it
+Stated plainly, because the negative result is the useful one:
 
-`s09/hardened#2` dropped the optional `phone` field. The tempting narrative: the
-hardened prompt's explicit "**Four fields**, all required" table crowded out a fifth
-field the tool schema offered — being more specific made it less complete.
-
-That mechanism is plausible. The evidence is one run. Hardened captured the phone in
-the other two; naive captured it in all three. **n=3 cannot distinguish that from
-noise**, and writing it up as a finding would be exactly the failure mode this
-project is about. Recorded as a hypothesis worth testing at higher n, not a result.
-
-### Most of the difference I expected was my own bugs
-
-Before the harness fixes, the naive arm appeared to fail badly — hallucinated
-availability, mangled dates, stalled conversations. Every one of those turned out to
-be a defect in the harness (3.1, 3.2, 3.3). With those fixed, on this scenario set,
-**a ten-minute first-draft prompt performs identically to a carefully hardened one.**
-
-That is the central negative result, and it is worth more than a clean win would have
-been: the measurable gap between a naive and a hardened prompt, at least over text
-with `gpt-4.1-mini` at temperature 0, was smaller than the measurement error of my
-own instrument.
-
-### What the hardened prompt did cost
-
-| arm | runs needing a caller nudge | mean nudges |
-|---|---|---|
-| naive | 1/21 | 0.05 |
-| hardened | 4/21 | 0.19 |
-
-Roughly four times as many runs where the agent was still asking questions after the
-script ran out. Same pass rate, more conversational turns to get there. On a real
-phone line that is caller patience and per-minute cost spent for no measured accuracy
-gain.
-
-## 5. LLM judge vs. deterministic scorer — the judge was perfect
-
-The judge (`claude-sonnet-5`) graded two checks the rules also cover, on all 42 runs:
-
-- **agreed: 74/74 (100%)**
-- disagreed: 0, "unclear": 0
-
-This cuts against the premise I built the project on. I expected to demonstrate judge
-unreliability and instead measured perfect agreement.
-
-**The honest reading, which is less flattering to the judge than the number suggests:**
-this dataset is easy. 40 of 42 runs pass, the conversations are short, and the two
-checks have visually obvious answers in the transcript. Agreement on near-uniform
-data is cheap — a grader that simply answered "yes, confirmed / no, not invented"
-every time would have scored 73/74. The judge was never required to catch a subtle
-failure, because there were almost none to catch.
-
-So this is **not** evidence that an LLM judge is reliable for slot correctness. It is
-evidence that on this data it was not the bottleneck, and that my assumption it would
-visibly disagree was wrong. The determinism argument now rests on the properties it
-actually earned — reproducibility, per-slot attribution, free re-scoring of committed
-transcripts (§3.x) — rather than on the judge being bad, which I did not show.
-
-Notably, the judge also agreed with the scorer *during the period the scorer was
-wrong*: it said "not invented" on runs where the morning-slot bug was live, because
-it was reading the transcript correctly and the agent genuinely had not invented
-anything. Ground truth was on the judge's side there, not mine.
-
-## 6. Latency — PENDING
-
-> Voice only. Text-channel timings are API round-trip and are *not* conversational
-> latency; they are excluded rather than reported as if comparable.
-
----
+1. **Prompt hardening bought nothing measurable here.** Six of nine personas were
+   never broken. The one thing it may have fixed is a single run at n=2.
+2. **The one unfixable failure is unfixable for a structural reason**, not a
+   statistical one: STT destroyed information before the model saw it.
+3. **Most of what a first-pass harness reports as agent failure is harness failure.**
+   Six defects of mine arrived disguised as agent findings, and the most convincing
+   produced *exactly the failure signature its scenario predicted*.
+4. **The expensive part of an eval harness is not the scoring.** It is earning the
+   right to believe the output. Every check in `make preflight` and
+   `make check-fixtures` exists because its absence already cost a batch.
 
 ## Caveats — read these before quoting any number above
 
