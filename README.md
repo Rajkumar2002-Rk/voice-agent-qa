@@ -139,6 +139,8 @@ the prompt really is the only thing that varies.
 make test                    # scorer suite — no API key needed
 make synthetic               # see example report output — no API key needed
 
+make preflight               # cheap setup checks — RUN THIS BEFORE ANY BATCH
+
 make smoke                   # one cheap text run
 make smoke-voice             # one real web call
 

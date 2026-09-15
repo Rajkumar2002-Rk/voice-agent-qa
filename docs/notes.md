@@ -437,3 +437,27 @@ failure (see also B12, B13). The pattern is consistent enough to be the spine of
 findings: **when your harness and the agent disagree, the harness is a serious
 suspect — and a confident, well-formatted failure report is exactly what a harness
 bug looks like from the outside.**
+
+### Tooling: `make preflight`
+
+Two ablation attempts died to setup bugs that produced confident, well-formatted,
+entirely invalid results. Both were detectable in a single $0.01 chat. So that is
+now a command.
+
+`make preflight` runs one cheap text conversation and then asserts:
+
+- the API key works and all four agent ids are present
+- **the live prompt on Retell matches the file on disk** — I had already been caught
+  once analysing results from a prompt I'd edited but not re-pushed
+- both prompts carry `{{current_date}}`
+- the agent called `check_availability` at all (if not, the tunnel is stale — the
+  webhook 404s silently and looks like the agent refusing to use its tools)
+- **the clinic server actually received the webhook**, by watching the tool log grow
+- **the date the agent resolved matches the scenario's `reference_date`** — the B14
+  check, derived from the scenario rather than hardcoded
+- a booking completed and the booked date is right
+
+The general lesson, which outlived the specific bugs: *the expensive part of an
+eval harness is not the scoring, it's establishing that the thing you measured was
+the thing you meant to measure.* Every check above exists because its absence
+already cost a batch.

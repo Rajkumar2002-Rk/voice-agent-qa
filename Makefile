@@ -1,5 +1,5 @@
 .PHONY: help install install-audio test lint check-key tunnel serve provision \
-        smoke smoke-voice run-text run-full report synthetic clean
+        preflight smoke smoke-voice run-text run-full report synthetic clean
 
 PY := .venv/bin/python
 PIP := uv pip install --python .venv/bin/python
@@ -37,6 +37,9 @@ serve: ## run the clinic tool server on :8000 (leave running)
 provision: ## create/update the 4 agents. usage: make provision URL=https://xxx.trycloudflare.com
 	@test -n "$(URL)" || (echo "usage: make provision URL=https://xxx.trycloudflare.com"; exit 1)
 	$(PY) -m agent.provision --tool-url $(URL) $(if $(UPDATE),--update,)
+
+preflight: ## cheap setup checks before spending on a batch — run this first
+	$(PY) -m harness.preflight
 
 smoke: ## one cheap text run against the naive agent
 	$(PY) -m harness.runner --scenario s01_happy_path --arms naive --channels text --repeats 1 --label smoke

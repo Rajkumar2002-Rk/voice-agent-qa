@@ -111,7 +111,7 @@ def test_both_prompts_carry_the_date_context_identically():
     """The date block is context, not hardening — it must not differ by arm.
 
     Compared as a literal block rather than by regex: the naive prompt has no
-    heading after this section, so a `(?=\n## |\Z)` lookahead swallows the rest
+    heading after this section, so a `(?=\n## |\\Z)` lookahead swallows the rest
     of the file and reports a spurious difference.
     """
     from pathlib import Path
