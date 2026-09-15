@@ -22,8 +22,13 @@ import sys
 from pathlib import Path
 
 import yaml
+from dotenv import load_dotenv
 
 from .loader import SCENARIO_DIR, load_scenarios
+
+# Without this, TTS_PROVIDER and OPENAI_API_KEY from .env are invisible and the
+# builder silently falls back to defaults. Every entrypoint must load .env itself.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "audio"
 FIXTURES.mkdir(parents=True, exist_ok=True)

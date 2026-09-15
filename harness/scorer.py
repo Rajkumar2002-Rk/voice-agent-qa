@@ -12,6 +12,7 @@ because "the agent got the date wrong" is useless without "it captured
 
 from __future__ import annotations
 
+import re
 from datetime import date
 
 from .extract import extract_dates, extract_times
@@ -37,6 +38,34 @@ from .schema import (
 
 BOOK_TOOL = "book_appointment"
 AVAILABILITY_TOOL = "check_availability"
+
+# Declared up front so "did the caller agree?" stays a lookup, not a judgement.
+# Deliberately conservative: a hedge ("I guess", "maybe") is NOT assent, because
+# booking on a hedge is exactly the behaviour worth catching.
+AFFIRMATIONS = (
+    "yes", "yeah", "yep", "yup", "correct", "that's right", "thats right",
+    "right", "sure", "ok", "okay", "sounds good", "perfect", "exactly",
+    "please do", "go ahead", "that works", "confirmed", "affirmative",
+)
+
+_AFFIRM_RE = re.compile(
+    r"\b(" + "|".join(a.replace("'", "'?") for a in AFFIRMATIONS) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def caller_affirmed(text: str) -> bool:
+    """True if a caller utterance reads as agreement.
+
+    Negations are checked first: "no, that's not right" contains "right" and
+    would otherwise score as assent.
+    """
+    if not text:
+        return False
+    if re.search(r"\b(no|nope|not|wrong|incorrect|actually|change|instead)\b",
+                 text, re.IGNORECASE):
+        return False
+    return bool(_AFFIRM_RE.search(text))
 
 
 # --------------------------------------------------------------------------
@@ -230,28 +259,56 @@ def check_confirmed_before_booking(
     booked_time = normalize_time(str(first_book.args.get("time", "")),
                                  context="structured")
 
-    prior_agent = [e for e in events[:idx] if e.role == "agent" and e.text]
-    for e in prior_agent:
+    # Walk the pre-booking window looking for a read-back, then for the caller
+    # agreeing to it. Both are required: reading details back and then booking
+    # without waiting is not confirmation, it is narration.
+    confirm_at: int | None = None
+    confirm_text = ""
+    for i, e in enumerate(events[:idx]):
+        if e.role != "agent" or not e.text:
+            continue
         said_times = {t for _, t in extract_times(e.text, skip_hours_context=False)}
         said_dates = {d for _, d in extract_dates(e.text, scenario.reference_date)}
-        date_ok = booked_date.ok and booked_date.value in said_dates
-        time_ok = booked_time.ok and booked_time.value in said_times
-        if date_ok and time_ok:
-            return BehaviourResult(
-                check="confirmed_before_booking", verdict=Verdict.PASS,
-                reasoning=f"agent read back both date and time before booking: "
-                          f"{e.text[:160]!r}",
-                evidence={"utterance": e.text, "date": booked_date.value,
-                          "time": booked_time.value},
-            )
+        if (booked_date.ok and booked_date.value in said_dates
+                and booked_time.ok and booked_time.value in said_times):
+            confirm_at, confirm_text = i, e.text
+            break
+
+    prior_agent = [e for e in events[:idx] if e.role == "agent" and e.text]
+
+    if confirm_at is None:
+        return BehaviourResult(
+            check="confirmed_before_booking", verdict=Verdict.WRONG,
+            reasoning=f"no agent utterance before {BOOK_TOOL} mentioned both the "
+                      f"booked date ({booked_date.value}) and time "
+                      f"({booked_time.value}); agent committed without reading "
+                      f"the details back",
+            evidence={"agent_utterances_before_booking": [e.text for e in prior_agent],
+                      "failure": "no_readback"},
+        )
+
+    assent = next(
+        (e for e in events[confirm_at + 1:idx]
+         if e.role == "user" and caller_affirmed(e.text)),
+        None,
+    )
+    if assent is None:
+        heard = [e.text for e in events[confirm_at + 1:idx] if e.role == "user" and e.text]
+        return BehaviourResult(
+            check="confirmed_before_booking", verdict=Verdict.WRONG,
+            reasoning=f"agent read the details back ({confirm_text[:90]!r}) but "
+                      f"booked without the caller agreeing; caller said "
+                      f"{heard if heard else 'nothing'} in between",
+            evidence={"readback": confirm_text, "caller_turns_after_readback": heard,
+                      "failure": "no_assent"},
+        )
 
     return BehaviourResult(
-        check="confirmed_before_booking", verdict=Verdict.WRONG,
-        reasoning=f"no agent utterance before {BOOK_TOOL} mentioned both the "
-                  f"booked date ({booked_date.value}) and time "
-                  f"({booked_time.value}); agent committed without reading "
-                  f"the details back",
-        evidence={"agent_utterances_before_booking": [e.text for e in prior_agent]},
+        check="confirmed_before_booking", verdict=Verdict.PASS,
+        reasoning=f"agent read back both date and time, then the caller agreed "
+                  f"({assent.text[:60]!r}), then it booked",
+        evidence={"readback": confirm_text, "assent": assent.text,
+                  "date": booked_date.value, "time": booked_time.value},
     )
 
 

@@ -253,3 +253,54 @@ The max lands on the final confirm-and-book turn, which includes a tool round-tr
 through the cloudflared tunnel to a laptop — so some of that is my test rig, not
 Retell. Worth separating tool-call turns from plain conversational turns before
 quoting any latency number as the agent's.
+
+### B10. My two "confirm-back" checks were measuring different things
+
+The most methodologically serious bug so far, and the judge found it for me on the
+very first call I made to it.
+
+I hand-built a fixture where the agent clearly confirms before booking, expecting a
+clean agreement. The judge said **no**. My scorer said **PASS**.
+
+The judge was right, and the real problem was worse than a wrong verdict. Compare
+the two specs I had written:
+
+- **deterministic check:** an agent utterance before `book_appointment` mentions the
+  booked date and time.
+- **judge rubric:** the agent "read the appointment details back to the caller **and
+  waited for agreement**."
+
+Those are different checks. My fixture had a read-back and no caller reply, so each
+was correctly reporting its own definition. Which means **the judge-vs-rules
+agreement number — the headline evidence for this project's whole design argument —
+would have been measuring the gap between two specs I wrote, not the judge's
+reliability.** Every disagreement would have been noise I'd have been tempted to
+write up as "see, LLM judges are unreliable."
+
+Fixed by making the deterministic check match its stated meaning: it now requires a
+read-back *and* a caller affirmation before the booking, using a declared
+affirmation list. Negations are screened first, because "no, that's not right"
+contains "right". The judge rubric was reworded to the identical definition.
+
+Also worth saying plainly: the stricter check is the *correct* one. Reading details
+back and then booking without waiting for a reply is not confirmation, it's
+narration — and it is exactly the failure a clinic would care about.
+
+**Lesson:** when you compare two graders, the comparison is only meaningful if both
+are grading the same proposition. I would not have caught this from aggregate
+numbers; it took one hand-made example where I was confident of the answer.
+
+### B11. `tts.py` could not see `.env`
+
+`harness/tts.py` never called `load_dotenv()`. `TTS_PROVIDER` and `OPENAI_API_KEY`
+were therefore invisible to it, so it fell through to its default provider and
+failed with "OPENAI_API_KEY not set" even though the key was sitting in `.env`.
+
+The fixtures on disk stayed as the earlier macOS `say` renders while the manifest
+happily reported success, so a run would have used the robotic voice while I
+believed it was using OpenAI TTS — a silent confound in the experiment, not just an
+inconvenience.
+
+Compounding it, I ran the build piped to `tail`, so the shell reported *tail's*
+exit status and the failure looked like a clean exit 0. Two independent things
+hiding the same error. Every entrypoint now loads `.env`; the audit is in the commit.

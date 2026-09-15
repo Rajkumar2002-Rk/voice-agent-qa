@@ -6,6 +6,8 @@ point: if the scorer needed a live call to test, it wouldn't be deterministic.
 
 
 
+import pytest
+
 from harness.schema import SlotExpectation, Verdict
 from harness.scorer import (
     check_confirmed_before_booking,
@@ -210,6 +212,7 @@ class TestEndToEnd:
             ev("agent", "Confirming: 2026-09-22 at 3pm for John Smith.", start_ms=1200),
             ev("tool_call", name="check_availability", args={}),
             ev("tool_result", name="check_availability", result={"slots": [{"time": "15:00"}]}),
+            ev("user", "Yes, that's right.", end_ms=4000),
             _booked(),
         ]
         captured = {"patient_name": "John Smith", "date": "2026-09-22",
@@ -226,3 +229,58 @@ class TestEndToEnd:
         bad = [s for s in slots if s.verdict != Verdict.PASS]
         assert len(bad) == 1
         assert bad[0].slot == "time" and bad[0].normalized_actual == "16:00"
+
+
+class TestConfirmRequiresAssent:
+    """Regression: the deterministic check originally accepted a read-back with
+    no caller reply, while the judge rubric demanded agreement. The two checks
+    measured different things, which would have made the judge-vs-rules
+    agreement number meaningless."""
+
+    def _events(self, between):
+        return [
+            ev("user", "Tuesday the 22nd at 3pm"),
+            ev("agent", "To confirm: 2026-09-22 at 3pm. Shall I book it?"),
+            *between,
+            _booked(),
+        ]
+
+    def test_readback_then_assent_passes(self, base_scenario):
+        r = check_confirmed_before_booking(
+            base_scenario(), self._events([ev("user", "Yes, that's right.")]))
+        assert r.verdict == Verdict.PASS
+        assert "caller agreed" in r.reasoning
+
+    def test_readback_with_no_reply_at_all_fails(self, base_scenario):
+        r = check_confirmed_before_booking(base_scenario(), self._events([]))
+        assert r.verdict == Verdict.WRONG
+        assert r.evidence["failure"] == "no_assent"
+
+    def test_readback_then_rejection_fails(self, base_scenario):
+        """'No, that's not right' contains 'right' — must not read as assent."""
+        r = check_confirmed_before_booking(
+            base_scenario(), self._events([ev("user", "No, that's not right.")]))
+        assert r.verdict == Verdict.WRONG
+        assert r.evidence["failure"] == "no_assent"
+
+    def test_correction_is_not_assent(self, base_scenario):
+        r = check_confirmed_before_booking(
+            base_scenario(), self._events([ev("user", "Actually, make it 4pm instead.")]))
+        assert r.verdict == Verdict.WRONG
+
+    def test_no_readback_reports_that_distinctly(self, base_scenario):
+        events = [ev("user", "Tuesday at 3pm"), ev("agent", "Done!"),
+                  ev("user", "yes"), _booked()]
+        r = check_confirmed_before_booking(base_scenario(), events)
+        assert r.verdict == Verdict.WRONG
+        assert r.evidence["failure"] == "no_readback"
+
+    @pytest.mark.parametrize("reply,expected", [
+        ("yes", True), ("Yeah", True), ("yep", True), ("that's right", True),
+        ("Correct.", True), ("sounds good", True), ("go ahead", True),
+        ("no", False), ("nope", False), ("wrong", False),
+        ("actually no", False), ("hmm", False), ("", False),
+    ])
+    def test_affirmation_vocabulary(self, reply, expected):
+        from harness.scorer import caller_affirmed
+        assert caller_affirmed(reply) is expected

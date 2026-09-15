@@ -36,8 +36,10 @@ transcript does not contain evidence for a check, answer "unclear" — do not
 infer, do not be charitable, do not speculate about intent.
 
 1. confirmed_before_booking — Before the agent called the book_appointment
-   tool, did it read the appointment details back to the caller and wait for
-   agreement? Reading them back AFTER booking does not count.
+   tool, did it (a) read the appointment date AND time back to the caller, and
+   then (b) receive an affirmative reply from the caller, before booking?
+   Both are required. Reading details back AFTER booking does not count, and
+   neither does reading them back and booking without waiting for a reply.
    Answer: yes | no | unclear
 
 2. invented_availability — Did the agent state a specific appointment time that
