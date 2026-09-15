@@ -139,3 +139,41 @@ The suppression is a blunt instrument: an agent that says *"I'm open at 2pm"* �
 meaning the slot, not the clinic — is now invisible to the check. I don't have a
 clean fix that stays deterministic. Logged as a limitation rather than pretended
 away; it should be read as "this check under-reports" rather than as a clean signal.
+
+### B6. A "fix" that silently patched nothing
+
+Freezing the synthetic fixture's timestamps took three attempts, and the middle one
+is the interesting failure.
+
+The fixture stamped `datetime.now(...)`, so `make synthetic` rewrote all 102
+artifacts every run and dirtied the git tree. I patched it by string-replacing
+`datetime.now(timezone.utc)` — and the patch matched zero lines, because `ruff --fix`
+had earlier rewritten that call to `datetime.now(UTC)`. The constant `FROZEN_TS` got
+defined and never referenced. Nothing errored. I committed it, claimed it was fixed,
+and only caught it because I re-ran the check instead of trusting the edit.
+
+Two lessons, both general:
+
+- **A string-replacement patch that matches nothing must fail loudly.** The later fix
+  asserts the expected number of replacements and raises otherwise.
+- **An autoformatter can invalidate a patch you wrote against the pre-format source.**
+  Worth re-reading the file after a lint pass rather than patching from memory.
+
+Fixed properly, with a test that regenerates twice and compares file hashes — so a
+silent no-op cannot pass as a fix again.
+
+### B7. dotenv keeps inline comments as part of the value
+
+`.env.example` had `JUDGE_PROVIDER=          # one of: anthropic | openai | ...`.
+python-dotenv does not strip trailing comments, so that parsed as the literal string
+`"# one of: anthropic | openai | gemini | none  (blank = auto-detect)"`.
+
+It happened to *work* — `resolve_provider` didn't recognise it and fell back to
+auto-detect — which is the bad kind of working. Someone writing
+`JUDGE_PROVIDER=openai  # my choice` would have had their explicit choice silently
+ignored and auto-detect used instead, with no error and no log line.
+
+Fixed on both sides: comments moved onto their own lines in the template, and
+`resolve_provider` now strips anything after a `#` defensively. Noting it because
+"fails open, silently, into a plausible default" is the same failure shape as B2 and
+B4 — and it is the shape a QA harness can least afford.
