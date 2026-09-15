@@ -57,3 +57,25 @@ def test_handles_errored_runs(tmp_path):
 def test_missing_results_file_errors_clearly(tmp_path):
     with pytest.raises(SystemExit, match="no results.jsonl"):
         build(tmp_path)
+
+
+def test_synthetic_generation_is_byte_stable(tmp_path):
+    """Regenerating the fixture must not churn the git tree.
+
+    Regression: the generator stamped wall-clock times, so `make synthetic`
+    rewrote 102 files every run. The first fix silently did nothing because
+    ruff had rewritten `datetime.now(timezone.utc)` to `datetime.now(UTC)`
+    and the patch matched no lines. Hence this test rather than a re-read.
+    """
+    import hashlib
+
+    def snapshot() -> dict[str, str]:
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "make_synthetic_run.py")],
+                       check=True, cwd=ROOT, capture_output=True)
+        d = ROOT / "runs" / "_synthetic_example"
+        return {
+            f.relative_to(d).as_posix(): hashlib.sha256(f.read_bytes()).hexdigest()
+            for f in sorted(d.rglob("*.json"))
+        }
+
+    assert snapshot() == snapshot(), "regenerating the fixture is not deterministic"

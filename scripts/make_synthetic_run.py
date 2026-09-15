@@ -105,8 +105,8 @@ def main() -> int:
                     r = {
                         "scenario_id": sc.id, "persona": sc.persona, "channel": ch,
                         "arm": arm, "run_index": i, "call_id": f"SYNTHETIC-{sc.id}-{arm}-{ch}-{i}",
-                        "started_at": datetime.now(UTC).isoformat(),
-                        "ended_at": datetime.now(UTC).isoformat(),
+                        "started_at": FROZEN_TS,
+                        "ended_at": FROZEN_TS,
                         "slots": [s.model_dump(mode="json") for s in slots],
                         "behaviours": [b.model_dump(mode="json") for b in behaviours],
                         "latencies": [l.model_dump(mode="json") for l in lat] if ch == "voice" else [],
