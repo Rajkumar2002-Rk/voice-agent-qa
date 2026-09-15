@@ -15,6 +15,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+from .classify import classify
+from .classify import render as render_classification
 from .schema import RunResult, Verdict
 
 
@@ -82,6 +84,9 @@ def build(run_dir: Path) -> str:
                                   if r.persona == p and r.arm == a and r.channel == c]))
         add("| " + " | ".join(row) + " |")
     add("")
+
+    # ---------------- the headline classification ----------------
+    add(render_classification(classify(results)))
 
     # ---------------- slot failures ----------------
     add("## Which slots failed\n")

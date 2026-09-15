@@ -29,6 +29,32 @@ This is the table the experiment exists to produce: where the hardened prompt he
 | out_of_scope | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) |
 | self_correction | 1/3 (33%) | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) |
 
+## What the prompt could and could not fix
+
+Mechanical classification from the 2x2. A cell counts as passing at >=67%, so one flake cannot flip a verdict.
+
+| persona | naive/text | hard/text | naive/voice | hard/voice | verdict |
+|---|---|---|---|---|---|
+| ambiguous_date | 50% | 100% | 50% | 100% | **FIXED_BY_PROMPT** |
+| background_noise | — | — | 67% | 100% | **FIXED_BY_PROMPT** |
+| barge_in | — | — | 0% | 0% | **NOTHING_FIXED** |
+| compound_utterance | 0% | 0% | 0% | 0% | **NOTHING_FIXED** |
+| happy_path | 100% | 100% | 67% | 100% | **PROMPT_FIXED_VOICE_ONLY** |
+| long_silence | — | — | 67% | 100% | **FIXED_BY_PROMPT** |
+| mind_change | 0% | 0% | 0% | 0% | **NOTHING_FIXED** |
+| out_of_scope | 100% | 100% | 100% | 100% | **NOT_A_PROBLEM** |
+| self_correction | 100% | 100% | 33% | 100% | **PROMPT_FIXED_VOICE_ONLY** |
+
+- **ambiguous_date** — FIXED_BY_PROMPT: fails naive and passes hardened in BOTH channels — a reasoning/instruction problem, not a voice problem
+- **background_noise** — FIXED_BY_PROMPT: voice-only persona: fails naive, passes hardened. No text control exists, so 'structural' cannot be ruled out — only that the prompt moved it
+- **barge_in** — NOTHING_FIXED: fails in voice under both prompts
+- **compound_utterance** — NOTHING_FIXED: fails everywhere under both prompts
+- **happy_path** — PROMPT_FIXED_VOICE_ONLY: text was never broken; voice was, and the hardened prompt reached it
+- **long_silence** — FIXED_BY_PROMPT: voice-only persona: fails naive, passes hardened. No text control exists, so 'structural' cannot be ruled out — only that the prompt moved it
+- **mind_change** — NOTHING_FIXED: fails everywhere under both prompts
+- **out_of_scope** — NOT_A_PROBLEM: passes everywhere under both prompts
+- **self_correction** — PROMPT_FIXED_VOICE_ONLY: text was never broken; voice was, and the hardened prompt reached it
+
 ## Which slots failed
 
 | arm | channel | slot | verdict | n | example reasoning |
@@ -41,6 +67,12 @@ This is the table the experiment exists to produce: where the hardened prompt he
 ## Ambiguous-date alternate readings
 
 _None._
+
+## Caller follow-ups needed
+
+The scripted caller is open-loop. If the agent was still asking questions after the script ran out, the caller offered a bounded affirmation. An agent needing more nudges asked more questions — a real cost even when the run ultimately passed.
+
+_No run needed a follow-up._
 
 ## Behavioural checks
 

@@ -69,6 +69,9 @@ def fake_events(sc, arm: str, rng: random.Random) -> tuple[list[Event], dict]:
         ev.append(Event(role="agent",
                         text=f"Confirming: {d} at {t} for {name}. Correct?",
                         start_ms=clock, end_ms=clock + 2000))
+        # the caller has to actually agree — confirm-back requires assent
+        ev.append(Event(role="user", text="Yes, that's correct.",
+                        start_ms=clock + 2200, end_ms=clock + 3000))
     captured = {"patient_name": name, "date": d, "time": t,
                 "reason": (exp["reason"].accept_any_of[0] if "reason" in exp else None)}
     if "phone" in exp:
