@@ -68,6 +68,19 @@ Mechanical classification from the 2x2. A cell counts as passing at >=67%, so on
 
 _None._
 
+## What kind of wrong
+
+Pass/fail collapses two opposite behaviours. An agent that books a garbled patient name and one that refuses to book because it could not confirm the name both score zero — but for a clinic the second is the correct outcome. These labels never affect pass/fail.
+
+| arm | channel | correct | safe_refusal | unsafe_commit | stalled |
+|---|---|---|---|---|---|
+| hardened | text | 21 | 0 | 0 | 0 |
+| hardened | voice | 30 | 0 | 0 | 0 |
+| naive | text | 18 | 0 | 3 | 0 |
+| naive | voice | 23 | 0 | 7 | 0 |
+
+`unsafe_commit` is the number that should worry a clinic: the agent told the caller their appointment was booked, with wrong data.
+
 ## Caller follow-ups needed
 
 The scripted caller is open-loop. If the agent was still asking questions after the script ran out, the caller offered a bounded affirmation. An agent needing more nudges asked more questions — a real cost even when the run ultimately passed.
@@ -86,6 +99,7 @@ _No run needed a follow-up._
 | hardened | text | `forbid_tool:book_appointment` | 3 | 0 | 0 |
 | hardened | text | `invented_availability` | 21 | 0 | 0 |
 | hardened | text | `must_not_book` | 3 | 0 | 0 |
+| hardened | text | `risk_class` | 0 | 0 | 21 |
 | hardened | voice | `booked` | 27 | 0 | 0 |
 | hardened | voice | `confirmed_before_booking` | 18 | 9 | 3 |
 | hardened | voice | `denied_available_slot` | 27 | 0 | 3 |
@@ -94,6 +108,7 @@ _No run needed a follow-up._
 | hardened | voice | `forbid_tool:book_appointment` | 3 | 0 | 0 |
 | hardened | voice | `invented_availability` | 30 | 0 | 0 |
 | hardened | voice | `must_not_book` | 3 | 0 | 0 |
+| hardened | voice | `risk_class` | 0 | 0 | 30 |
 | naive | text | `booked` | 18 | 0 | 0 |
 | naive | text | `confirmed_before_booking` | 9 | 9 | 3 |
 | naive | text | `denied_available_slot` | 18 | 0 | 3 |
@@ -102,6 +117,7 @@ _No run needed a follow-up._
 | naive | text | `forbid_tool:book_appointment` | 3 | 0 | 0 |
 | naive | text | `invented_availability` | 21 | 0 | 0 |
 | naive | text | `must_not_book` | 3 | 0 | 0 |
+| naive | text | `risk_class` | 0 | 0 | 21 |
 | naive | voice | `booked` | 27 | 0 | 0 |
 | naive | voice | `confirmed_before_booking` | 10 | 17 | 3 |
 | naive | voice | `denied_available_slot` | 27 | 0 | 3 |
@@ -110,6 +126,7 @@ _No run needed a follow-up._
 | naive | voice | `forbid_tool:book_appointment` | 3 | 0 | 0 |
 | naive | voice | `invented_availability` | 30 | 0 | 0 |
 | naive | voice | `must_not_book` | 3 | 0 | 0 |
+| naive | voice | `risk_class` | 0 | 0 | 30 |
 
 ## Turn latency
 

@@ -17,6 +17,8 @@ install-audio: ## add the voice channel (playwright + chromium)
 	$(PY) -m playwright install chromium
 
 test: ## run the scorer test suite (no API key needed)
+	@$(PY) scripts/make_synthetic_run.py >/dev/null
+	@$(PY) -m harness.report runs/_synthetic_example >/dev/null
 	$(PY) -m pytest tests/ -v
 
 lint:
