@@ -140,10 +140,10 @@ def main() -> int:
         env_updates[voice_key] = va["agent_id"]
 
         if args.update and os.getenv(chat_key):
-            ca = client.update_agent(os.getenv(chat_key), _chat_agent_body(llm_id, arm))
+            ca = client.update_chat_agent(os.getenv(chat_key), _chat_agent_body(llm_id, arm))
             print(f"[{arm}] updated chat agent {ca['agent_id']}")
         else:
-            ca = client._req("POST", "/create-chat-agent", json=_chat_agent_body(llm_id, arm))
+            ca = client.create_chat_agent(_chat_agent_body(llm_id, arm))
             print(f"[{arm}] created chat agent {ca['agent_id']}")
         env_updates[chat_key] = ca["agent_id"]
 

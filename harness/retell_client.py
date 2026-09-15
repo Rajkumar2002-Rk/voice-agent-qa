@@ -55,6 +55,14 @@ class RetellClient:
     def update_agent(self, agent_id: str, body: dict[str, Any]) -> dict[str, Any]:
         return self._req("PATCH", f"/update-agent/{agent_id}", json=body)
 
+    def create_chat_agent(self, body: dict[str, Any]) -> dict[str, Any]:
+        return self._req("POST", "/create-chat-agent", json=body)
+
+    def update_chat_agent(self, agent_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        # chat agents live on a separate route; /update-agent rejects them with
+        # "Invalid agent channel"
+        return self._req("PATCH", f"/update-chat-agent/{agent_id}", json=body)
+
     def get_agent(self, agent_id: str) -> dict[str, Any]:
         return self._req("GET", f"/get-agent/{agent_id}")
 
