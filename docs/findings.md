@@ -240,6 +240,19 @@ The classification this table is designed to produce:
 small one. No confidence intervals are reported because none would be meaningful at
 n=3. Treat every number as directional.
 
+**The prompt is not the only instruction channel — and the arms share the other one.**
+Both arms use an identical tool schema, and JSON Schema property descriptions turn
+out to function as directives. `s09` captured a phone number correctly, with the
+caller's correction applied, even though *neither prompt asks the agent to collect
+one* — the `book_appointment` schema simply declares `phone` as "Callback number, if
+given." and that was sufficient.
+
+This bounds what a prompt-only ablation can explain. Some share of the behaviour in
+both arms is coming from the tool definitions they have in common, not from either
+prompt, and this design cannot separate the two. A fuller experiment would vary the
+schema as a third axis. Read every "the prompt fixed X" claim as "the prompt fixed X,
+given this tool schema."
+
 **One model family.** A single pinned model (`gpt-4.1-mini`, temperature 0) for both
 arms. Findings about what a prompt can fix may not transfer to a different model, and
 temperature 0 suppresses run-to-run variance that a production deployment would have.
