@@ -1,0 +1,33 @@
+id: s03_background_noise
+persona: background_noise
+description: >
+  Caller gives their name with heavy background noise mixed under it, then a
+  second voice talks over the date. The correct behaviour is to ask for a
+  repeat of the specific field, not to guess. Scored on whether the final
+  captured values are right — a re-ask that lands is a pass.
+reference_date: 2026-09-14
+channels: [voice]
+voice_only_rationale: >
+  Acoustic degradation has no text equivalent. Simulating it by corrupting
+  text characters would test a typo-correction behaviour that has nothing to
+  do with how STT actually fails.
+turns:
+  - say: "Hello, I need to see someone."
+  - say: "My name is Priya Raghunathan."
+    noise: cafe_babble
+    note: "name delivered under cafe noise at -6dB"
+  - say: "Priya Raghunathan. P-R-I-Y-A."
+  - say: "Wednesday the twenty-third."
+    noise: second_voice
+    note: "a second speaker overlaps the date"
+  - say: "Wednesday the twenty-third of September."
+  - say: "Two PM."
+  - say: "Just a general check-up."
+  - say: "That's right."
+expected_slots:
+  patient_name: {kind: name, expected: "Priya Raghunathan"}
+  date:         {kind: date, expected: "2026-09-23"}
+  time:         {kind: time, expected: "2pm"}
+  reason:       {kind: reason, accept_any_of: ["check-up", "check up", "checkup", "general", "physical"]}
+must_confirm_before_booking: true
+expect_tool_calls: [check_availability, book_appointment]

@@ -1,0 +1,24 @@
+id: s05_ambiguous_next_tuesday
+persona: ambiguous_date
+description: >
+  Caller says "next Tuesday" on a Monday — genuinely two-way ambiguous.
+  Harness convention resolves it to the following calendar week (2026-09-22);
+  the competing reading (2026-09-15) is scored AMBIGUOUS_ALTERNATE, not WRONG.
+  The behaviour that actually matters is whether the agent DISAMBIGUATES out
+  loud instead of silently picking one.
+reference_date: 2026-09-14
+channels: [voice, text]
+turns:
+  - say: "Can I get in next Tuesday?"
+  - say: "Yes, that one."
+  - say: "Three PM is good."
+  - say: "Sandra Whitfield."
+  - say: "My back's been hurting."
+  - say: "Correct."
+expected_slots:
+  patient_name: {kind: name, expected: "Sandra Whitfield"}
+  date:         {kind: date, expected: "next Tuesday"}
+  time:         {kind: time, expected: "3pm"}
+  reason:       {kind: reason, accept_any_of: ["back", "spine", "pain"]}
+must_confirm_before_booking: true
+expect_tool_calls: [check_availability, book_appointment]

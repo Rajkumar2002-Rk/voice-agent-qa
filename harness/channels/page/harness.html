@@ -1,0 +1,125 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>voice-agent-qa audio harness</title>
+<body>
+<pre id="log">booting…</pre>
+<script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@3.0.1/dist/index.umd.js"></script>
+<script>
+/*
+ * Headless caller rig.
+ *
+ * The Retell Web SDK calls navigator.mediaDevices.getUserMedia() to get a
+ * microphone. We replace that with a Web Audio destination node we control, so
+ * "the caller speaks" becomes "schedule a buffer on our own graph". That gives
+ * closed-loop control: we decide what to say next based on what the agent just
+ * said, and we can start speaking *while the agent is still talking*, which is
+ * the only honest way to test barge-in.
+ */
+const logEl = document.getElementById("log");
+const state = {
+  ready: false, started: false, ended: false,
+  agentTalking: false, agentStartedAt: null,
+  transcript: [], events: [], error: null,
+};
+const log = (...a) => {
+  const line = a.map(x => typeof x === "string" ? x : JSON.stringify(x)).join(" ");
+  state.events.push({ t: Date.now(), line });
+  logEl.textContent = (logEl.textContent + "\n" + line).slice(-4000);
+};
+
+const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+const dest = ctx.createMediaStreamDestination();
+const bus = ctx.createGain();           // caller voice
+const noiseBus = ctx.createGain();      // background noise bed
+bus.connect(dest); noiseBus.connect(dest);
+noiseBus.gain.value = 0;
+
+// Silence keeps the track alive between utterances; a track with no source at
+// all makes some WebRTC stacks treat the sender as dead.
+const hiss = ctx.createConstantSource();
+const hissGain = ctx.createGain();
+hissGain.gain.value = 0.00001;
+hiss.connect(hissGain).connect(dest); hiss.start();
+
+navigator.mediaDevices.getUserMedia = async () => dest.stream;
+
+const decoded = new Map();
+window.__qa_loadClip = async (id, b64) => {
+  const bin = atob(b64);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  decoded.set(id, await ctx.decodeAudioData(buf.buffer));
+  return { id, seconds: decoded.get(id).duration };
+};
+
+window.__qa_play = (id, { noiseId = null, noiseGain = 0.5 } = {}) =>
+  new Promise((resolve) => {
+    const b = decoded.get(id);
+    if (!b) return resolve({ ok: false, error: "clip not loaded: " + id });
+    if (noiseId && decoded.get(noiseId)) {
+      const n = ctx.createBufferSource();
+      n.buffer = decoded.get(noiseId); n.loop = true;
+      n.connect(noiseBus); noiseBus.gain.value = noiseGain; n.start();
+      setTimeout(() => { try { n.stop(); } catch (e) {} noiseBus.gain.value = 0; },
+                 b.duration * 1000 + 250);
+    }
+    const s = ctx.createBufferSource();
+    s.buffer = b; s.connect(bus);
+    s.onended = () => resolve({ ok: true, id, endedAt: Date.now() });
+    log("caller speaks:", id);
+    s.start();
+  });
+
+window.__qa_state = () => ({ ...state });
+
+window.__qa_waitAgentStart = (timeoutMs = 15000) =>
+  new Promise((resolve) => {
+    if (state.agentTalking) return resolve({ ok: true, already: true, at: state.agentStartedAt });
+    const t0 = Date.now();
+    const iv = setInterval(() => {
+      if (state.agentTalking) { clearInterval(iv); resolve({ ok: true, at: state.agentStartedAt }); }
+      else if (Date.now() - t0 > timeoutMs) { clearInterval(iv); resolve({ ok: false, reason: "timeout" }); }
+    }, 25);
+  });
+
+window.__qa_waitAgentDone = (timeoutMs = 25000, quietMs = 600) =>
+  new Promise((resolve) => {
+    const t0 = Date.now();
+    let quietSince = state.agentTalking ? null : Date.now();
+    const iv = setInterval(() => {
+      if (state.agentTalking) quietSince = null;
+      else if (quietSince === null) quietSince = Date.now();
+      if (quietSince && Date.now() - quietSince >= quietMs) { clearInterval(iv); resolve({ ok: true }); }
+      else if (Date.now() - t0 > timeoutMs) { clearInterval(iv); resolve({ ok: false, reason: "timeout" }); }
+    }, 50);
+  });
+
+window.__qa_start = async ({ accessToken, callId, sampleRate = 24000 }) => {
+  try {
+    const Ctor = window.RetellWebClient || (window.RetellClientJsSdk || {}).RetellWebClient;
+    if (!Ctor) throw new Error("Retell SDK global not found on window");
+    const c = new Ctor();
+    window.__qa_client = c;
+    c.on("call_started",  () => { state.started = true; log("call_started"); });
+    c.on("call_ready",    () => { state.ready = true;   log("call_ready"); });
+    c.on("call_ended",    () => { state.ended = true;   log("call_ended"); });
+    c.on("agent_start_talking", () => { state.agentTalking = true; state.agentStartedAt = Date.now(); log("agent_start_talking"); });
+    c.on("agent_stop_talking",  () => { state.agentTalking = false; log("agent_stop_talking"); });
+    c.on("update", (u) => { if (u && u.transcript) state.transcript = u.transcript; });
+    c.on("error", (e) => { state.error = String(e && e.message || e); log("ERROR", state.error); });
+    await c.startCall({ accessToken, callId, sampleRate });
+    return { ok: true };
+  } catch (e) {
+    state.error = String(e && e.message || e);
+    log("start failed:", state.error);
+    return { ok: false, error: state.error };
+  }
+};
+
+window.__qa_stop = async () => {
+  try { await window.__qa_client?.stopCall(); } catch (e) {}
+  return { ok: true };
+};
+log("harness ready");
+</script>
+</body>

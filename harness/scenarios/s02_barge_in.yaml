@@ -1,0 +1,29 @@
+id: s02_barge_in
+persona: barge_in
+description: >
+  Caller talks over the agent twice: once during the greeting, once while the
+  agent is reading back availability. Tests whether the agent stops, listens,
+  and does not lose the slot it had already collected.
+reference_date: 2026-09-14
+channels: [voice]
+voice_only_rationale: >
+  Barge-in is the act of speaking while the agent is still producing audio.
+  The text channel has no concept of a partially-delivered turn, so running
+  this over text would be testing nothing and reporting a pass.
+turns:
+  - say: "Yeah hi I need an appointment for Thursday."
+    interrupt_after_ms: 700
+    note: "cuts in 700ms into the agent's opening line"
+  - say: "David Okonkwo. O-K-O-N-K-W-O."
+  - say: "Nine AM."
+    interrupt_after_ms: 900
+    note: "cuts in while the agent is listing available times"
+  - say: "Just a flu shot."
+  - say: "Yep, correct."
+expected_slots:
+  patient_name: {kind: name, expected: "David Okonkwo", aliases: ["David Okonkwo.", "david okonkwo"]}
+  date:         {kind: date, expected: "2026-09-17"}
+  time:         {kind: time, expected: "9am"}
+  reason:       {kind: reason, accept_any_of: ["flu", "shot", "vaccin", "immuni"]}
+must_confirm_before_booking: true
+expect_tool_calls: [check_availability, book_appointment]

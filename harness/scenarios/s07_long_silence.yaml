@@ -1,0 +1,28 @@
+id: s07_long_silence
+persona: long_silence
+description: >
+  Caller goes quiet for 12 seconds mid-call (distracted), then resumes as if
+  nothing happened. Tests whether the agent waits, checks in once, and — the
+  part that actually breaks — still has the slots it collected before the gap.
+  HELD OUT: the hardened prompt was written before these expectations existed.
+reference_date: 2026-09-14
+channels: [voice]
+voice_only_rationale: >
+  Silence is a property of the audio channel. The Chat API has no clock between
+  messages; a 12-second gap is indistinguishable from a 12-millisecond one.
+turns:
+  - say: "Hi, I need an appointment."
+  - say: "Thursday the twenty-fourth."
+  - silence_ms: 12000
+    note: "caller says nothing for 12s — agent should check in once, not bail"
+  - say: "Sorry, I'm back. One thirty PM."
+  - say: "Ellis Moreau."
+  - say: "Recurring migraines."
+  - say: "Yes, that's correct."
+expected_slots:
+  patient_name: {kind: name, expected: "Ellis Moreau"}
+  date:         {kind: date, expected: "2026-09-24"}
+  time:         {kind: time, expected: "1:30pm"}
+  reason:       {kind: reason, accept_any_of: ["migraine", "headache", "head"]}
+must_confirm_before_booking: true
+expect_tool_calls: [check_availability, book_appointment]

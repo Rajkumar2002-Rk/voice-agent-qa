@@ -1,0 +1,398 @@
+{
+  "synthetic": true,
+  "result": {
+    "scenario_id": "s09_self_correction",
+    "persona": "self_correction",
+    "channel": "voice",
+    "arm": "naive",
+    "run_index": 1,
+    "call_id": "SYNTHETIC-s09_self_correction-naive-voice-1",
+    "started_at": "2026-09-15T16:14:08.109115+00:00",
+    "ended_at": "2026-09-15T16:14:08.109117+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Grace Lindqvist",
+        "actual": "Grace Lindqvist",
+        "normalized_expected": "grace lindqvist",
+        "normalized_actual": "grace lindqvist",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Grace Lindqvist' -> grace lindqvist matches expected 'Grace Lindqvist' -> grace lindqvist"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-29",
+        "actual": "2026-09-29",
+        "normalized_expected": "2026-09-29",
+        "normalized_actual": "2026-09-29",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-29' -> 2026-09-29 matches expected '2026-09-29' -> 2026-09-29"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "4pm",
+        "actual": "16:00",
+        "normalized_expected": "16:00",
+        "normalized_actual": "16:00",
+        "rule": "time.24h_unambiguous",
+        "reasoning": "'16:00' -> 16:00 matches expected '4pm' -> 16:00"
+      },
+      {
+        "slot": "phone",
+        "verdict": "WRONG",
+        "expected": "5551234568",
+        "actual": "5551234567",
+        "normalized_expected": "5551234568",
+        "normalized_actual": "5551234567",
+        "rule": "phone.digits_last10",
+        "reasoning": "agent captured '5551234567' -> 5551234567, expected '5551234568' -> 5551234568"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "physical",
+        "normalized_expected": "physical|annual|check",
+        "normalized_actual": "physical",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'physical' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Grace Lindqvist",
+            "date": "2026-09-29",
+            "time": "16:00",
+            "reason": "physical",
+            "phone": "5551234567"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "WRONG",
+        "reasoning": "no agent utterance before book_appointment mentioned both the booked date (2026-09-29) and time (16:00); agent committed without reading the details back",
+        "evidence": {
+          "agent_utterances_before_booking": [
+            "Thanks for calling Lakeside.",
+            "Okay.",
+            "Okay.",
+            "Okay.",
+            "Okay.",
+            "Okay.",
+            "Okay.",
+            "Okay.",
+            "Okay."
+          ]
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 3200,
+        "agent_response_start_ms": 4633,
+        "latency_ms": 1433,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 6733,
+        "agent_response_start_ms": 8028,
+        "latency_ms": 1295,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 10128,
+        "agent_response_start_ms": 11669,
+        "latency_ms": 1541,
+        "note": ""
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 13769,
+        "agent_response_start_ms": 14940,
+        "latency_ms": 1171,
+        "note": ""
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 17040,
+        "agent_response_start_ms": 17978,
+        "latency_ms": 938,
+        "note": ""
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 20078,
+        "agent_response_start_ms": 20613,
+        "latency_ms": 535,
+        "note": ""
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 22713,
+        "agent_response_start_ms": 23503,
+        "latency_ms": 790,
+        "note": ""
+      },
+      {
+        "turn_index": 7,
+        "caller_utterance_end_ms": 25603,
+        "agent_response_start_ms": 26967,
+        "latency_ms": 1364,
+        "note": ""
+      }
+    ],
+    "judge": [],
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thanks for calling Lakeside.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 0,
+        "end_ms": 1500
+      },
+      {
+        "role": "user",
+        "text": "I need an appointment on Monday the twenty-eighth.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 2000,
+        "end_ms": 3200
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 4633,
+        "end_ms": 5533
+      },
+      {
+        "role": "user",
+        "text": "Actually no, sorry \u2014 Tuesday the twenty-ninth.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 5533,
+        "end_ms": 6733
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 8028,
+        "end_ms": 8928
+      },
+      {
+        "role": "user",
+        "text": "Four PM.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 8928,
+        "end_ms": 10128
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 11669,
+        "end_ms": 12569
+      },
+      {
+        "role": "user",
+        "text": "It's Grace Lindqvist.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 12569,
+        "end_ms": 13769
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 14940,
+        "end_ms": 15840
+      },
+      {
+        "role": "user",
+        "text": "My number is five five five, one two three, four five six seven.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 15840,
+        "end_ms": 17040
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 17978,
+        "end_ms": 18878
+      },
+      {
+        "role": "user",
+        "text": "Sorry, that last part is wrong \u2014 it's four five six eight, not four five six seven.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 18878,
+        "end_ms": 20078
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 20613,
+        "end_ms": 21513
+      },
+      {
+        "role": "user",
+        "text": "Annual physical.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 21513,
+        "end_ms": 22713
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 23503,
+        "end_ms": 24403
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's all correct.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 24403,
+        "end_ms": 25603
+      },
+      {
+        "role": "agent",
+        "text": "Okay.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 26967,
+        "end_ms": 27867
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-29"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "slots": [
+            {
+              "time": "16:00"
+            }
+          ]
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Grace Lindqvist",
+          "date": "2026-09-29",
+          "time": "16:00",
+          "reason": "physical",
+          "phone": "5551234567"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "tool_calls": [],
+    "captured_slots": {
+      "patient_name": "Grace Lindqvist",
+      "date": "2026-09-29",
+      "time": "16:00",
+      "reason": "physical",
+      "phone": "5551234567"
+    },
+    "error": null
+  },
+  "judge_agreement": {}
+}
