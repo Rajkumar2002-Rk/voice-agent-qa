@@ -83,59 +83,115 @@ information you actually wanted.
 
 ## 3. Findings that do not flatter the work
 
-Four bugs, all mine, all in the component whose entire selling point is that it is
-trustworthy. Full detail in [notes.md](notes.md).
+Nine bugs so far, all mine, and the most serious ones were in the component whose
+entire selling point is that it can be trusted. Full detail in [notes.md](notes.md);
+the three that matter are below, followed by the pattern they form — which is the
+most useful thing this project produced.
 
-### 3.1 The scorer rejected the exact format its own tool schema demanded
+### 3.1 The scorer accused the agent of inventing times it had read off the tool
 
-The worst one, and the most instructive.
+The pilot ablation flagged `s01/naive#2` for stating three appointment times "that
+neither the check_availability tool returned nor the caller proposed". The agent had
+said:
 
-`book_appointment`'s schema says *"Appointment time as 24-hour HH:MM."* The agent
-complies and sends `"09:00"`. `normalize_time` then refused it — hour 9, no am/pm
-marker, and the rule was "never guess the meridiem."
+> "On Tuesday, September 22nd, we have openings at 9:00 AM, 9:30 AM, 10:00 AM,
+> 1:30 PM, 3:00 PM, and 4:00 PM."
 
-Both halves were individually correct. "Never guess" is right for **speech**, where
-"three" genuinely could be either. It is wrong for a **structured field whose schema
-declares 24-hour**, where `09:00` is unambiguous by contract. The result: every
-correct morning appointment scored UNPARSEABLE.
+The clinic server's actual availability: `09:00, 09:30, 10:00, 13:30, 15:00, 16:00`.
+**Identical.** The agent was exactly right and the scorer called it a liar.
 
-**I would not have caught this from a real run.** I would have seen a pile of
-UNPARSEABLE time slots, concluded the agent was bad at times, and written that up as
-a finding *about the agent*. It was caught only because a fabricated fixture with
-known-correct answers made the discrepancy visible. Build the fake-data path before
-spending money on real calls.
+`check_invented_availability` parsed the tool's own returned slots using rules meant
+for *speech*, where a bare `"09:00"` is ambiguous and gets refused. Every morning
+slot silently vanished from the ground-truth set; only the afternoon ones survived.
+The check was therefore biased toward reporting hallucination **specifically on
+morning appointments**.
 
-### 3.2 A silent, plausible mis-parse: `"noon" in s` matches "after**noon**"
+Had I not opened a transcript, I would have published *"the naive prompt hallucinates
+availability roughly 30% of the time"* — a clean, plausible, quotable, entirely
+manufactured finding. It would have been perfectly reproducible, because
+**reproducible and correct are different properties**. A deterministic scorer that is
+wrong is wrong the same way every time, which makes the error look like a signal.
 
-`normalize_time("4 in the afternoon")` returned `12:00`. A substring check for "noon"
-fires on "afternoon", and the early return meant the "4" was never examined.
+### 3.2 The agent never knew what day it was
 
-Nastier than an obvious crash, because 12:00 is a perfectly plausible clinic
-appointment. Any scenario where a caller said "afternoon" would have been scored
-against the wrong value, and the report would have confidently named the wrong slot.
+The second ablation attempt died at run 7. `s04_mind_change` scored 0/4, and the
+tool log said why:
 
-### 3.3 The obvious test would have passed and shipped the bug
+```
+USER   I'd like to book for Tuesday the twenty-second.
+TOOL   check_availability({"date": "2024-08-22"})
+```
 
-`normalize_date("next Tuesday", ...)` resolved to 10 days out when the reference date
-was a Saturday. The docstring promised "the weekday in the following calendar week";
-the code computed "next occurrence, then add 7 if it's under a week away." Those
-agree when the reference day is early in the week and diverge badly later in it.
+August **2024**. The scenario pins 2026-09-14 as "today", so the expected date was
+2026-09-22. Nothing in the system had ever told the agent the current date — Retell
+does not inject one, the prompts did not mention one, and I passed no dynamic
+variables. With no anchor the model used its training-era notion of "now".
 
-Caught by re-reading my own docstring against the implementation — not by a test. The
-test I would naturally have written (from a Monday) passes on the buggy code. The
-parametrised Mon/Sat/Sun test exists only *because* the bug sent me looking.
+The downstream effects were completely convincing as agent failures: the clinic
+correctly reported "Friday the 25th" as closed, because 2024-08-25 is a *Sunday*; the
+agent looped asking for an exact date because nothing it had cohered. Three scenarios
+turn on relative dates and every other scenario touches one.
 
-### 3.4 An open limitation I have not solved
+Worse, I had already *mis-diagnosed this once*. Earlier, the hardened agent kept
+asking the caller to confirm the year, and I read that as my disambiguation rule
+over-firing into pedantry — so I patched the prompt to say "assume the current year."
+The agent was asking because **it genuinely did not know the year**. It was behaving
+reasonably given its context, and I suppressed the symptom and moved on. The real bug
+survived two more runs.
+
+### 3.3 The harness quietly favoured the arm that asked fewer questions
+
+The scripted caller is open-loop: it reads its lines regardless of what the agent
+asks. So when the hardened agent asked an unanticipated question, the caller replied
+with the next scripted line — a non-answer — and the agent asked again until the
+script ran out and the run failed at 0/4.
+
+That is a structural bias toward **whichever arm asks fewer clarifying questions**,
+which is not the same thing as the better arm. An agent that carefully confirms an
+ambiguous date was being penalised for it.
+
+Mitigated with a bounded follow-up (the caller offers "Yes, that's correct." up to
+three times once the script is exhausted), with `followups_used` recorded per run and
+reported — so asking more questions now costs visible efficiency rather than a silent
+failure. It is a mitigation, not a fix: a real caller answers the actual question.
+
+### 3.4 The pattern, which is the real finding
+
+Three separate times, a defect of mine arrived wearing the costume of an agent
+failure — and each time it came with a specific, well-formatted, entirely plausible
+accusation: *the agent hallucinated three times*, *the agent can't handle a date
+change*, *the agent asks pointless questions*.
+
+The uncomfortable part is that **the harness's output quality was what made the
+errors credible**. A verdict that names the slot, shows the captured value, and cites
+the rule that fired reads as authoritative. That authority is exactly what the
+project set out to build, and it is what made every one of these bugs land as a
+finding instead of as a suspicion.
+
+Three things follow, and they are what I would actually tell a team building this:
+
+1. **When the harness and the agent disagree, the harness is a serious suspect.**
+   Not the default explanation, but never below the agent in the ordering.
+2. **Read individual transcripts before believing any aggregate.** Every bug here was
+   found by opening one conversation. None were visible in a pass-rate table — they
+   all *were* the pass-rate table.
+3. **Build the fake-data path before spending money on real calls.** The synthetic
+   fixture, written only to test the report generator, caught a scorer bug on its
+   first render because it was the only place I knew the correct answer in advance.
+
+The tooling response was `make preflight`: one $0.01 conversation that asserts the
+live prompt matches the file on disk, the agent actually called its tool, the clinic
+server actually received the webhook, and the date the agent resolved matches the
+scenario's reference date. Every check exists because its absence already cost a
+batch.
+
+### 3.5 An open limitation, not solved
 
 `check_invented_availability` suppresses utterances matching an opening-hours pattern,
 because "we're open 9am to 5pm" otherwise reads as two invented slots. The suppression
-is blunt: an agent saying *"I'm open at 2pm"* — meaning the slot, not the clinic — is
-now invisible to the check.
-
-I don't have a fix that stays deterministic. **This check under-reports**, and should
-be read that way rather than as a clean signal.
-
----
+is blunt: an agent saying *"I'm open at 2pm"* — meaning the slot — is now invisible to
+it. No deterministic fix found. **This check under-reports**, and should be read that
+way rather than as a clean signal.
 
 ## 4. Which failures the hardened prompt fixed — PENDING
 
