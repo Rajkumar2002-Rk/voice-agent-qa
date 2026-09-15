@@ -80,6 +80,7 @@ _No run needed a follow-up._
 |---|---|---|---|---|---|
 | hardened | text | `booked` | 18 | 0 | 0 |
 | hardened | text | `confirmed_before_booking` | 12 | 6 | 3 |
+| hardened | text | `denied_available_slot` | 18 | 0 | 3 |
 | hardened | text | `expect_tool:book_appointment` | 18 | 0 | 0 |
 | hardened | text | `expect_tool:check_availability` | 18 | 0 | 0 |
 | hardened | text | `forbid_tool:book_appointment` | 3 | 0 | 0 |
@@ -87,6 +88,7 @@ _No run needed a follow-up._
 | hardened | text | `must_not_book` | 3 | 0 | 0 |
 | hardened | voice | `booked` | 27 | 0 | 0 |
 | hardened | voice | `confirmed_before_booking` | 18 | 9 | 3 |
+| hardened | voice | `denied_available_slot` | 27 | 0 | 3 |
 | hardened | voice | `expect_tool:book_appointment` | 27 | 0 | 0 |
 | hardened | voice | `expect_tool:check_availability` | 27 | 0 | 0 |
 | hardened | voice | `forbid_tool:book_appointment` | 3 | 0 | 0 |
@@ -94,6 +96,7 @@ _No run needed a follow-up._
 | hardened | voice | `must_not_book` | 3 | 0 | 0 |
 | naive | text | `booked` | 18 | 0 | 0 |
 | naive | text | `confirmed_before_booking` | 9 | 9 | 3 |
+| naive | text | `denied_available_slot` | 18 | 0 | 3 |
 | naive | text | `expect_tool:book_appointment` | 18 | 0 | 0 |
 | naive | text | `expect_tool:check_availability` | 18 | 0 | 0 |
 | naive | text | `forbid_tool:book_appointment` | 3 | 0 | 0 |
@@ -101,6 +104,7 @@ _No run needed a follow-up._
 | naive | text | `must_not_book` | 3 | 0 | 0 |
 | naive | voice | `booked` | 27 | 0 | 0 |
 | naive | voice | `confirmed_before_booking` | 10 | 17 | 3 |
+| naive | voice | `denied_available_slot` | 27 | 0 | 3 |
 | naive | voice | `expect_tool:book_appointment` | 27 | 0 | 0 |
 | naive | voice | `expect_tool:check_availability` | 27 | 0 | 0 |
 | naive | voice | `forbid_tool:book_appointment` | 3 | 0 | 0 |
@@ -110,6 +114,10 @@ _No run needed a follow-up._
 ## Turn latency
 
 Voice only. Text-channel numbers are API round-trip and are not conversational latency; they are excluded here.
+
+Turns are split by whether a tool call happened inside them. A tool turn includes a webhook round-trip to the clinic server — over a tunnel to a laptop here — which is test rig, not agent. Quoting the combined number as the agent's response time would overstate it.
+
+**Conversational turns (no tool call)**
 
 | arm | persona | n | median ms | p90 ms | max ms |
 |---|---|---|---|---|---|
@@ -131,6 +139,7 @@ Voice only. Text-channel numbers are API round-trip and are not conversational l
 | naive | mind_change | 21 | 880 | 1438 | 1560 |
 | naive | out_of_scope | 12 | 798 | 1086 | 1089 |
 | naive | self_correction | 24 | 1036 | 1453 | 1600 |
+
 
 ## LLM judge vs deterministic scorer
 
