@@ -461,3 +461,29 @@ The general lesson, which outlived the specific bugs: *the expensive part of an
 eval harness is not the scoring, it's establishing that the thing you measured was
 the thing you meant to measure.* Every check above exists because its absence
 already cost a batch.
+
+### B15. The two channels' follow-up logic diverged, making the metric incomparable
+
+The bounded follow-up (B13's mitigation) was implemented twice, and the two copies
+did not agree. The text channel re-reads the chat and stops as soon as
+`book_appointment` appears. The audio channel had no equivalent check — it looped
+`max_followups` times unconditionally, breaking only if the call had already ended.
+
+Two consequences, one measurement and one financial:
+
+- **`followups_used` was not comparable across channels.** Voice runs reported 3
+  almost every time regardless of how the agent performed, so the metric said
+  nothing — while looking like it said something. Any cross-channel comparison of
+  "efficiency" would have been an artifact of my loop, not of the agent.
+- Every voice call carried ~3 wasted turns. Across a 40-call voice ablation that is
+  real money and several minutes of latency, for no information.
+
+Mid-call we cannot read Retell's transcript, but the clinic tool server is ours and
+logs every webhook keyed by `call_id` — so the voice channel now checks its own
+ground-truth log to decide whether the agent has committed. Four tests, including a
+corrupt-log case, since a half-written JSON line must never crash a live call.
+
+**The general shape:** a mitigation implemented once per channel will drift, and the
+drift shows up as a plausible cross-channel difference. Anything compared across
+arms or channels should share one implementation — the same reason both channels
+already flatten transcripts through one function.

@@ -345,3 +345,41 @@ class TestAvailabilityGroundTruthParsing:
                 base_scenario(), self._events(slots, f"We have {spoken}."))
             assert r.verdict == Verdict.PASS, f"{d}: {r.reasoning}"
             assert not r.evidence["unparseable_tool_offers"], f"{d} dropped slots"
+
+
+class TestBookingDetectionFromToolLog:
+    """The voice channel decides whether to keep following up by reading the
+    clinic server's own tool log. Regression: it previously fired all three
+    follow-ups unconditionally, unlike the text channel."""
+
+    def test_detects_a_booking(self, tmp_path, monkeypatch):
+        import json as _json
+
+        from harness.channels import audio
+        monkeypatch.setattr(audio, "TOOL_LOG_DIR", tmp_path)
+        (tmp_path / "call1.jsonl").write_text(
+            _json.dumps({"tool": "check_availability", "call_id": "call1"}) + "\n"
+            + _json.dumps({"tool": "book_appointment", "call_id": "call1"}) + "\n"
+        )
+        assert audio._has_booked("call1") is True
+
+    def test_availability_alone_is_not_a_booking(self, tmp_path, monkeypatch):
+        import json as _json
+
+        from harness.channels import audio
+        monkeypatch.setattr(audio, "TOOL_LOG_DIR", tmp_path)
+        (tmp_path / "call2.jsonl").write_text(
+            _json.dumps({"tool": "check_availability", "call_id": "call2"}) + "\n")
+        assert audio._has_booked("call2") is False
+
+    def test_missing_log_is_not_a_booking(self, tmp_path, monkeypatch):
+        from harness.channels import audio
+        monkeypatch.setattr(audio, "TOOL_LOG_DIR", tmp_path)
+        assert audio._has_booked("nope") is False
+
+    def test_corrupt_log_does_not_raise(self, tmp_path, monkeypatch):
+        """A half-written line must not crash a live call."""
+        from harness.channels import audio
+        monkeypatch.setattr(audio, "TOOL_LOG_DIR", tmp_path)
+        (tmp_path / "call3.jsonl").write_text('{"tool": "book_app')
+        assert audio._has_booked("call3") is False

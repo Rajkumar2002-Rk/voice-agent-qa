@@ -30,6 +30,7 @@ likely thing to need adjustment (see `page/harness.html`).
 from __future__ import annotations
 
 import base64
+import json
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -40,6 +41,28 @@ from ..schema import Scenario
 from .base import captured_slots_from_events, dynamic_variables, flatten_transcript
 
 PAGE = Path(__file__).parent / "page" / "harness.html"
+TOOL_LOG_DIR = Path(__file__).resolve().parents[2] / "runs" / "_tool_log"
+
+
+def _has_booked(call_id: str) -> bool:
+    """Has the agent committed yet, according to the clinic server's own log?
+
+    Mid-call we cannot read Retell's transcript, but the tool server is ours and
+    it logs every webhook keyed by call_id. Without this the voice channel fired
+    all its follow-ups unconditionally — unlike the text channel, which stops as
+    soon as the booking lands — so the two channels' followups_used were not
+    comparable and every voice call carried three wasted turns.
+    """
+    f = TOOL_LOG_DIR / f"{call_id}.jsonl"
+    if not f.exists():
+        return False
+    try:
+        return any(
+            json.loads(line).get("tool") == "book_appointment"
+            for line in f.read_text().splitlines() if line.strip()
+        )
+    except (OSError, json.JSONDecodeError):
+        return False
 VENDOR = PAGE.parent / "vendor"
 
 # Pinned exactly. The Retell UMD lists these as externals and expects them on
@@ -197,6 +220,8 @@ def run_voice_scenario(
                               {"startTimeoutMs": 9000, "quietMs": 700})
                 st = page.evaluate("() => window.__qa_state()")
                 if st.get("ended") or time.time() > deadline:
+                    break
+                if _has_booked(call_id):
                     break
                 followups += 1
                 page.evaluate("([id, opts]) => window.__qa_play(id, opts)",
