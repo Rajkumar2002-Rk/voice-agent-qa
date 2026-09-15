@@ -181,6 +181,24 @@ def run_voice_scenario(
             driver_log.append({"t": time.time(), "turn": i, "action": "spoke",
                                "said": turn.say})
 
+        # bounded follow-ups, mirroring the text channel. Uses a shared fixture so
+        # the same words are spoken in every scenario and both arms.
+        followups = 0
+        fu = FIXTURES / "followup_affirmation.wav"
+        if fu.exists() and not scenario.must_not_book:
+            page.evaluate("([id, b64]) => window.__qa_loadClip(id, b64)",
+                          ["followup", _b64(fu)])
+            for _ in range(scenario.max_followups):
+                page.evaluate("(o) => window.__qa_waitAgentTurn(o)",
+                              {"startTimeoutMs": 9000, "quietMs": 700})
+                st = page.evaluate("() => window.__qa_state()")
+                if st.get("ended") or time.time() > deadline:
+                    break
+                followups += 1
+                page.evaluate("([id, opts]) => window.__qa_play(id, opts)",
+                              ["followup", {}])
+                driver_log.append({"t": time.time(), "action": "followup"})
+
         # let the agent finish its last turn (and any tool call) before hanging up
         page.evaluate("(o) => window.__qa_waitAgentTurn(o)",
                       {"startTimeoutMs": 12000, "quietMs": 1500, "maxMs": 30000})
@@ -204,4 +222,5 @@ def run_voice_scenario(
         "page_state": {k: v for k, v in (page_state or {}).items() if k != "events"},
         "retell_latency": call_final.get("latency"),
         "disconnection_reason": call_final.get("disconnection_reason"),
+        "followups_used": followups,
     }

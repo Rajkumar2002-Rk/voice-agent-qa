@@ -322,12 +322,21 @@ def check_invented_availability(
     excluded — repeating the caller back is not invention.
     """
     offered: set[str] = set()
+    unparseable_offers: list[str] = []
     for e in events:
         if e.role == "tool_result" and e.name == AVAILABILITY_TOOL:
             for slot in e.result.get("slots", []) or []:
-                n = normalize_time(str(slot.get("time", slot)))
+                # context="structured": these are the TOOL's own 24-hour values,
+                # not speech. Parsing them as speech silently dropped every
+                # morning slot ("09:00" reads as ambiguous), so an agent that
+                # correctly offered a 9am opening was accused of inventing it.
+                n = normalize_time(str(slot.get("time", slot)), context="structured")
                 if n.ok and n.value:
                     offered.add(n.value)
+                else:
+                    # never silently drop ground truth — if the oracle's own
+                    # value won't parse, that's a harness bug worth surfacing
+                    unparseable_offers.append(str(slot.get("time", slot)))
 
     caller_times: set[str] = set()
     for e in events:
@@ -352,7 +361,8 @@ def check_invented_availability(
                       + ("" if called_tool else f"; it never called {AVAILABILITY_TOOL} at all"),
             evidence={"invented": invented, "tool_offered": sorted(offered),
                       "caller_proposed": sorted(caller_times),
-                      "called_availability_tool": called_tool},
+                      "called_availability_tool": called_tool,
+                      "unparseable_tool_offers": unparseable_offers},
         )
     return BehaviourResult(
         check="invented_availability", verdict=Verdict.PASS,
@@ -360,7 +370,8 @@ def check_invented_availability(
                   "availability tool or from the caller",
         evidence={"tool_offered": sorted(offered),
                   "caller_proposed": sorted(caller_times),
-                  "called_availability_tool": called_tool},
+                  "called_availability_tool": called_tool,
+                  "unparseable_tool_offers": unparseable_offers},
     )
 
 

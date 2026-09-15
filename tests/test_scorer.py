@@ -284,3 +284,63 @@ class TestConfirmRequiresAssent:
     def test_affirmation_vocabulary(self, reply, expected):
         from harness.scorer import caller_affirmed
         assert caller_affirmed(reply) is expected
+
+
+class TestAvailabilityGroundTruthParsing:
+    """Regression: the availability tool's own 24-hour slots were parsed with
+    SPOKEN rules, so every morning slot ("09:00") was dropped as ambiguous and
+    an agent correctly offering 9am was accused of inventing it. This is the
+    same root cause as the captured-slot bug, at a call site I missed."""
+
+    def _events(self, slots, agent_text):
+        return [
+            ev("tool_call", name="check_availability", args={"date": "2026-09-22"}),
+            ev("tool_result", name="check_availability",
+               result={"slots": [{"time": t} for t in slots]}),
+            ev("agent", agent_text),
+        ]
+
+    def test_morning_slots_are_ground_truth(self, base_scenario):
+        r = check_invented_availability(base_scenario(), self._events(
+            ["09:00", "09:30", "10:00"],
+            "We have 9:00 AM, 9:30 AM, and 10:00 AM available."))
+        assert r.verdict == Verdict.PASS, r.reasoning
+        assert set(r.evidence["tool_offered"]) == {"09:00", "09:30", "10:00"}
+
+    def test_full_day_offer_round_trips(self, base_scenario):
+        """The exact real-world case that was misreported."""
+        slots = ["09:00", "09:30", "10:00", "13:30", "15:00", "16:00"]
+        r = check_invented_availability(base_scenario(), self._events(
+            slots, "On Tuesday we have openings at 9:00 AM, 9:30 AM, 10:00 AM, "
+                   "1:30 PM, 3:00 PM, and 4:00 PM. What works best?"))
+        assert r.verdict == Verdict.PASS, r.reasoning
+        assert set(r.evidence["tool_offered"]) == set(slots)
+
+    def test_real_hallucination_still_caught(self, base_scenario):
+        r = check_invented_availability(base_scenario(), self._events(
+            ["09:00", "09:30"], "We have 9:00 AM, 9:30 AM, and 2:00 PM."))
+        assert r.verdict == Verdict.WRONG
+        assert [i["canonical"] for i in r.evidence["invented"]] == ["14:00"]
+
+    def test_unparseable_ground_truth_is_surfaced_not_dropped(self, base_scenario):
+        r = check_invented_availability(base_scenario(), self._events(
+            ["banana"], "We have 3:00 PM."))
+        assert r.evidence["unparseable_tool_offers"] == ["banana"]
+
+    def test_against_the_real_clinic_server(self, base_scenario):
+        """End-to-end: whatever the oracle emits must survive the scorer."""
+        import os, tempfile
+        os.environ.setdefault("CLINIC_LOG_DIR", tempfile.mkdtemp())
+        from datetime import date as _date
+
+        from agent.clinic_server import _deterministic_open_slots
+        for d in ("2026-09-22", "2026-09-17", "2026-10-05", "2026-09-25"):
+            slots = _deterministic_open_slots(_date.fromisoformat(d))
+            spoken = ", ".join(
+                f"{int(t[:2]) % 12 or 12}:{t[3:]} {'AM' if int(t[:2]) < 12 else 'PM'}"
+                for t in slots
+            )
+            r = check_invented_availability(
+                base_scenario(), self._events(slots, f"We have {spoken}."))
+            assert r.verdict == Verdict.PASS, f"{d}: {r.reasoning}"
+            assert not r.evidence["unparseable_tool_offers"], f"{d} dropped slots"

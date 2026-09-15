@@ -111,6 +111,7 @@ def _run_one(client: RetellClient, scenario: Scenario, arm: str, channel: Channe
         transcript=[e.model_dump() for e in events],
         tool_calls=[e.model_dump() for e in events if e.role in ("tool_call", "tool_result")],
         captured_slots=out["captured_slots"],
+        followups_used=out.get("followups_used", 0),
     )
     return result, elapsed, {"raw": out.get("raw"), "driver_log": out.get("driver_log"),
                              "judge_agreement": agreement,

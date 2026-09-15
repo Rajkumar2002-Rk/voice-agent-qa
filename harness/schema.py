@@ -83,6 +83,15 @@ class Scenario(BaseModel):
     expect_tool_calls: list[str] = Field(default_factory=list)
     forbid_tool_calls: list[str] = Field(default_factory=list)
 
+    # If the agent still hasn't committed after the script runs out, the caller
+    # offers this a bounded number of times. A real caller would answer an
+    # unanticipated question; an open-loop script cannot, which silently
+    # penalises agents that ask MORE clarifying questions. The count used is
+    # recorded per run so "needed 3 nudges" stays visible rather than being
+    # laundered into a clean pass.
+    followup_reply: str = "Yes, that's correct."
+    max_followups: int = 3
+
     # channels this scenario is meaningful on.  A barge-in has no text analogue;
     # saying otherwise would be dishonest, so it is declared here and the runner
     # skips it rather than pretending.
@@ -156,6 +165,7 @@ class RunResult(BaseModel):
     transcript: list[dict[str, Any]] = Field(default_factory=list)
     tool_calls: list[dict[str, Any]] = Field(default_factory=list)
     captured_slots: dict[str, Any] = Field(default_factory=dict)
+    followups_used: int = 0
 
     error: str | None = None
 

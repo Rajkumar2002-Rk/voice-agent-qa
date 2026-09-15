@@ -304,3 +304,89 @@ inconvenience.
 Compounding it, I ran the build piped to `tail`, so the shell reported *tail's*
 exit status and the failure looked like a clean exit 0. Two independent things
 hiding the same error. Every entrypoint now loads `.env`; the audit is in the commit.
+
+---
+
+## Day 1 — pilot run, stopped after 4 of 42
+
+Started the text ablation and killed it four runs in. Two things surfaced, one a
+harness bug and one a genuine result. Both were only visible because I looked at an
+individual transcript instead of waiting for the aggregate.
+
+### B12. The hallucination check accused the agent of inventing times it read off the tool
+
+`s01/naive#2` was flagged for stating three times "that neither the
+check_availability tool returned nor the caller proposed". The agent had said:
+
+> "On Tuesday, September 22nd, we have openings at 9:00 AM, 9:30 AM, 10:00 AM,
+> 1:30 PM, 3:00 PM, and 4:00 PM."
+
+The clinic server's actual availability for that date:
+`['09:00', '09:30', '10:00', '13:30', '15:00', '16:00']`. **Identical.** The agent
+was perfectly correct and my scorer called it a liar.
+
+Cause: `check_invented_availability` parsed the tool's own returned slots with
+`normalize_time(...)` at its **spoken** default. Under spoken rules `"09:00"` is
+ambiguous (hour ≤ 12, no meridiem) and gets refused — so every morning slot silently
+vanished from the ground-truth set, and only `13:30/15:00/16:00` survived. Any agent
+correctly offering a morning appointment was reported as hallucinating.
+
+This is **B4 all over again, at a call site I missed when I fixed B4.** Same root
+cause: structured data parsed with rules meant for speech. I fixed the one place the
+synthetic fixture happened to exercise and assumed I was done, rather than auditing
+every call site. The audit took one grep and would have found it.
+
+Two changes: the tool-result path now uses `context="structured"`, and a slot the
+oracle emits that *won't* parse is recorded in `unparseable_tool_offers` rather than
+silently dropped — ground truth should never disappear quietly. Five regression
+tests, including one that pushes the real clinic server's output for four different
+dates through the check.
+
+**For the writeup:** the check was biased toward reporting hallucination on morning
+appointments specifically. Had I not read a transcript, I'd have published "the naive
+prompt hallucinates availability ~30% of the time" — a clean, plausible, entirely
+manufactured finding. The deterministic scorer being reproducible does not make it
+*correct*; it just means it's wrong the same way every time.
+
+### F1. The hardened prompt made the agent pedantic — a real result
+
+`s01/hardened#0` scored 0/4 and never booked. Transcript:
+
+> AGENT: Just so I have it right — that's Tuesday the 22nd of September, 2026?
+> Could you please confirm the year?
+> USER: Three PM works.
+> AGENT: I want to make sure I have the date right first. You said Tuesday the
+> 22nd of September. Could you please confirm the year for that date?
+
+My hardened rule "resolve relative dates explicitly, never silently pick an
+interpretation" over-fired into demanding the *year*. No clinic scheduler asks that.
+It cost two turns and the booking never happened.
+
+This is exactly the failure mode the harness exists to find, and it's evidence
+against a naive reading of "hardening helps" — a stricter prompt bought correctness
+on ambiguity and paid for it in conversational efficiency.
+
+### B13. The open-loop caller systematically penalises agents that ask more questions
+
+F1 was *amplified* by a harness flaw. The scripted caller reads its lines regardless
+of what the agent asks. When the hardened agent asked an unanticipated question, the
+caller replied with the next scripted line — a non-answer — and the agent kept
+asking. A real caller would have said "yes, 2026" and moved on.
+
+So the harness had a built-in bias **favouring the arm that asks fewer questions**,
+which is not the same as the arm that performs better. Fixed with a bounded
+follow-up: once the script is exhausted and nothing is booked, the caller offers
+"Yes, that's correct." up to 3 times. `followups_used` is recorded per run and
+reported, so a pass that needed three nudges is visibly different from a clean one.
+
+### Threat to validity: the hardened arm has been iterated, the naive arm has not
+
+I changed `hardened.md` after seeing F1 — adding "assume the current year, don't ask
+for it, ask about the date once." That is a legitimate prompt fix, and it is also
+**one round of debugging the naive arm never received**, by construction: the naive
+arm is defined as an un-iterated first draft.
+
+This asymmetry favours the hardened arm and cannot be designed away without
+abandoning the "first draft vs hardened" framing. It must be stated plainly in the
+findings rather than buried, and the honest reading of any hardened-arm margin is:
+*this is what a prompt looks like after one round of looking at failures.*

@@ -44,6 +44,19 @@ def run_text_scenario(
                 "said": turn.say,
                 "api_round_trip_ms": int((time.perf_counter() - t0) * 1000),
             })
+        # bounded follow-ups: only if the agent hasn't committed yet
+        followups = 0
+        for _ in range(scenario.max_followups):
+            snap = client.get_chat(chat_id)
+            entries = snap.get("message_with_tool_calls") or snap.get("messages") or []
+            if any(e.get("role") == "tool_call_invocation"
+                   and e.get("name") == "book_appointment" for e in entries):
+                break
+            if scenario.must_not_book:
+                break
+            followups += 1
+            client.chat_completion(chat_id, scenario.followup_reply)
+
         final = client.get_chat(chat_id)
     finally:
         try:
@@ -63,4 +76,5 @@ def run_text_scenario(
         "captured_slots": captured_slots_from_events(events),
         "raw": final,
         "turn_timings": turn_timings,
+        "followups_used": followups,
     }

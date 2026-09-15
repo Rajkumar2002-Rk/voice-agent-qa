@@ -122,6 +122,25 @@ def build(run_dir: Path) -> str:
         add("_None._")
     add("")
 
+    # ---------------- follow-ups ----------------
+    add("## Caller follow-ups needed\n")
+    add("The scripted caller is open-loop. If the agent was still asking questions "
+        "after the script ran out, the caller offered a bounded affirmation. An "
+        "agent needing more nudges asked more questions — a real cost even when "
+        "the run ultimately passed.\n")
+    fu: dict[tuple[str, str], list[int]] = defaultdict(list)
+    for r in results:
+        fu[(r.arm, r.channel)].append(getattr(r, "followups_used", 0) or 0)
+    if any(any(v) for v in fu.values()):
+        add("| arm | channel | runs | used >=1 | mean |")
+        add("|---|---|---|---|---|")
+        for (arm, ch), vals in sorted(fu.items()):
+            add(f"| {arm} | {ch} | {len(vals)} | {sum(1 for v in vals if v)} | "
+                f"{sum(vals)/len(vals):.2f} |")
+    else:
+        add("_No run needed a follow-up._")
+    add("")
+
     # ---------------- behaviours ----------------
     add("## Behavioural checks\n")
     bstats: dict[tuple[str, str, str], list[str]] = defaultdict(list)
