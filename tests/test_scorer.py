@@ -329,7 +329,8 @@ class TestAvailabilityGroundTruthParsing:
 
     def test_against_the_real_clinic_server(self, base_scenario):
         """End-to-end: whatever the oracle emits must survive the scorer."""
-        import os, tempfile
+        import os
+        import tempfile
         os.environ.setdefault("CLINIC_LOG_DIR", tempfile.mkdtemp())
         from datetime import date as _date
 
