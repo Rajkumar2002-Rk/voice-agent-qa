@@ -538,3 +538,39 @@ same verdicts for free, and a *fixed* scorer re-derives better ones.
 It also makes scorer fixes safe to make late: the denial check above was added after
 the run started, and the completed runs can be brought up to it without spending a
 cent.
+
+### B17. s09 expects a field neither prompt asks the agent to collect
+
+Spotted while s09 was still queued, so this is a **prediction recorded before the
+result**, which makes it a real test of the reasoning rather than a
+post-hoc explanation.
+
+`s09_self_correction` declares an expected `phone` slot (`5551234568`, after the
+caller misspeaks and corrects it). But:
+
+- neither prompt mentions collecting a phone number — both list name, date, time,
+  reason and nothing else
+- `book_appointment` accepts `phone` but does **not** list it in `required`
+
+So the agent has no instruction to capture it and no schema pressure to. Predicted
+outcome: `phone` comes back MISSING for most or all six s09 runs, in **both** arms.
+
+Two things follow:
+
+1. **It does not bias the ablation.** Both arms are handicapped identically, so the
+   naive-vs-hardened comparison on s09 stays valid. What it distorts is s09's
+   *absolute* pass rate, which will read as an agent failure when it is a
+   specification failure.
+2. **It is a scenario bug, not an agent finding.** A caller volunteering a phone
+   number and the agent dropping it is a real-world failure worth testing — but you
+   cannot test it against an agent you never told to collect one, and then report
+   the result as though you had.
+
+The fix is to add an optional phone field to **both** prompts identically (so it
+stays context, not hardening) and re-run s09 alone. Deferred until the current run
+finishes, because changing a prompt mid-batch would mean s09 ran against a different
+agent than s01–s08 — which is exactly the kind of silent inconsistency this harness
+exists to prevent.
+
+Logged now so that, whichever way it lands, the record shows the expectation was
+identified as mis-specified before the number arrived.
