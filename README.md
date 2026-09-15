@@ -3,7 +3,7 @@
 [![tests](https://github.com/Rajkumar2002-Rk/voice-agent-qa/actions/workflows/test.yml/badge.svg)](https://github.com/Rajkumar2002-Rk/voice-agent-qa/actions/workflows/test.yml)
 [![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-188%20passing-brightgreen)]()
+[![tests](https://img.shields.io/badge/tests-194%20passing-brightgreen)]()
 
 A deterministic QA harness for [Retell](https://retellai.com) voice agents: scripted
 adversarial callers, a rules-based scorer that names **which slot** was wrong and
@@ -97,7 +97,7 @@ Being precise about this, because "runnable" is the whole claim.
 
 | Component | Status |
 |---|---|
-| Deterministic scorer + normalisation | **Verified.** 188 tests, no network, no API key. |
+| Deterministic scorer + normalisation | **Verified.** 194 tests, no network, no API key. |
 | Scenario set (10 scenarios, 8 personas) | **Verified.** Self-consistency tested — every scenario is satisfiable by a perfect agent. |
 | Clinic tool server | **Verified.** Deterministic availability, exercised in tests. |
 | Report generator | **Verified** against a fabricated run fixture. |

@@ -443,6 +443,62 @@ def check_denied_available_slot(
     )
 
 
+# Requests for clarification. An agent that stops and asks is doing something
+# categorically different from one that stalls or invents.
+_CLARIFY_RE = re.compile(
+    r"\b(?:could you (?:please )?(?:spell|repeat|confirm)|can you (?:spell|repeat|confirm)|"
+    r"(?:please )?spell (?:that|it|your)|say that again|didn[o']?t catch|"
+    r"i still need|i need (?:your|the)|to make sure i (?:have|got)|just to confirm)\b",
+    re.IGNORECASE,
+)
+
+
+def classify_risk(scenario: Scenario, events: list[Event],
+                  slots: list[SlotResult]) -> BehaviourResult:
+    """Separate a safe refusal from a dangerous commit.
+
+    Pass/fail collapses two opposite behaviours. In `s02_barge_in` the naive
+    agent booked a garbled patient name and scored 3/4; the hardened agent
+    noticed the name was unreadable, asked the caller to spell it, never booked,
+    and scored 0/4. For a clinic the second is the correct outcome and the first
+    is the dangerous one -- the raw score has them backwards.
+
+    This does not change pass/fail. It labels each run so the report can show
+    what kind of wrong a failure was.
+    """
+    booked = bool(_tool_calls(events, BOOK_TOOL))
+    scored = [x for x in slots if x.verdict != Verdict.NOT_APPLICABLE]
+    all_ok = bool(scored) and all(x.verdict == Verdict.PASS for x in scored)
+
+    if scenario.must_not_book:
+        label = "correct" if not booked else "unsafe_commit"
+        why = ("correctly declined to book" if not booked
+               else "booked when the scenario forbids it")
+    elif booked and all_ok:
+        label, why = "correct", "booked with every slot correct"
+    elif booked:
+        wrong = [x.slot for x in scored if x.verdict != Verdict.PASS]
+        label = "unsafe_commit"
+        why = (f"committed a booking with incorrect data in {wrong} -- the agent "
+               f"told the caller it was done")
+    else:
+        asked = [e.text for e in events[-6:]
+                 if e.role == "agent" and e.text and _CLARIFY_RE.search(e.text)]
+        if asked:
+            label = "safe_refusal"
+            why = (f"did not book, and was asking for clarification when the call "
+                   f"ended: {asked[-1][:110]!r}. Wrong for the scenario, but the "
+                   f"safe kind of wrong -- no bad data was committed")
+        else:
+            label, why = "stalled", "did not book and was not asking for anything"
+
+    return BehaviourResult(
+        check="risk_class", verdict=Verdict.NOT_APPLICABLE,
+        reasoning=f"{label}: {why}",
+        evidence={"risk_class": label, "booked": booked, "slots_all_correct": all_ok},
+    )
+
+
 def check_tool_expectations(scenario: Scenario, events: list[Event]) -> list[BehaviourResult]:
     out: list[BehaviourResult] = []
     called = {e.name for e in events if e.role == "tool_call" and e.name}
@@ -520,6 +576,7 @@ def score_run(
 ) -> tuple[list[SlotResult], list[BehaviourResult], list[TurnLatency]]:
     slots = score_slots(scenario, captured)
     behaviours = [
+        classify_risk(scenario, events, slots),
         check_booking_discipline(scenario, events),
         check_confirmed_before_booking(scenario, events),
         check_invented_availability(scenario, events),

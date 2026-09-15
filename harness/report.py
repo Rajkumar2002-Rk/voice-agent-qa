@@ -127,6 +127,33 @@ def build(run_dir: Path) -> str:
         add("_None._")
     add("")
 
+    # ---------------- risk classification ----------------
+    add("## What kind of wrong\n")
+    add("Pass/fail collapses two opposite behaviours. An agent that books a garbled "
+        "patient name and one that refuses to book because it could not confirm the "
+        "name both score zero — but for a clinic the second is the correct outcome. "
+        "These labels never affect pass/fail.\n")
+    risk: dict[tuple[str, str, str], int] = defaultdict(int)
+    for r in results:
+        for b in r.behaviours:
+            if b.check == "risk_class":
+                risk[(r.arm, r.channel, b.evidence.get("risk_class", "?"))] += 1
+    if risk:
+        labels = ["correct", "safe_refusal", "unsafe_commit", "stalled"]
+        add("| arm | channel | " + " | ".join(labels) + " |")
+        add("|---|---|" + "---|" * len(labels))
+        for arm in sorted({k[0] for k in risk}):
+            for ch in sorted({k[1] for k in risk if k[0] == arm}):
+                row = [str(risk.get((arm, ch, lbl), 0)) for lbl in labels]
+                add(f"| {arm} | {ch} | " + " | ".join(row) + " |")
+        add("")
+        add("`unsafe_commit` is the number that should worry a clinic: the agent told "
+            "the caller their appointment was booked, with wrong data.")
+    else:
+        add("_No risk classification recorded (runs predate this check — "
+            "`make rescore` applies it retroactively)._")
+    add("")
+
     # ---------------- follow-ups ----------------
     add("## Caller follow-ups needed\n")
     add("The scripted caller is open-loop. If the agent was still asking questions "

@@ -463,3 +463,52 @@ class TestLatencyToolAttribution:
         ]
         (t,) = compute_latencies(events)
         assert t.involved_tool_call is False
+
+
+class TestRiskClassification:
+    """Pass/fail collapses two opposite behaviours: committing bad data, and
+    refusing to commit because the data could not be confirmed. s02_barge_in
+    showed the naive agent booking a garbled name (3/4) while the hardened agent
+    correctly refused (0/4) — the score had them backwards."""
+
+    def _risk(self, sc, events, captured):
+        from harness.scorer import classify_risk, score_slots
+        return classify_risk(sc, events, score_slots(sc, captured)).evidence["risk_class"]
+
+    def _good(self):
+        return {"patient_name": "John Smith", "date": "2026-09-22",
+                "time": "15:00", "reason": "knee pain"}
+
+    def test_correct_booking(self, base_scenario):
+        ev_ = [ev("tool_call", name="book_appointment", args=self._good())]
+        assert self._risk(base_scenario(), ev_, self._good()) == "correct"
+
+    def test_booking_wrong_data_is_unsafe_commit(self, base_scenario):
+        bad = {**self._good(), "patient_name": "Dave O"}
+        ev_ = [ev("tool_call", name="book_appointment", args=bad)]
+        assert self._risk(base_scenario(), ev_, bad) == "unsafe_commit"
+
+    def test_refusing_while_asking_is_safe_refusal(self, base_scenario):
+        """The real s02 hardened transcript."""
+        ev_ = [
+            ev("user", "Dave O and KWO?"),
+            ev("agent", "Could you please spell your full name for me?"),
+            ev("user", "Yes, that's correct."),
+            ev("agent", "I still need your full name spelled out to proceed."),
+        ]
+        assert self._risk(base_scenario(), ev_, {}) == "safe_refusal"
+
+    def test_silent_non_booking_is_stalled(self, base_scenario):
+        ev_ = [ev("user", "hello"), ev("agent", "Okay.")]
+        assert self._risk(base_scenario(), ev_, {}) == "stalled"
+
+    def test_out_of_scope_not_booking_is_correct(self, base_scenario):
+        sc = base_scenario(must_not_book=True, expected_slots={})
+        ev_ = [ev("agent", "I can't help with that.")]
+        assert self._risk(sc, ev_, {}) == "correct"
+
+    def test_risk_class_never_changes_pass_fail(self, base_scenario):
+        """It is a label, not a verdict."""
+        from harness.scorer import classify_risk
+        r = classify_risk(base_scenario(), [], [])
+        assert r.verdict == Verdict.NOT_APPLICABLE

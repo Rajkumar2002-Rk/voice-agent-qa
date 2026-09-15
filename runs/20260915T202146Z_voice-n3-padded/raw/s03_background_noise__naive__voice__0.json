@@ -1,0 +1,4104 @@
+{
+  "result": {
+    "scenario_id": "s03_background_noise",
+    "persona": "background_noise",
+    "channel": "voice",
+    "arm": "naive",
+    "run_index": 0,
+    "call_id": "call_a68d4963d5f1e1f4e494760769d",
+    "started_at": "2026-09-15T20:39:37.324062+00:00",
+    "ended_at": "2026-09-15T20:41:29.778652+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "WRONG",
+        "expected": "Priya Raghunathan",
+        "actual": "Priya Raganathan",
+        "normalized_expected": "priya raghunathan",
+        "normalized_actual": "priya raganathan",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "agent captured 'Priya Raganathan' -> priya raganathan, expected 'Priya Raghunathan' -> priya raghunathan"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-23",
+        "actual": "2026-09-23",
+        "normalized_expected": "2026-09-23",
+        "normalized_actual": "2026-09-23",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-23' -> 2026-09-23 matches expected '2026-09-23' -> 2026-09-23"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "2pm",
+        "actual": "14:00",
+        "normalized_expected": "14:00",
+        "normalized_actual": "14:00",
+        "rule": "time.24h_unambiguous",
+        "reasoning": "'14:00' -> 14:00 matches expected '2pm' -> 14:00"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "general checkup",
+        "normalized_expected": "check-up|check up|checkup|general|physical",
+        "normalized_actual": "general checkup",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'checkup' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "date": "2026-09-23",
+            "reason": "general checkup",
+            "time": "14:00",
+            "patient_name": "Priya Raganathan"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed (\"That's right. \"), then it booked",
+        "evidence": {
+          "readback": "Great, 2:00 PM on Wednesday, September 23rd. What is the reason for your visit?",
+          "assent": "That's right. ",
+          "date": "2026-09-23",
+          "time": "14:00"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "13:30",
+            "14:00",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "denied_available_slot",
+        "verdict": "PASS",
+        "reasoning": "agent never denied a slot the tool had offered",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "13:30",
+            "14:00",
+            "15:00",
+            "16:00"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 5026,
+        "agent_response_start_ms": 6367,
+        "latency_ms": 1341,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 14867,
+        "agent_response_start_ms": 17923,
+        "latency_ms": 3056,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 25887,
+        "agent_response_start_ms": 28259,
+        "latency_ms": 2372,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 3,
+        "caller_utterance_end_ms": 35977,
+        "agent_response_start_ms": 37318,
+        "latency_ms": 1341,
+        "note": "",
+        "involved_tool_call": true
+      },
+      {
+        "turn_index": 4,
+        "caller_utterance_end_ms": 53017,
+        "agent_response_start_ms": 53953,
+        "latency_ms": 936,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 5,
+        "caller_utterance_end_ms": 65346,
+        "agent_response_start_ms": 66324,
+        "latency_ms": 978,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 6,
+        "caller_utterance_end_ms": 71737,
+        "agent_response_start_ms": 72707,
+        "latency_ms": 970,
+        "note": "",
+        "involved_tool_call": false
+      },
+      {
+        "turn_index": 7,
+        "caller_utterance_end_ms": 79267,
+        "agent_response_start_ms": 82434,
+        "latency_ms": 3167,
+        "note": "",
+        "involved_tool_call": true
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "The agent read back 'general checkup appointment on Wednesday, September 23rd at 2:00 PM' and asked 'Is that correct?', and the caller replied 'That's right' before the book_appointment call was made.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"The agent read back 'general checkup appointment on Wednesday, September 23rd at 2:00 PM' and asked 'Is that correct?', and the caller replied 'That's right' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"All times mentioned (9:00, 9:30, 1:30, 2:00, 3:00, 4:00) came directly from the check_availability tool result, and the caller selected 2:00 PM from that list.\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent remained patient and polite through repeated clarification requests, though it was somewhat repetitive and mechanical in re-asking the same three questions each turn.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite noisy/garbled name input and overlapping speech, the agent repeatedly and correctly re-asked for clarification rather than guessing, and ultimately captured the correct name, date, and time.\"}}\n```"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "All times mentioned (9:00, 9:30, 1:30, 2:00, 3:00, 4:00) came directly from the check_availability tool result, and the caller selected 2:00 PM from that list.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"The agent read back 'general checkup appointment on Wednesday, September 23rd at 2:00 PM' and asked 'Is that correct?', and the caller replied 'That's right' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"All times mentioned (9:00, 9:30, 1:30, 2:00, 3:00, 4:00) came directly from the check_availability tool result, and the caller selected 2:00 PM from that list.\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent remained patient and polite through repeated clarification requests, though it was somewhat repetitive and mechanical in re-asking the same three questions each turn.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite noisy/garbled name input and overlapping speech, the agent repeatedly and correctly re-asked for clarification rather than guessing, and ultimately captured the correct name, date, and time.\"}}\n```"
+      },
+      {
+        "check": "tone",
+        "rating": "acceptable",
+        "rationale": "The agent remained patient and polite through repeated clarification requests, though it was somewhat repetitive and mechanical in re-asking the same three questions each turn.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"The agent read back 'general checkup appointment on Wednesday, September 23rd at 2:00 PM' and asked 'Is that correct?', and the caller replied 'That's right' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"All times mentioned (9:00, 9:30, 1:30, 2:00, 3:00, 4:00) came directly from the check_availability tool result, and the caller selected 2:00 PM from that list.\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent remained patient and polite through repeated clarification requests, though it was somewhat repetitive and mechanical in re-asking the same three questions each turn.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite noisy/garbled name input and overlapping speech, the agent repeatedly and correctly re-asked for clarification rather than guessing, and ultimately captured the correct name, date, and time.\"}}\n```"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "Despite noisy/garbled name input and overlapping speech, the agent repeatedly and correctly re-asked for clarification rather than guessing, and ultimately captured the correct name, date, and time.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "```json\n{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"The agent read back 'general checkup appointment on Wednesday, September 23rd at 2:00 PM' and asked 'Is that correct?', and the caller replied 'That's right' before the book_appointment call was made.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"All times mentioned (9:00, 9:30, 1:30, 2:00, 3:00, 4:00) came directly from the check_availability tool result, and the caller selected 2:00 PM from that list.\"},\n \"tone\":                     {\"answer\": \"acceptable\", \"why\": \"The agent remained patient and polite through repeated clarification requests, though it was somewhat repetitive and mechanical in re-asking the same three questions each turn.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Despite noisy/garbled name input and overlapping speech, the agent repeatedly and correctly re-asked for clarification rather than guessing, and ultimately captured the correct name, date, and time.\"}}\n```"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 230,
+        "end_ms": 3481
+      },
+      {
+        "role": "user",
+        "text": "Hello. I need to see someone. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 3747,
+        "end_ms": 5026
+      },
+      {
+        "role": "agent",
+        "text": "I can help with that! May I have your name, please? And do you have a preferred date and time for your visit? Also, could you tell me the reason for your appointment?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 6367,
+        "end_ms": 13472
+      },
+      {
+        "role": "user",
+        "text": "My name is Priya Raganathan. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 13507,
+        "end_ms": 14867
+      },
+      {
+        "role": "agent",
+        "text": "Thanks, Priya! When would you like to come in for your appointment? And what time works best for you? Also, could you share the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 17923,
+        "end_ms": 24657
+      },
+      {
+        "role": "user",
+        "text": "P r I y a ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 24847,
+        "end_ms": 25887
+      },
+      {
+        "role": "agent",
+        "text": "Got it, Priya. When would you like to schedule your appointment, and what time works best for you? Also, what's the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 28259,
+        "end_ms": 34621
+      },
+      {
+        "role": "user",
+        "text": "Wednesday, the twenty third. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 34857,
+        "end_ms": 35977
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-23",
+          "execution_message": "Checking available times for Wednesday, September 23rd."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Checking ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 37318,
+        "end_ms": 37736
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-23",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-23"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "available times for Wednesday, September 23rd.We have openings on Wednesday, September 23rd at 9:00, 9:30, 1:30, 2:00, 3:00, and 4:00 PM. What time would you prefer? And what is the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 37736,
+        "end_ms": 50832
+      },
+      {
+        "role": "user",
+        "text": "Wednesday, the twenty third of September. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 51097,
+        "end_ms": 53017
+      },
+      {
+        "role": "agent",
+        "text": "Yes, I have the date as Wednesday, September 23rd. Which time would you like from the available slots: 9:00, 9:30, 1:30, 2:00, 3:00, or 4:00 PM? And could you please tell me the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 53953,
+        "end_ms": 64727
+      },
+      {
+        "role": "user",
+        "text": "Two PM. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 64787,
+        "end_ms": 65346
+      },
+      {
+        "role": "agent",
+        "text": "Great, 2:00 PM on Wednesday, September 23rd. What is the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 66324,
+        "end_ms": 70597
+      },
+      {
+        "role": "user",
+        "text": "Just a general checkup. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 70697,
+        "end_ms": 71737
+      },
+      {
+        "role": "agent",
+        "text": "To confirm, Priya, you want to book a general checkup appointment on Wednesday, September 23rd at 2:00 PM. Is that correct?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 72707,
+        "end_ms": 78790
+      },
+      {
+        "role": "user",
+        "text": "That's right. ",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 78787,
+        "end_ms": 79267
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "date": "2026-09-23",
+          "reason": "general checkup",
+          "time": "14:00",
+          "patient_name": "Priya Raganathan"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-676780",
+          "booked": {
+            "patient_name": "Priya Raganathan",
+            "date": "2026-09-23",
+            "time": "14:00",
+            "reason": "general checkup",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your general checkup appointment is all set for Wednesday, September 23rd at 2:00 PM. If you need anything else, just let me know! Have a great day, Priya!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 82434,
+        "end_ms": 90096
+      },
+      {
+        "role": "agent",
+        "text": "Just checking in, Priya\u2014do you need any more help with your appointment or anything else today?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 101163,
+        "end_ms": 105064
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-23",
+          "execution_message": "Checking available times for Wednesday, September 23rd."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-23",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-23"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "date": "2026-09-23",
+          "reason": "general checkup",
+          "time": "14:00",
+          "patient_name": "Priya Raganathan"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-676780",
+          "booked": {
+            "patient_name": "Priya Raganathan",
+            "date": "2026-09-23",
+            "time": "14:00",
+            "reason": "general checkup",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "date": "2026-09-23",
+      "reason": "general checkup",
+      "time": "14:00",
+      "patient_name": "Priya Raganathan"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "call_id": "call_a68d4963d5f1e1f4e494760769d",
+    "call_type": "web_call",
+    "agent_id": "agent_2c1df0ae89268f34572572217c",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-voice-naive",
+    "retell_llm_dynamic_variables": {
+      "current_date_spoken": "Monday, September 14, 2026",
+      "current_day": "Monday",
+      "current_date": "2026-09-14"
+    },
+    "call_status": "ended",
+    "start_timestamp": 1789504778532,
+    "end_timestamp": 1789504884219,
+    "duration_ms": 105687,
+    "transcript": "Agent: Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?\nUser: Hello. I need to see someone. \nAgent: I can help with that! May I have your name, please? And do you have a preferred date and time for your visit? Also, could you tell me the reason for your appointment?\nUser: My name is Priya Raganathan. \nAgent: Thanks, Priya! When would you like to come in for your appointment? And what time works best for you? Also, could you share the reason for your visit?\nUser: P r I y a \nAgent: Got it, Priya. When would you like to schedule your appointment, and what time works best for you? Also, what's the reason for your visit?\nUser: Wednesday, the twenty third. \nAgent: Checking \nAgent: available times for Wednesday, September 23rd.We have openings on Wednesday, September 23rd at 9:00, 9:30, 1:30, 2:00, 3:00, and 4:00 PM. What time would you prefer? And what is the reason for your visit?\nUser: Wednesday, the twenty third of September. \nAgent: Yes, I have the date as Wednesday, September 23rd. Which time would you like from the available slots: 9:00, 9:30, 1:30, 2:00, 3:00, or 4:00 PM? And could you please tell me the reason for your visit?\nUser: Two PM. \nAgent: Great, 2:00 PM on Wednesday, September 23rd. What is the reason for your visit?\nUser: Just a general checkup. \nAgent: To confirm, Priya, you want to book a general checkup appointment on Wednesday, September 23rd at 2:00 PM. Is that correct?\nUser: That's right. \nAgent: Your general checkup appointment is all set for Wednesday, September 23rd at 2:00 PM. If you need anything else, just let me know! Have a great day, Priya!\nAgent: Just checking in, Priya\u2014do you need any more help with your appointment or anything else today?\n",
+    "transcript_object": [
+      {
+        "role": "agent",
+        "content": "Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?",
+        "words": [
+          {
+            "word": "Thanks ",
+            "start": 0.23,
+            "end": 0.52
+          },
+          {
+            "word": "for ",
+            "start": 0.52,
+            "end": 0.636
+          },
+          {
+            "word": "calling ",
+            "start": 0.636,
+            "end": 0.95
+          },
+          {
+            "word": "Lakeside ",
+            "start": 0.95,
+            "end": 1.356
+          },
+          {
+            "word": "Family ",
+            "start": 1.356,
+            "end": 1.635
+          },
+          {
+            "word": "Clinic, ",
+            "start": 1.635,
+            "end": 1.937
+          },
+          {
+            "word": "this ",
+            "start": 1.937,
+            "end": 2.088
+          },
+          {
+            "word": "is ",
+            "start": 2.088,
+            "end": 2.215
+          },
+          {
+            "word": "Robin. ",
+            "start": 2.215,
+            "end": 2.738
+          },
+          {
+            "word": "How ",
+            "start": 2.738,
+            "end": 2.901
+          },
+          {
+            "word": "can ",
+            "start": 2.901,
+            "end": 3.04
+          },
+          {
+            "word": "I ",
+            "start": 3.04,
+            "end": 3.11
+          },
+          {
+            "word": "help?",
+            "start": 3.11,
+            "end": 3.481
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Hello. I need to see someone. ",
+        "words": [
+          {
+            "word": "Hello. ",
+            "start": 3.747,
+            "end": 4.147
+          },
+          {
+            "word": "I ",
+            "start": 4.147,
+            "end": 4.3069998
+          },
+          {
+            "word": "need ",
+            "start": 4.3069998,
+            "end": 4.4670000000000005
+          },
+          {
+            "word": "to ",
+            "start": 4.4670000000000005,
+            "end": 4.627000000000001
+          },
+          {
+            "word": "see ",
+            "start": 4.627000000000001,
+            "end": 4.787000000000001
+          },
+          {
+            "word": "someone. ",
+            "start": 4.787000000000001,
+            "end": 5.026999999999999
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "I can help with that! May I have your name, please? And do you have a preferred date and time for your visit? Also, could you tell me the reason for your appointment?",
+        "words": [
+          {
+            "word": "I ",
+            "start": 6.367,
+            "end": 6.506
+          },
+          {
+            "word": "can ",
+            "start": 6.506,
+            "end": 6.669
+          },
+          {
+            "word": "help ",
+            "start": 6.669,
+            "end": 6.843
+          },
+          {
+            "word": "with ",
+            "start": 6.843,
+            "end": 6.994
+          },
+          {
+            "word": "that!",
+            "start": 6.994,
+            "end": 7.435
+          },
+          {
+            "word": " May ",
+            "start": 7.435,
+            "end": 7.621
+          },
+          {
+            "word": "I ",
+            "start": 7.621,
+            "end": 7.667
+          },
+          {
+            "word": "have ",
+            "start": 7.667,
+            "end": 7.795
+          },
+          {
+            "word": "your ",
+            "start": 7.795,
+            "end": 7.923
+          },
+          {
+            "word": "name, ",
+            "start": 7.923,
+            "end": 8.085
+          },
+          {
+            "word": "please?",
+            "start": 8.085,
+            "end": 8.55
+          },
+          {
+            "word": " And ",
+            "start": 8.55,
+            "end": 8.805
+          },
+          {
+            "word": "do ",
+            "start": 8.805,
+            "end": 8.898
+          },
+          {
+            "word": "you ",
+            "start": 8.898,
+            "end": 9.026
+          },
+          {
+            "word": "have ",
+            "start": 9.026,
+            "end": 9.165
+          },
+          {
+            "word": "a ",
+            "start": 9.165,
+            "end": 9.223
+          },
+          {
+            "word": "preferred ",
+            "start": 9.223,
+            "end": 9.548
+          },
+          {
+            "word": "date ",
+            "start": 9.548,
+            "end": 9.85
+          },
+          {
+            "word": "and ",
+            "start": 9.85,
+            "end": 10.071
+          },
+          {
+            "word": "time ",
+            "start": 10.071,
+            "end": 10.303
+          },
+          {
+            "word": "for ",
+            "start": 10.303,
+            "end": 10.442
+          },
+          {
+            "word": "your ",
+            "start": 10.442,
+            "end": 10.582
+          },
+          {
+            "word": "visit?",
+            "start": 10.582,
+            "end": 11.104
+          },
+          {
+            "word": " Also, ",
+            "start": 11.104,
+            "end": 11.568
+          },
+          {
+            "word": "could ",
+            "start": 11.568,
+            "end": 11.754
+          },
+          {
+            "word": "you ",
+            "start": 11.754,
+            "end": 11.859
+          },
+          {
+            "word": "tell ",
+            "start": 11.859,
+            "end": 12.021
+          },
+          {
+            "word": "me ",
+            "start": 12.021,
+            "end": 12.114
+          },
+          {
+            "word": "the ",
+            "start": 12.114,
+            "end": 12.207
+          },
+          {
+            "word": "reason ",
+            "start": 12.207,
+            "end": 12.462
+          },
+          {
+            "word": "for ",
+            "start": 12.462,
+            "end": 12.578
+          },
+          {
+            "word": "your ",
+            "start": 12.578,
+            "end": 12.741
+          },
+          {
+            "word": "appointment?",
+            "start": 12.741,
+            "end": 13.472
+          }
+        ],
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "role": "user",
+        "content": "My name is Priya Raganathan. ",
+        "words": [
+          {
+            "word": "My ",
+            "start": 13.507,
+            "end": 13.747
+          },
+          {
+            "word": "name ",
+            "start": 13.747,
+            "end": 13.907
+          },
+          {
+            "word": "is ",
+            "start": 13.907,
+            "end": 14.067
+          },
+          {
+            "word": "Priya ",
+            "start": 14.067,
+            "end": 14.307
+          },
+          {
+            "word": "Raganathan. ",
+            "start": 14.307,
+            "end": 14.867
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thanks, Priya! When would you like to come in for your appointment? And what time works best for you? Also, could you share the reason for your visit?",
+        "words": [
+          {
+            "word": "Thanks, ",
+            "start": 17.923,
+            "end": 18.353
+          },
+          {
+            "word": "Priya!",
+            "start": 18.353,
+            "end": 18.898
+          },
+          {
+            "word": " When ",
+            "start": 18.898,
+            "end": 19.119
+          },
+          {
+            "word": "would ",
+            "start": 19.119,
+            "end": 19.27
+          },
+          {
+            "word": "you ",
+            "start": 19.27,
+            "end": 19.386
+          },
+          {
+            "word": "like ",
+            "start": 19.386,
+            "end": 19.525
+          },
+          {
+            "word": "to ",
+            "start": 19.525,
+            "end": 19.618
+          },
+          {
+            "word": "come ",
+            "start": 19.618,
+            "end": 19.78
+          },
+          {
+            "word": "in ",
+            "start": 19.78,
+            "end": 19.908
+          },
+          {
+            "word": "for ",
+            "start": 19.908,
+            "end": 20.129
+          },
+          {
+            "word": "your ",
+            "start": 20.129,
+            "end": 20.593
+          },
+          {
+            "word": "appointment?",
+            "start": 20.593,
+            "end": 21.313
+          },
+          {
+            "word": " And ",
+            "start": 21.313,
+            "end": 21.487
+          },
+          {
+            "word": "what ",
+            "start": 21.487,
+            "end": 21.673
+          },
+          {
+            "word": "time ",
+            "start": 21.673,
+            "end": 21.859
+          },
+          {
+            "word": "works ",
+            "start": 21.859,
+            "end": 22.079
+          },
+          {
+            "word": "best ",
+            "start": 22.079,
+            "end": 22.277
+          },
+          {
+            "word": "for ",
+            "start": 22.277,
+            "end": 22.404
+          },
+          {
+            "word": "you?",
+            "start": 22.404,
+            "end": 22.753
+          },
+          {
+            "word": " Also, ",
+            "start": 22.753,
+            "end": 23.078
+          },
+          {
+            "word": "could ",
+            "start": 23.078,
+            "end": 23.217
+          },
+          {
+            "word": "you ",
+            "start": 23.217,
+            "end": 23.31
+          },
+          {
+            "word": "share ",
+            "start": 23.31,
+            "end": 23.496
+          },
+          {
+            "word": "the ",
+            "start": 23.496,
+            "end": 23.612
+          },
+          {
+            "word": "reason ",
+            "start": 23.612,
+            "end": 23.902
+          },
+          {
+            "word": "for ",
+            "start": 23.902,
+            "end": 24.03
+          },
+          {
+            "word": "your ",
+            "start": 24.03,
+            "end": 24.158
+          },
+          {
+            "word": "visit?",
+            "start": 24.158,
+            "end": 24.657
+          }
+        ],
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "role": "user",
+        "content": "P r I y a ",
+        "words": [
+          {
+            "word": "P ",
+            "start": 24.847,
+            "end": 25.167
+          },
+          {
+            "word": "r ",
+            "start": 25.167,
+            "end": 25.407
+          },
+          {
+            "word": "I ",
+            "start": 25.407,
+            "end": 25.567
+          },
+          {
+            "word": "y ",
+            "start": 25.567,
+            "end": 25.727
+          },
+          {
+            "word": "a ",
+            "start": 25.727,
+            "end": 25.887
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Got it, Priya. When would you like to schedule your appointment, and what time works best for you? Also, what's the reason for your visit?",
+        "words": [
+          {
+            "word": "Got ",
+            "start": 28.259,
+            "end": 28.468
+          },
+          {
+            "word": "it, ",
+            "start": 28.468,
+            "end": 28.561
+          },
+          {
+            "word": "Priya.",
+            "start": 28.561,
+            "end": 29.141
+          },
+          {
+            "word": " When ",
+            "start": 29.141,
+            "end": 29.362
+          },
+          {
+            "word": "would ",
+            "start": 29.362,
+            "end": 29.524
+          },
+          {
+            "word": "you ",
+            "start": 29.524,
+            "end": 29.64
+          },
+          {
+            "word": "like ",
+            "start": 29.64,
+            "end": 29.791
+          },
+          {
+            "word": "to ",
+            "start": 29.791,
+            "end": 29.884
+          },
+          {
+            "word": "schedule ",
+            "start": 29.884,
+            "end": 30.244
+          },
+          {
+            "word": "your ",
+            "start": 30.244,
+            "end": 30.441
+          },
+          {
+            "word": "appointment, ",
+            "start": 30.441,
+            "end": 31.161
+          },
+          {
+            "word": "and ",
+            "start": 31.161,
+            "end": 31.359
+          },
+          {
+            "word": "what ",
+            "start": 31.359,
+            "end": 31.567
+          },
+          {
+            "word": "time ",
+            "start": 31.567,
+            "end": 31.788
+          },
+          {
+            "word": "works ",
+            "start": 31.788,
+            "end": 32.02
+          },
+          {
+            "word": "best ",
+            "start": 32.02,
+            "end": 32.264
+          },
+          {
+            "word": "for ",
+            "start": 32.264,
+            "end": 32.415
+          },
+          {
+            "word": "you?",
+            "start": 32.415,
+            "end": 32.81
+          },
+          {
+            "word": " Also, ",
+            "start": 32.81,
+            "end": 33.216
+          },
+          {
+            "word": "what's ",
+            "start": 33.216,
+            "end": 33.425
+          },
+          {
+            "word": "the ",
+            "start": 33.425,
+            "end": 33.53
+          },
+          {
+            "word": "reason ",
+            "start": 33.53,
+            "end": 33.82
+          },
+          {
+            "word": "for ",
+            "start": 33.82,
+            "end": 33.936
+          },
+          {
+            "word": "your ",
+            "start": 33.936,
+            "end": 34.075
+          },
+          {
+            "word": "visit?",
+            "start": 34.075,
+            "end": 34.621
+          }
+        ],
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "role": "user",
+        "content": "Wednesday, the twenty third. ",
+        "words": [
+          {
+            "word": "Wednesday, ",
+            "start": 34.857,
+            "end": 35.417
+          },
+          {
+            "word": "the ",
+            "start": 35.417,
+            "end": 35.577
+          },
+          {
+            "word": "twenty ",
+            "start": 35.577,
+            "end": 35.737
+          },
+          {
+            "word": "third. ",
+            "start": 35.737,
+            "end": 35.977000000000004
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Checking ",
+        "words": [
+          {
+            "word": "Checking ",
+            "start": 37.318,
+            "end": 37.736
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "agent",
+        "content": "available times for Wednesday, September 23rd.We have openings on Wednesday, September 23rd at 9:00, 9:30, 1:30, 2:00, 3:00, and 4:00 PM. What time would you prefer? And what is the reason for your visit?",
+        "words": [
+          {
+            "word": "available ",
+            "start": 37.736,
+            "end": 38.154
+          },
+          {
+            "word": "times ",
+            "start": 38.154,
+            "end": 38.537
+          },
+          {
+            "word": "for ",
+            "start": 38.537,
+            "end": 38.723
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 38.723,
+            "end": 39.153
+          },
+          {
+            "word": "September ",
+            "start": 39.153,
+            "end": 39.605
+          },
+          {
+            "word": "23rd.",
+            "start": 39.605,
+            "end": 40.523
+          },
+          {
+            "word": "We ",
+            "start": 40.523,
+            "end": 40.732
+          },
+          {
+            "word": "have ",
+            "start": 40.732,
+            "end": 40.883
+          },
+          {
+            "word": "openings ",
+            "start": 40.883,
+            "end": 41.359
+          },
+          {
+            "word": "on ",
+            "start": 41.359,
+            "end": 41.533
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 41.533,
+            "end": 41.916
+          },
+          {
+            "word": "September ",
+            "start": 41.916,
+            "end": 42.334
+          },
+          {
+            "word": "23rd ",
+            "start": 42.334,
+            "end": 42.88
+          },
+          {
+            "word": "at ",
+            "start": 42.88,
+            "end": 43.1
+          },
+          {
+            "word": "9:00, ",
+            "start": 43.1,
+            "end": 43.6
+          },
+          {
+            "word": "9:30, ",
+            "start": 43.6,
+            "end": 44.412
+          },
+          {
+            "word": "1:30, ",
+            "start": 44.412,
+            "end": 45.016
+          },
+          {
+            "word": "2:00, ",
+            "start": 45.016,
+            "end": 45.666
+          },
+          {
+            "word": "3:00, ",
+            "start": 45.666,
+            "end": 46.409
+          },
+          {
+            "word": "and ",
+            "start": 46.409,
+            "end": 46.665
+          },
+          {
+            "word": "4:00 ",
+            "start": 46.665,
+            "end": 47.303
+          },
+          {
+            "word": "PM.",
+            "start": 47.303,
+            "end": 47.953
+          },
+          {
+            "word": " What ",
+            "start": 47.953,
+            "end": 48.185
+          },
+          {
+            "word": "time ",
+            "start": 48.185,
+            "end": 48.371
+          },
+          {
+            "word": "would ",
+            "start": 48.371,
+            "end": 48.533
+          },
+          {
+            "word": "you ",
+            "start": 48.533,
+            "end": 48.661
+          },
+          {
+            "word": "prefer?",
+            "start": 48.661,
+            "end": 49.207
+          },
+          {
+            "word": " And ",
+            "start": 49.207,
+            "end": 49.358
+          },
+          {
+            "word": "what ",
+            "start": 49.358,
+            "end": 49.486
+          },
+          {
+            "word": "is ",
+            "start": 49.486,
+            "end": 49.567
+          },
+          {
+            "word": "the ",
+            "start": 49.567,
+            "end": 49.66
+          },
+          {
+            "word": "reason ",
+            "start": 49.66,
+            "end": 49.95
+          },
+          {
+            "word": "for ",
+            "start": 49.95,
+            "end": 50.078
+          },
+          {
+            "word": "your ",
+            "start": 50.078,
+            "end": 50.217
+          },
+          {
+            "word": "visit?",
+            "start": 50.217,
+            "end": 50.832
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "Wednesday, the twenty third of September. ",
+        "words": [
+          {
+            "word": "Wednesday, ",
+            "start": 51.097,
+            "end": 51.817
+          },
+          {
+            "word": "the ",
+            "start": 51.817,
+            "end": 51.977000000000004
+          },
+          {
+            "word": "twenty ",
+            "start": 51.977000000000004,
+            "end": 52.217
+          },
+          {
+            "word": "third ",
+            "start": 52.217,
+            "end": 52.457
+          },
+          {
+            "word": "of ",
+            "start": 52.457,
+            "end": 52.617
+          },
+          {
+            "word": "September. ",
+            "start": 52.617,
+            "end": 53.017
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Yes, I have the date as Wednesday, September 23rd. Which time would you like from the available slots: 9:00, 9:30, 1:30, 2:00, 3:00, or 4:00 PM? And could you please tell me the reason for your visit?",
+        "words": [
+          {
+            "word": "Yes, ",
+            "start": 53.953,
+            "end": 54.255
+          },
+          {
+            "word": "I ",
+            "start": 54.255,
+            "end": 54.348
+          },
+          {
+            "word": "have ",
+            "start": 54.348,
+            "end": 54.51
+          },
+          {
+            "word": "the ",
+            "start": 54.51,
+            "end": 54.626
+          },
+          {
+            "word": "date ",
+            "start": 54.626,
+            "end": 54.882
+          },
+          {
+            "word": "as ",
+            "start": 54.882,
+            "end": 55.033
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 55.033,
+            "end": 55.37
+          },
+          {
+            "word": "September ",
+            "start": 55.37,
+            "end": 55.718
+          },
+          {
+            "word": "23rd.",
+            "start": 55.718,
+            "end": 56.415
+          },
+          {
+            "word": " Which ",
+            "start": 56.415,
+            "end": 56.74
+          },
+          {
+            "word": "time ",
+            "start": 56.74,
+            "end": 57.007
+          },
+          {
+            "word": "would ",
+            "start": 57.007,
+            "end": 57.216
+          },
+          {
+            "word": "you ",
+            "start": 57.216,
+            "end": 57.344
+          },
+          {
+            "word": "like ",
+            "start": 57.344,
+            "end": 57.541
+          },
+          {
+            "word": "from ",
+            "start": 57.541,
+            "end": 57.692
+          },
+          {
+            "word": "the ",
+            "start": 57.692,
+            "end": 57.797
+          },
+          {
+            "word": "available ",
+            "start": 57.797,
+            "end": 58.203
+          },
+          {
+            "word": "slots: ",
+            "start": 58.203,
+            "end": 58.563
+          },
+          {
+            "word": "9:00, ",
+            "start": 58.563,
+            "end": 59.143
+          },
+          {
+            "word": "9:30, ",
+            "start": 59.143,
+            "end": 59.747
+          },
+          {
+            "word": "1:30, ",
+            "start": 59.747,
+            "end": 60.304
+          },
+          {
+            "word": "2:00, ",
+            "start": 60.304,
+            "end": 60.769
+          },
+          {
+            "word": "3:00, ",
+            "start": 60.769,
+            "end": 61.326
+          },
+          {
+            "word": "or ",
+            "start": 61.326,
+            "end": 61.558
+          },
+          {
+            "word": "4:00 ",
+            "start": 61.558,
+            "end": 62.023
+          },
+          {
+            "word": "PM?",
+            "start": 62.023,
+            "end": 62.592
+          },
+          {
+            "word": " And ",
+            "start": 62.592,
+            "end": 62.824
+          },
+          {
+            "word": "could ",
+            "start": 62.824,
+            "end": 63.01
+          },
+          {
+            "word": "you ",
+            "start": 63.01,
+            "end": 63.126
+          },
+          {
+            "word": "please ",
+            "start": 63.126,
+            "end": 63.358
+          },
+          {
+            "word": "tell ",
+            "start": 63.358,
+            "end": 63.544
+          },
+          {
+            "word": "me ",
+            "start": 63.544,
+            "end": 63.637
+          },
+          {
+            "word": "the ",
+            "start": 63.637,
+            "end": 63.741
+          },
+          {
+            "word": "reason ",
+            "start": 63.741,
+            "end": 63.985
+          },
+          {
+            "word": "for ",
+            "start": 63.985,
+            "end": 64.09
+          },
+          {
+            "word": "your ",
+            "start": 64.09,
+            "end": 64.217
+          },
+          {
+            "word": "visit?",
+            "start": 64.217,
+            "end": 64.728
+          }
+        ],
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "role": "user",
+        "content": "Two PM. ",
+        "words": [
+          {
+            "word": "Two ",
+            "start": 64.787,
+            "end": 65.107
+          },
+          {
+            "word": "PM. ",
+            "start": 65.107,
+            "end": 65.347
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Great, 2:00 PM on Wednesday, September 23rd. What is the reason for your visit?",
+        "words": [
+          {
+            "word": "Great, ",
+            "start": 66.324,
+            "end": 66.73
+          },
+          {
+            "word": "2:00 ",
+            "start": 66.73,
+            "end": 67.23
+          },
+          {
+            "word": "PM ",
+            "start": 67.23,
+            "end": 67.555
+          },
+          {
+            "word": "on ",
+            "start": 67.555,
+            "end": 67.659
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 67.659,
+            "end": 68.031
+          },
+          {
+            "word": "September ",
+            "start": 68.031,
+            "end": 68.426
+          },
+          {
+            "word": "23rd.",
+            "start": 68.426,
+            "end": 69.064
+          },
+          {
+            "word": " What ",
+            "start": 69.064,
+            "end": 69.285
+          },
+          {
+            "word": "is ",
+            "start": 69.285,
+            "end": 69.389
+          },
+          {
+            "word": "the ",
+            "start": 69.389,
+            "end": 69.505
+          },
+          {
+            "word": "reason ",
+            "start": 69.505,
+            "end": 69.795
+          },
+          {
+            "word": "for ",
+            "start": 69.795,
+            "end": 69.923
+          },
+          {
+            "word": "your ",
+            "start": 69.923,
+            "end": 70.062
+          },
+          {
+            "word": "visit?",
+            "start": 70.062,
+            "end": 70.597
+          }
+        ],
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "role": "user",
+        "content": "Just a general checkup. ",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 70.697,
+            "end": 71.017005
+          },
+          {
+            "word": "a ",
+            "start": 71.017005,
+            "end": 71.177
+          },
+          {
+            "word": "general ",
+            "start": 71.177,
+            "end": 71.417
+          },
+          {
+            "word": "checkup. ",
+            "start": 71.417,
+            "end": 71.737
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "To confirm, Priya, you want to book a general checkup appointment on Wednesday, September 23rd at 2:00 PM. Is that correct?",
+        "words": [
+          {
+            "word": "To ",
+            "start": 72.707,
+            "end": 72.916
+          },
+          {
+            "word": "confirm, ",
+            "start": 72.916,
+            "end": 73.276
+          },
+          {
+            "word": "Priya, ",
+            "start": 73.276,
+            "end": 73.636
+          },
+          {
+            "word": "you ",
+            "start": 73.636,
+            "end": 73.81
+          },
+          {
+            "word": "want ",
+            "start": 73.81,
+            "end": 73.984
+          },
+          {
+            "word": "to ",
+            "start": 73.984,
+            "end": 74.077
+          },
+          {
+            "word": "book ",
+            "start": 74.077,
+            "end": 74.275
+          },
+          {
+            "word": "a ",
+            "start": 74.275,
+            "end": 74.426
+          },
+          {
+            "word": "general ",
+            "start": 74.426,
+            "end": 74.797
+          },
+          {
+            "word": "checkup ",
+            "start": 74.797,
+            "end": 75.122
+          },
+          {
+            "word": "appointment ",
+            "start": 75.122,
+            "end": 75.575
+          },
+          {
+            "word": "on ",
+            "start": 75.575,
+            "end": 75.726
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 75.726,
+            "end": 76.121
+          },
+          {
+            "word": "September ",
+            "start": 76.121,
+            "end": 76.55
+          },
+          {
+            "word": "23rd ",
+            "start": 76.55,
+            "end": 77.026
+          },
+          {
+            "word": "at ",
+            "start": 77.026,
+            "end": 77.166
+          },
+          {
+            "word": "2:00 ",
+            "start": 77.166,
+            "end": 77.398
+          },
+          {
+            "word": "PM.",
+            "start": 77.398,
+            "end": 78.001
+          },
+          {
+            "word": " Is ",
+            "start": 78.001,
+            "end": 78.152
+          },
+          {
+            "word": "that ",
+            "start": 78.152,
+            "end": 78.303
+          },
+          {
+            "word": "correct?",
+            "start": 78.303,
+            "end": 78.79
+          }
+        ],
+        "metadata": {
+          "response_id": 7
+        }
+      },
+      {
+        "role": "user",
+        "content": "That's right. ",
+        "words": [
+          {
+            "word": "That's ",
+            "start": 78.787,
+            "end": 79.107
+          },
+          {
+            "word": "right. ",
+            "start": 79.107,
+            "end": 79.267005
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Your general checkup appointment is all set for Wednesday, September 23rd at 2:00 PM. If you need anything else, just let me know! Have a great day, Priya!",
+        "words": [
+          {
+            "word": "Your ",
+            "start": 82.434,
+            "end": 82.655
+          },
+          {
+            "word": "general ",
+            "start": 82.655,
+            "end": 82.91
+          },
+          {
+            "word": "checkup ",
+            "start": 82.91,
+            "end": 83.223
+          },
+          {
+            "word": "appointment ",
+            "start": 83.223,
+            "end": 83.595
+          },
+          {
+            "word": "is ",
+            "start": 83.595,
+            "end": 83.711
+          },
+          {
+            "word": "all ",
+            "start": 83.711,
+            "end": 83.92
+          },
+          {
+            "word": "set ",
+            "start": 83.92,
+            "end": 84.105
+          },
+          {
+            "word": "for ",
+            "start": 84.105,
+            "end": 84.245
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 84.245,
+            "end": 84.721
+          },
+          {
+            "word": "September ",
+            "start": 84.721,
+            "end": 85.232
+          },
+          {
+            "word": "23rd ",
+            "start": 85.232,
+            "end": 85.812
+          },
+          {
+            "word": "at ",
+            "start": 85.812,
+            "end": 86.044
+          },
+          {
+            "word": "2:00 ",
+            "start": 86.044,
+            "end": 86.381
+          },
+          {
+            "word": "PM.",
+            "start": 86.381,
+            "end": 86.845
+          },
+          {
+            "word": " If ",
+            "start": 86.845,
+            "end": 87.066
+          },
+          {
+            "word": "you ",
+            "start": 87.066,
+            "end": 87.193
+          },
+          {
+            "word": "need ",
+            "start": 87.193,
+            "end": 87.391
+          },
+          {
+            "word": "anything ",
+            "start": 87.391,
+            "end": 87.739
+          },
+          {
+            "word": "else, ",
+            "start": 87.739,
+            "end": 87.948
+          },
+          {
+            "word": "just ",
+            "start": 87.948,
+            "end": 88.157
+          },
+          {
+            "word": "let ",
+            "start": 88.157,
+            "end": 88.319
+          },
+          {
+            "word": "me ",
+            "start": 88.319,
+            "end": 88.412
+          },
+          {
+            "word": "know!",
+            "start": 88.412,
+            "end": 88.842
+          },
+          {
+            "word": " Have ",
+            "start": 88.842,
+            "end": 89.086
+          },
+          {
+            "word": "a ",
+            "start": 89.086,
+            "end": 89.155
+          },
+          {
+            "word": "great ",
+            "start": 89.155,
+            "end": 89.353
+          },
+          {
+            "word": "day, ",
+            "start": 89.353,
+            "end": 89.562
+          },
+          {
+            "word": "Priya!",
+            "start": 89.562,
+            "end": 90.096
+          }
+        ],
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "role": "agent",
+        "content": "Just checking in, Priya\u2014do you need any more help with your appointment or anything else today?",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 101.163,
+            "end": 101.395
+          },
+          {
+            "word": "checking ",
+            "start": 101.395,
+            "end": 101.685
+          },
+          {
+            "word": "in, ",
+            "start": 101.685,
+            "end": 101.778
+          },
+          {
+            "word": "Priya\u2014do ",
+            "start": 101.778,
+            "end": 102.44
+          },
+          {
+            "word": "you ",
+            "start": 102.44,
+            "end": 102.545
+          },
+          {
+            "word": "need ",
+            "start": 102.545,
+            "end": 102.719
+          },
+          {
+            "word": "any ",
+            "start": 102.719,
+            "end": 102.87
+          },
+          {
+            "word": "more ",
+            "start": 102.87,
+            "end": 103.044
+          },
+          {
+            "word": "help ",
+            "start": 103.044,
+            "end": 103.218
+          },
+          {
+            "word": "with ",
+            "start": 103.218,
+            "end": 103.357
+          },
+          {
+            "word": "your ",
+            "start": 103.357,
+            "end": 103.497
+          },
+          {
+            "word": "appointment ",
+            "start": 103.497,
+            "end": 103.938
+          },
+          {
+            "word": "or ",
+            "start": 103.938,
+            "end": 104.054
+          },
+          {
+            "word": "anything ",
+            "start": 104.054,
+            "end": 104.332
+          },
+          {
+            "word": "else ",
+            "start": 104.332,
+            "end": 104.541
+          },
+          {
+            "word": "today?",
+            "start": 104.541,
+            "end": 105.064
+          }
+        ],
+        "metadata": {
+          "response_id": 9
+        }
+      }
+    ],
+    "transcript_with_tool_calls": [
+      {
+        "role": "agent",
+        "content": "Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?",
+        "words": [
+          {
+            "word": "Thanks ",
+            "start": 0.23,
+            "end": 0.52
+          },
+          {
+            "word": "for ",
+            "start": 0.52,
+            "end": 0.636
+          },
+          {
+            "word": "calling ",
+            "start": 0.636,
+            "end": 0.95
+          },
+          {
+            "word": "Lakeside ",
+            "start": 0.95,
+            "end": 1.356
+          },
+          {
+            "word": "Family ",
+            "start": 1.356,
+            "end": 1.635
+          },
+          {
+            "word": "Clinic, ",
+            "start": 1.635,
+            "end": 1.937
+          },
+          {
+            "word": "this ",
+            "start": 1.937,
+            "end": 2.088
+          },
+          {
+            "word": "is ",
+            "start": 2.088,
+            "end": 2.215
+          },
+          {
+            "word": "Robin. ",
+            "start": 2.215,
+            "end": 2.738
+          },
+          {
+            "word": "How ",
+            "start": 2.738,
+            "end": 2.901
+          },
+          {
+            "word": "can ",
+            "start": 2.901,
+            "end": 3.04
+          },
+          {
+            "word": "I ",
+            "start": 3.04,
+            "end": 3.11
+          },
+          {
+            "word": "help?",
+            "start": 3.11,
+            "end": 3.481
+          }
+        ],
+        "metadata": {
+          "response_id": 0
+        }
+      },
+      {
+        "role": "user",
+        "content": "Hello. I need to see someone. ",
+        "words": [
+          {
+            "word": "Hello. ",
+            "start": 3.747,
+            "end": 4.147
+          },
+          {
+            "word": "I ",
+            "start": 4.147,
+            "end": 4.3069998
+          },
+          {
+            "word": "need ",
+            "start": 4.3069998,
+            "end": 4.4670000000000005
+          },
+          {
+            "word": "to ",
+            "start": 4.4670000000000005,
+            "end": 4.627000000000001
+          },
+          {
+            "word": "see ",
+            "start": 4.627000000000001,
+            "end": 4.787000000000001
+          },
+          {
+            "word": "someone. ",
+            "start": 4.787000000000001,
+            "end": 5.026999999999999
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "I can help with that! May I have your name, please? And do you have a preferred date and time for your visit? Also, could you tell me the reason for your appointment?",
+        "words": [
+          {
+            "word": "I ",
+            "start": 6.367,
+            "end": 6.506
+          },
+          {
+            "word": "can ",
+            "start": 6.506,
+            "end": 6.669
+          },
+          {
+            "word": "help ",
+            "start": 6.669,
+            "end": 6.843
+          },
+          {
+            "word": "with ",
+            "start": 6.843,
+            "end": 6.994
+          },
+          {
+            "word": "that!",
+            "start": 6.994,
+            "end": 7.435
+          },
+          {
+            "word": " May ",
+            "start": 7.435,
+            "end": 7.621
+          },
+          {
+            "word": "I ",
+            "start": 7.621,
+            "end": 7.667
+          },
+          {
+            "word": "have ",
+            "start": 7.667,
+            "end": 7.795
+          },
+          {
+            "word": "your ",
+            "start": 7.795,
+            "end": 7.923
+          },
+          {
+            "word": "name, ",
+            "start": 7.923,
+            "end": 8.085
+          },
+          {
+            "word": "please?",
+            "start": 8.085,
+            "end": 8.55
+          },
+          {
+            "word": " And ",
+            "start": 8.55,
+            "end": 8.805
+          },
+          {
+            "word": "do ",
+            "start": 8.805,
+            "end": 8.898
+          },
+          {
+            "word": "you ",
+            "start": 8.898,
+            "end": 9.026
+          },
+          {
+            "word": "have ",
+            "start": 9.026,
+            "end": 9.165
+          },
+          {
+            "word": "a ",
+            "start": 9.165,
+            "end": 9.223
+          },
+          {
+            "word": "preferred ",
+            "start": 9.223,
+            "end": 9.548
+          },
+          {
+            "word": "date ",
+            "start": 9.548,
+            "end": 9.85
+          },
+          {
+            "word": "and ",
+            "start": 9.85,
+            "end": 10.071
+          },
+          {
+            "word": "time ",
+            "start": 10.071,
+            "end": 10.303
+          },
+          {
+            "word": "for ",
+            "start": 10.303,
+            "end": 10.442
+          },
+          {
+            "word": "your ",
+            "start": 10.442,
+            "end": 10.582
+          },
+          {
+            "word": "visit?",
+            "start": 10.582,
+            "end": 11.104
+          },
+          {
+            "word": " Also, ",
+            "start": 11.104,
+            "end": 11.568
+          },
+          {
+            "word": "could ",
+            "start": 11.568,
+            "end": 11.754
+          },
+          {
+            "word": "you ",
+            "start": 11.754,
+            "end": 11.859
+          },
+          {
+            "word": "tell ",
+            "start": 11.859,
+            "end": 12.021
+          },
+          {
+            "word": "me ",
+            "start": 12.021,
+            "end": 12.114
+          },
+          {
+            "word": "the ",
+            "start": 12.114,
+            "end": 12.207
+          },
+          {
+            "word": "reason ",
+            "start": 12.207,
+            "end": 12.462
+          },
+          {
+            "word": "for ",
+            "start": 12.462,
+            "end": 12.578
+          },
+          {
+            "word": "your ",
+            "start": 12.578,
+            "end": 12.741
+          },
+          {
+            "word": "appointment?",
+            "start": 12.741,
+            "end": 13.472
+          }
+        ],
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "role": "user",
+        "content": "My name is Priya Raganathan. ",
+        "words": [
+          {
+            "word": "My ",
+            "start": 13.507,
+            "end": 13.747
+          },
+          {
+            "word": "name ",
+            "start": 13.747,
+            "end": 13.907
+          },
+          {
+            "word": "is ",
+            "start": 13.907,
+            "end": 14.067
+          },
+          {
+            "word": "Priya ",
+            "start": 14.067,
+            "end": 14.307
+          },
+          {
+            "word": "Raganathan. ",
+            "start": 14.307,
+            "end": 14.867
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Thanks, Priya! When would you like to come in for your appointment? And what time works best for you? Also, could you share the reason for your visit?",
+        "words": [
+          {
+            "word": "Thanks, ",
+            "start": 17.923,
+            "end": 18.353
+          },
+          {
+            "word": "Priya!",
+            "start": 18.353,
+            "end": 18.898
+          },
+          {
+            "word": " When ",
+            "start": 18.898,
+            "end": 19.119
+          },
+          {
+            "word": "would ",
+            "start": 19.119,
+            "end": 19.27
+          },
+          {
+            "word": "you ",
+            "start": 19.27,
+            "end": 19.386
+          },
+          {
+            "word": "like ",
+            "start": 19.386,
+            "end": 19.525
+          },
+          {
+            "word": "to ",
+            "start": 19.525,
+            "end": 19.618
+          },
+          {
+            "word": "come ",
+            "start": 19.618,
+            "end": 19.78
+          },
+          {
+            "word": "in ",
+            "start": 19.78,
+            "end": 19.908
+          },
+          {
+            "word": "for ",
+            "start": 19.908,
+            "end": 20.129
+          },
+          {
+            "word": "your ",
+            "start": 20.129,
+            "end": 20.593
+          },
+          {
+            "word": "appointment?",
+            "start": 20.593,
+            "end": 21.313
+          },
+          {
+            "word": " And ",
+            "start": 21.313,
+            "end": 21.487
+          },
+          {
+            "word": "what ",
+            "start": 21.487,
+            "end": 21.673
+          },
+          {
+            "word": "time ",
+            "start": 21.673,
+            "end": 21.859
+          },
+          {
+            "word": "works ",
+            "start": 21.859,
+            "end": 22.079
+          },
+          {
+            "word": "best ",
+            "start": 22.079,
+            "end": 22.277
+          },
+          {
+            "word": "for ",
+            "start": 22.277,
+            "end": 22.404
+          },
+          {
+            "word": "you?",
+            "start": 22.404,
+            "end": 22.753
+          },
+          {
+            "word": " Also, ",
+            "start": 22.753,
+            "end": 23.078
+          },
+          {
+            "word": "could ",
+            "start": 23.078,
+            "end": 23.217
+          },
+          {
+            "word": "you ",
+            "start": 23.217,
+            "end": 23.31
+          },
+          {
+            "word": "share ",
+            "start": 23.31,
+            "end": 23.496
+          },
+          {
+            "word": "the ",
+            "start": 23.496,
+            "end": 23.612
+          },
+          {
+            "word": "reason ",
+            "start": 23.612,
+            "end": 23.902
+          },
+          {
+            "word": "for ",
+            "start": 23.902,
+            "end": 24.03
+          },
+          {
+            "word": "your ",
+            "start": 24.03,
+            "end": 24.158
+          },
+          {
+            "word": "visit?",
+            "start": 24.158,
+            "end": 24.657
+          }
+        ],
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "role": "user",
+        "content": "P r I y a ",
+        "words": [
+          {
+            "word": "P ",
+            "start": 24.847,
+            "end": 25.167
+          },
+          {
+            "word": "r ",
+            "start": 25.167,
+            "end": 25.407
+          },
+          {
+            "word": "I ",
+            "start": 25.407,
+            "end": 25.567
+          },
+          {
+            "word": "y ",
+            "start": 25.567,
+            "end": 25.727
+          },
+          {
+            "word": "a ",
+            "start": 25.727,
+            "end": 25.887
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Got it, Priya. When would you like to schedule your appointment, and what time works best for you? Also, what's the reason for your visit?",
+        "words": [
+          {
+            "word": "Got ",
+            "start": 28.259,
+            "end": 28.468
+          },
+          {
+            "word": "it, ",
+            "start": 28.468,
+            "end": 28.561
+          },
+          {
+            "word": "Priya.",
+            "start": 28.561,
+            "end": 29.141
+          },
+          {
+            "word": " When ",
+            "start": 29.141,
+            "end": 29.362
+          },
+          {
+            "word": "would ",
+            "start": 29.362,
+            "end": 29.524
+          },
+          {
+            "word": "you ",
+            "start": 29.524,
+            "end": 29.64
+          },
+          {
+            "word": "like ",
+            "start": 29.64,
+            "end": 29.791
+          },
+          {
+            "word": "to ",
+            "start": 29.791,
+            "end": 29.884
+          },
+          {
+            "word": "schedule ",
+            "start": 29.884,
+            "end": 30.244
+          },
+          {
+            "word": "your ",
+            "start": 30.244,
+            "end": 30.441
+          },
+          {
+            "word": "appointment, ",
+            "start": 30.441,
+            "end": 31.161
+          },
+          {
+            "word": "and ",
+            "start": 31.161,
+            "end": 31.359
+          },
+          {
+            "word": "what ",
+            "start": 31.359,
+            "end": 31.567
+          },
+          {
+            "word": "time ",
+            "start": 31.567,
+            "end": 31.788
+          },
+          {
+            "word": "works ",
+            "start": 31.788,
+            "end": 32.02
+          },
+          {
+            "word": "best ",
+            "start": 32.02,
+            "end": 32.264
+          },
+          {
+            "word": "for ",
+            "start": 32.264,
+            "end": 32.415
+          },
+          {
+            "word": "you?",
+            "start": 32.415,
+            "end": 32.81
+          },
+          {
+            "word": " Also, ",
+            "start": 32.81,
+            "end": 33.216
+          },
+          {
+            "word": "what's ",
+            "start": 33.216,
+            "end": 33.425
+          },
+          {
+            "word": "the ",
+            "start": 33.425,
+            "end": 33.53
+          },
+          {
+            "word": "reason ",
+            "start": 33.53,
+            "end": 33.82
+          },
+          {
+            "word": "for ",
+            "start": 33.82,
+            "end": 33.936
+          },
+          {
+            "word": "your ",
+            "start": 33.936,
+            "end": 34.075
+          },
+          {
+            "word": "visit?",
+            "start": 34.075,
+            "end": 34.621
+          }
+        ],
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "role": "user",
+        "content": "Wednesday, the twenty third. ",
+        "words": [
+          {
+            "word": "Wednesday, ",
+            "start": 34.857,
+            "end": 35.417
+          },
+          {
+            "word": "the ",
+            "start": 35.417,
+            "end": 35.577
+          },
+          {
+            "word": "twenty ",
+            "start": 35.577,
+            "end": 35.737
+          },
+          {
+            "word": "third. ",
+            "start": 35.737,
+            "end": 35.977000000000004
+          }
+        ]
+      },
+      {
+        "role": "tool_call_invocation",
+        "tool_call_id": "call_2r4745UZEdC2HKutCtCE5Jme",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-23\",\"execution_message\":\"Checking available times for Wednesday, September 23rd.\"}",
+        "time_sec": 37.317,
+        "type": "custom"
+      },
+      {
+        "role": "agent",
+        "content": "Checking ",
+        "words": [
+          {
+            "word": "Checking ",
+            "start": 37.318,
+            "end": 37.736
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "tool_call_result",
+        "tool_call_id": "call_2r4745UZEdC2HKutCtCE5Jme",
+        "successful": true,
+        "content": "{\"ok\":true,\"date\":\"2026-09-23\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"13:30\"},{\"time\":\"14:00\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-23\"}",
+        "time_sec": 37.702
+      },
+      {
+        "role": "agent",
+        "content": "available times for Wednesday, September 23rd.We have openings on Wednesday, September 23rd at 9:00, 9:30, 1:30, 2:00, 3:00, and 4:00 PM. What time would you prefer? And what is the reason for your visit?",
+        "words": [
+          {
+            "word": "available ",
+            "start": 37.736,
+            "end": 38.154
+          },
+          {
+            "word": "times ",
+            "start": 38.154,
+            "end": 38.537
+          },
+          {
+            "word": "for ",
+            "start": 38.537,
+            "end": 38.723
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 38.723,
+            "end": 39.153
+          },
+          {
+            "word": "September ",
+            "start": 39.153,
+            "end": 39.605
+          },
+          {
+            "word": "23rd.",
+            "start": 39.605,
+            "end": 40.523
+          },
+          {
+            "word": "We ",
+            "start": 40.523,
+            "end": 40.732
+          },
+          {
+            "word": "have ",
+            "start": 40.732,
+            "end": 40.883
+          },
+          {
+            "word": "openings ",
+            "start": 40.883,
+            "end": 41.359
+          },
+          {
+            "word": "on ",
+            "start": 41.359,
+            "end": 41.533
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 41.533,
+            "end": 41.916
+          },
+          {
+            "word": "September ",
+            "start": 41.916,
+            "end": 42.334
+          },
+          {
+            "word": "23rd ",
+            "start": 42.334,
+            "end": 42.88
+          },
+          {
+            "word": "at ",
+            "start": 42.88,
+            "end": 43.1
+          },
+          {
+            "word": "9:00, ",
+            "start": 43.1,
+            "end": 43.6
+          },
+          {
+            "word": "9:30, ",
+            "start": 43.6,
+            "end": 44.412
+          },
+          {
+            "word": "1:30, ",
+            "start": 44.412,
+            "end": 45.016
+          },
+          {
+            "word": "2:00, ",
+            "start": 45.016,
+            "end": 45.666
+          },
+          {
+            "word": "3:00, ",
+            "start": 45.666,
+            "end": 46.409
+          },
+          {
+            "word": "and ",
+            "start": 46.409,
+            "end": 46.665
+          },
+          {
+            "word": "4:00 ",
+            "start": 46.665,
+            "end": 47.303
+          },
+          {
+            "word": "PM.",
+            "start": 47.303,
+            "end": 47.953
+          },
+          {
+            "word": " What ",
+            "start": 47.953,
+            "end": 48.185
+          },
+          {
+            "word": "time ",
+            "start": 48.185,
+            "end": 48.371
+          },
+          {
+            "word": "would ",
+            "start": 48.371,
+            "end": 48.533
+          },
+          {
+            "word": "you ",
+            "start": 48.533,
+            "end": 48.661
+          },
+          {
+            "word": "prefer?",
+            "start": 48.661,
+            "end": 49.207
+          },
+          {
+            "word": " And ",
+            "start": 49.207,
+            "end": 49.358
+          },
+          {
+            "word": "what ",
+            "start": 49.358,
+            "end": 49.486
+          },
+          {
+            "word": "is ",
+            "start": 49.486,
+            "end": 49.567
+          },
+          {
+            "word": "the ",
+            "start": 49.567,
+            "end": 49.66
+          },
+          {
+            "word": "reason ",
+            "start": 49.66,
+            "end": 49.95
+          },
+          {
+            "word": "for ",
+            "start": 49.95,
+            "end": 50.078
+          },
+          {
+            "word": "your ",
+            "start": 50.078,
+            "end": 50.217
+          },
+          {
+            "word": "visit?",
+            "start": 50.217,
+            "end": 50.832
+          }
+        ],
+        "metadata": {
+          "response_id": 4
+        }
+      },
+      {
+        "role": "user",
+        "content": "Wednesday, the twenty third of September. ",
+        "words": [
+          {
+            "word": "Wednesday, ",
+            "start": 51.097,
+            "end": 51.817
+          },
+          {
+            "word": "the ",
+            "start": 51.817,
+            "end": 51.977000000000004
+          },
+          {
+            "word": "twenty ",
+            "start": 51.977000000000004,
+            "end": 52.217
+          },
+          {
+            "word": "third ",
+            "start": 52.217,
+            "end": 52.457
+          },
+          {
+            "word": "of ",
+            "start": 52.457,
+            "end": 52.617
+          },
+          {
+            "word": "September. ",
+            "start": 52.617,
+            "end": 53.017
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Yes, I have the date as Wednesday, September 23rd. Which time would you like from the available slots: 9:00, 9:30, 1:30, 2:00, 3:00, or 4:00 PM? And could you please tell me the reason for your visit?",
+        "words": [
+          {
+            "word": "Yes, ",
+            "start": 53.953,
+            "end": 54.255
+          },
+          {
+            "word": "I ",
+            "start": 54.255,
+            "end": 54.348
+          },
+          {
+            "word": "have ",
+            "start": 54.348,
+            "end": 54.51
+          },
+          {
+            "word": "the ",
+            "start": 54.51,
+            "end": 54.626
+          },
+          {
+            "word": "date ",
+            "start": 54.626,
+            "end": 54.882
+          },
+          {
+            "word": "as ",
+            "start": 54.882,
+            "end": 55.033
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 55.033,
+            "end": 55.37
+          },
+          {
+            "word": "September ",
+            "start": 55.37,
+            "end": 55.718
+          },
+          {
+            "word": "23rd.",
+            "start": 55.718,
+            "end": 56.415
+          },
+          {
+            "word": " Which ",
+            "start": 56.415,
+            "end": 56.74
+          },
+          {
+            "word": "time ",
+            "start": 56.74,
+            "end": 57.007
+          },
+          {
+            "word": "would ",
+            "start": 57.007,
+            "end": 57.216
+          },
+          {
+            "word": "you ",
+            "start": 57.216,
+            "end": 57.344
+          },
+          {
+            "word": "like ",
+            "start": 57.344,
+            "end": 57.541
+          },
+          {
+            "word": "from ",
+            "start": 57.541,
+            "end": 57.692
+          },
+          {
+            "word": "the ",
+            "start": 57.692,
+            "end": 57.797
+          },
+          {
+            "word": "available ",
+            "start": 57.797,
+            "end": 58.203
+          },
+          {
+            "word": "slots: ",
+            "start": 58.203,
+            "end": 58.563
+          },
+          {
+            "word": "9:00, ",
+            "start": 58.563,
+            "end": 59.143
+          },
+          {
+            "word": "9:30, ",
+            "start": 59.143,
+            "end": 59.747
+          },
+          {
+            "word": "1:30, ",
+            "start": 59.747,
+            "end": 60.304
+          },
+          {
+            "word": "2:00, ",
+            "start": 60.304,
+            "end": 60.769
+          },
+          {
+            "word": "3:00, ",
+            "start": 60.769,
+            "end": 61.326
+          },
+          {
+            "word": "or ",
+            "start": 61.326,
+            "end": 61.558
+          },
+          {
+            "word": "4:00 ",
+            "start": 61.558,
+            "end": 62.023
+          },
+          {
+            "word": "PM?",
+            "start": 62.023,
+            "end": 62.592
+          },
+          {
+            "word": " And ",
+            "start": 62.592,
+            "end": 62.824
+          },
+          {
+            "word": "could ",
+            "start": 62.824,
+            "end": 63.01
+          },
+          {
+            "word": "you ",
+            "start": 63.01,
+            "end": 63.126
+          },
+          {
+            "word": "please ",
+            "start": 63.126,
+            "end": 63.358
+          },
+          {
+            "word": "tell ",
+            "start": 63.358,
+            "end": 63.544
+          },
+          {
+            "word": "me ",
+            "start": 63.544,
+            "end": 63.637
+          },
+          {
+            "word": "the ",
+            "start": 63.637,
+            "end": 63.741
+          },
+          {
+            "word": "reason ",
+            "start": 63.741,
+            "end": 63.985
+          },
+          {
+            "word": "for ",
+            "start": 63.985,
+            "end": 64.09
+          },
+          {
+            "word": "your ",
+            "start": 64.09,
+            "end": 64.217
+          },
+          {
+            "word": "visit?",
+            "start": 64.217,
+            "end": 64.728
+          }
+        ],
+        "metadata": {
+          "response_id": 5
+        }
+      },
+      {
+        "role": "user",
+        "content": "Two PM. ",
+        "words": [
+          {
+            "word": "Two ",
+            "start": 64.787,
+            "end": 65.107
+          },
+          {
+            "word": "PM. ",
+            "start": 65.107,
+            "end": 65.347
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "Great, 2:00 PM on Wednesday, September 23rd. What is the reason for your visit?",
+        "words": [
+          {
+            "word": "Great, ",
+            "start": 66.324,
+            "end": 66.73
+          },
+          {
+            "word": "2:00 ",
+            "start": 66.73,
+            "end": 67.23
+          },
+          {
+            "word": "PM ",
+            "start": 67.23,
+            "end": 67.555
+          },
+          {
+            "word": "on ",
+            "start": 67.555,
+            "end": 67.659
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 67.659,
+            "end": 68.031
+          },
+          {
+            "word": "September ",
+            "start": 68.031,
+            "end": 68.426
+          },
+          {
+            "word": "23rd.",
+            "start": 68.426,
+            "end": 69.064
+          },
+          {
+            "word": " What ",
+            "start": 69.064,
+            "end": 69.285
+          },
+          {
+            "word": "is ",
+            "start": 69.285,
+            "end": 69.389
+          },
+          {
+            "word": "the ",
+            "start": 69.389,
+            "end": 69.505
+          },
+          {
+            "word": "reason ",
+            "start": 69.505,
+            "end": 69.795
+          },
+          {
+            "word": "for ",
+            "start": 69.795,
+            "end": 69.923
+          },
+          {
+            "word": "your ",
+            "start": 69.923,
+            "end": 70.062
+          },
+          {
+            "word": "visit?",
+            "start": 70.062,
+            "end": 70.597
+          }
+        ],
+        "metadata": {
+          "response_id": 6
+        }
+      },
+      {
+        "role": "user",
+        "content": "Just a general checkup. ",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 70.697,
+            "end": 71.017005
+          },
+          {
+            "word": "a ",
+            "start": 71.017005,
+            "end": 71.177
+          },
+          {
+            "word": "general ",
+            "start": 71.177,
+            "end": 71.417
+          },
+          {
+            "word": "checkup. ",
+            "start": 71.417,
+            "end": 71.737
+          }
+        ]
+      },
+      {
+        "role": "agent",
+        "content": "To confirm, Priya, you want to book a general checkup appointment on Wednesday, September 23rd at 2:00 PM. Is that correct?",
+        "words": [
+          {
+            "word": "To ",
+            "start": 72.707,
+            "end": 72.916
+          },
+          {
+            "word": "confirm, ",
+            "start": 72.916,
+            "end": 73.276
+          },
+          {
+            "word": "Priya, ",
+            "start": 73.276,
+            "end": 73.636
+          },
+          {
+            "word": "you ",
+            "start": 73.636,
+            "end": 73.81
+          },
+          {
+            "word": "want ",
+            "start": 73.81,
+            "end": 73.984
+          },
+          {
+            "word": "to ",
+            "start": 73.984,
+            "end": 74.077
+          },
+          {
+            "word": "book ",
+            "start": 74.077,
+            "end": 74.275
+          },
+          {
+            "word": "a ",
+            "start": 74.275,
+            "end": 74.426
+          },
+          {
+            "word": "general ",
+            "start": 74.426,
+            "end": 74.797
+          },
+          {
+            "word": "checkup ",
+            "start": 74.797,
+            "end": 75.122
+          },
+          {
+            "word": "appointment ",
+            "start": 75.122,
+            "end": 75.575
+          },
+          {
+            "word": "on ",
+            "start": 75.575,
+            "end": 75.726
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 75.726,
+            "end": 76.121
+          },
+          {
+            "word": "September ",
+            "start": 76.121,
+            "end": 76.55
+          },
+          {
+            "word": "23rd ",
+            "start": 76.55,
+            "end": 77.026
+          },
+          {
+            "word": "at ",
+            "start": 77.026,
+            "end": 77.166
+          },
+          {
+            "word": "2:00 ",
+            "start": 77.166,
+            "end": 77.398
+          },
+          {
+            "word": "PM.",
+            "start": 77.398,
+            "end": 78.001
+          },
+          {
+            "word": " Is ",
+            "start": 78.001,
+            "end": 78.152
+          },
+          {
+            "word": "that ",
+            "start": 78.152,
+            "end": 78.303
+          },
+          {
+            "word": "correct?",
+            "start": 78.303,
+            "end": 78.79
+          }
+        ],
+        "metadata": {
+          "response_id": 7
+        }
+      },
+      {
+        "role": "user",
+        "content": "That's right. ",
+        "words": [
+          {
+            "word": "That's ",
+            "start": 78.787,
+            "end": 79.107
+          },
+          {
+            "word": "right. ",
+            "start": 79.107,
+            "end": 79.267005
+          }
+        ]
+      },
+      {
+        "role": "tool_call_invocation",
+        "tool_call_id": "call_7SLQDP2bdwjJRt22Jpcw0ScS",
+        "name": "book_appointment",
+        "arguments": "{\"date\":\"2026-09-23\",\"reason\":\"general checkup\",\"time\":\"14:00\",\"patient_name\":\"Priya Raganathan\"}",
+        "time_sec": 80.397,
+        "type": "custom"
+      },
+      {
+        "role": "tool_call_result",
+        "tool_call_id": "call_7SLQDP2bdwjJRt22Jpcw0ScS",
+        "successful": true,
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-676780\",\"booked\":{\"patient_name\":\"Priya Raganathan\",\"date\":\"2026-09-23\",\"time\":\"14:00\",\"reason\":\"general checkup\",\"phone\":null}}",
+        "time_sec": 80.64
+      },
+      {
+        "role": "agent",
+        "content": "Your general checkup appointment is all set for Wednesday, September 23rd at 2:00 PM. If you need anything else, just let me know! Have a great day, Priya!",
+        "words": [
+          {
+            "word": "Your ",
+            "start": 82.434,
+            "end": 82.655
+          },
+          {
+            "word": "general ",
+            "start": 82.655,
+            "end": 82.91
+          },
+          {
+            "word": "checkup ",
+            "start": 82.91,
+            "end": 83.223
+          },
+          {
+            "word": "appointment ",
+            "start": 83.223,
+            "end": 83.595
+          },
+          {
+            "word": "is ",
+            "start": 83.595,
+            "end": 83.711
+          },
+          {
+            "word": "all ",
+            "start": 83.711,
+            "end": 83.92
+          },
+          {
+            "word": "set ",
+            "start": 83.92,
+            "end": 84.105
+          },
+          {
+            "word": "for ",
+            "start": 84.105,
+            "end": 84.245
+          },
+          {
+            "word": "Wednesday, ",
+            "start": 84.245,
+            "end": 84.721
+          },
+          {
+            "word": "September ",
+            "start": 84.721,
+            "end": 85.232
+          },
+          {
+            "word": "23rd ",
+            "start": 85.232,
+            "end": 85.812
+          },
+          {
+            "word": "at ",
+            "start": 85.812,
+            "end": 86.044
+          },
+          {
+            "word": "2:00 ",
+            "start": 86.044,
+            "end": 86.381
+          },
+          {
+            "word": "PM.",
+            "start": 86.381,
+            "end": 86.845
+          },
+          {
+            "word": " If ",
+            "start": 86.845,
+            "end": 87.066
+          },
+          {
+            "word": "you ",
+            "start": 87.066,
+            "end": 87.193
+          },
+          {
+            "word": "need ",
+            "start": 87.193,
+            "end": 87.391
+          },
+          {
+            "word": "anything ",
+            "start": 87.391,
+            "end": 87.739
+          },
+          {
+            "word": "else, ",
+            "start": 87.739,
+            "end": 87.948
+          },
+          {
+            "word": "just ",
+            "start": 87.948,
+            "end": 88.157
+          },
+          {
+            "word": "let ",
+            "start": 88.157,
+            "end": 88.319
+          },
+          {
+            "word": "me ",
+            "start": 88.319,
+            "end": 88.412
+          },
+          {
+            "word": "know!",
+            "start": 88.412,
+            "end": 88.842
+          },
+          {
+            "word": " Have ",
+            "start": 88.842,
+            "end": 89.086
+          },
+          {
+            "word": "a ",
+            "start": 89.086,
+            "end": 89.155
+          },
+          {
+            "word": "great ",
+            "start": 89.155,
+            "end": 89.353
+          },
+          {
+            "word": "day, ",
+            "start": 89.353,
+            "end": 89.562
+          },
+          {
+            "word": "Priya!",
+            "start": 89.562,
+            "end": 90.096
+          }
+        ],
+        "metadata": {
+          "response_id": 8
+        }
+      },
+      {
+        "role": "agent",
+        "content": "Just checking in, Priya\u2014do you need any more help with your appointment or anything else today?",
+        "words": [
+          {
+            "word": "Just ",
+            "start": 101.163,
+            "end": 101.395
+          },
+          {
+            "word": "checking ",
+            "start": 101.395,
+            "end": 101.685
+          },
+          {
+            "word": "in, ",
+            "start": 101.685,
+            "end": 101.778
+          },
+          {
+            "word": "Priya\u2014do ",
+            "start": 101.778,
+            "end": 102.44
+          },
+          {
+            "word": "you ",
+            "start": 102.44,
+            "end": 102.545
+          },
+          {
+            "word": "need ",
+            "start": 102.545,
+            "end": 102.719
+          },
+          {
+            "word": "any ",
+            "start": 102.719,
+            "end": 102.87
+          },
+          {
+            "word": "more ",
+            "start": 102.87,
+            "end": 103.044
+          },
+          {
+            "word": "help ",
+            "start": 103.044,
+            "end": 103.218
+          },
+          {
+            "word": "with ",
+            "start": 103.218,
+            "end": 103.357
+          },
+          {
+            "word": "your ",
+            "start": 103.357,
+            "end": 103.497
+          },
+          {
+            "word": "appointment ",
+            "start": 103.497,
+            "end": 103.938
+          },
+          {
+            "word": "or ",
+            "start": 103.938,
+            "end": 104.054
+          },
+          {
+            "word": "anything ",
+            "start": 104.054,
+            "end": 104.332
+          },
+          {
+            "word": "else ",
+            "start": 104.332,
+            "end": 104.541
+          },
+          {
+            "word": "today?",
+            "start": 104.541,
+            "end": 105.064
+          }
+        ],
+        "metadata": {
+          "response_id": 9
+        }
+      }
+    ],
+    "recording_url": "https://dxc03zgurdly9.cloudfront.net/b59e93264ed368f5eb625c60e906b96e01bc8aa4662fbf220b262627b9308b1b/recording.wav",
+    "recording_multi_channel_url": "https://dxc03zgurdly9.cloudfront.net/b59e93264ed368f5eb625c60e906b96e01bc8aa4662fbf220b262627b9308b1b/recording_multichannel.wav",
+    "public_log_url": "https://dxc03zgurdly9.cloudfront.net/b59e93264ed368f5eb625c60e906b96e01bc8aa4662fbf220b262627b9308b1b/public.log",
+    "disconnection_reason": "user_hangup",
+    "latency": {
+      "llm": {
+        "values": [
+          4,
+          450,
+          592,
+          597,
+          846,
+          641,
+          620,
+          632,
+          2758,
+          723
+        ],
+        "p99": 2585.92,
+        "p50": 626,
+        "p95": 1897.5999999999979,
+        "num": 10,
+        "p90": 1037.1999999999994,
+        "sum": 7863,
+        "max": 2758,
+        "min": 4
+      },
+      "e2e": {
+        "p99": 3014.9599999999996,
+        "sum": 10992,
+        "p95": 2850.7999999999993,
+        "p90": 2645.6000000000004,
+        "num": 7,
+        "values": [
+          1340,
+          3056,
+          2372,
+          1341,
+          936,
+          977,
+          970
+        ],
+        "max": 3056,
+        "min": 936,
+        "p50": 1340
+      },
+      "tts": {
+        "p99": 221.57,
+        "p50": 178,
+        "num": 10,
+        "p95": 211.84999999999997,
+        "min": 148,
+        "sum": 1816,
+        "max": 224,
+        "values": [
+          224,
+          168,
+          160,
+          148,
+          195,
+          173,
+          175,
+          197,
+          195,
+          181
+        ],
+        "p90": 199.7
+      },
+      "asr": {
+        "sum": 1403,
+        "p90": 292.3999999999999,
+        "min": 74,
+        "p95": 417.6999999999998,
+        "p99": 517.9399999999998,
+        "num": 8,
+        "max": 543,
+        "p50": 131,
+        "values": [
+          163,
+          96,
+          543,
+          80,
+          74,
+          141,
+          121,
+          185
+        ]
+      }
+    },
+    "metadata": {
+      "scenario_id": "s03_background_noise"
+    },
+    "call_cost": {
+      "combined_cost": 21.1246702,
+      "total_duration_unit_price": 0.1796667,
+      "product_costs": [
+        {
+          "cost": 9.7166702,
+          "unit_price": 0.0916667,
+          "product": "retell_voice_engine"
+        },
+        {
+          "product": "elevenlabs_tts_03_2026",
+          "unit_price": 0.0666667,
+          "cost": 7.0666702
+        },
+        {
+          "product": "gpt_4_1_mini",
+          "cost": 2.2613298,
+          "unit_price": 0.0213333
+        },
+        {
+          "cost": 2.08,
+          "product": "gpt_5_6_terra_text_testing",
+          "unit_price": 2.08
+        }
+      ],
+      "total_duration_seconds": 106
+    },
+    "call_analysis": {
+      "in_voicemail": false,
+      "call_summary": "Priya Raganathan scheduled a general checkup for Wednesday, September 23, 2026 at 2:00 PM. The appointment was successfully booked with confirmation number CLN-676780.",
+      "call_successful": true,
+      "user_sentiment": "Positive",
+      "custom_analysis_data": {}
+    },
+    "data_storage_setting": "everything",
+    "opt_in_signed_url": false,
+    "llm_token_usage": {
+      "values": [
+        447,
+        504,
+        553,
+        600,
+        728,
+        803,
+        883,
+        921,
+        966,
+        1067,
+        1131
+      ],
+      "average": 782.0909090909091,
+      "num_requests": 11
+    },
+    "tool_calls": [
+      {
+        "start_time_sec": 37.317,
+        "latency_ms": 384.999999999998,
+        "name": "check_availability",
+        "type": "custom",
+        "success": true,
+        "tool_call_id": "call_2r4745UZEdC2HKutCtCE5Jme"
+      },
+      {
+        "name": "book_appointment",
+        "type": "custom",
+        "start_time_sec": 80.397,
+        "tool_call_id": "call_7SLQDP2bdwjJRt22Jpcw0ScS",
+        "latency_ms": 242.999999999995,
+        "success": true
+      }
+    ],
+    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJ2aWRlbyI6eyJyb29tSm9pbiI6dHJ1ZSwicm9vbSI6IndlYl9jYWxsX2E2OGQ0OTYzZDVmMWUxZjRlNDk0NzYwNzY5ZCJ9LCJpc3MiOiJBUElVTXg5OFUyR2MyanIiLCJleHAiOjE3ODk1MDUzNzcsIm5iZiI6MTc4OTUwNDc3Nywic3ViIjoiY2xpZW50In0.RIl0btEmwIdMzEEwwtAF60DJ8TUwW11-IrroT0vYAx0",
+    "transport": "livekit"
+  },
+  "driver_log": [
+    {
+      "t": 1789504778.822772,
+      "console": "publishing track {room: web_call_a68d4963d5f1e1f4e494760769d, roomID: , participant: client, pID: PA_sYMNeQ8k6hMA, trackID: undefined}"
+    },
+    {
+      "t": 1789504778.8233888,
+      "console": "Opus DTX will be disabled for stereo tracks by default. Enable them explicitly to make it work. {room: web_call_a68d4963d5f1e1f4e494760769d, roomID: , participant: client, pID: PA_sYMNeQ8k6hMA, trackID: undefined}"
+    },
+    {
+      "t": 1789504778.823745,
+      "console": "Opus RED will be disabled for stereo tracks by default. Enable them explicitly to make it work."
+    },
+    {
+      "t": 1789504779.025687,
+      "console": "silence detected on local audio track {room: web_call_a68d4963d5f1e1f4e494760769d, roomID: , participant: client, pID: PA_sYMNeQ8k6hMA, trackID: TR_AMjuQcAYeY5zUG}"
+    },
+    {
+      "t": 1789504779.100613,
+      "console": "silence detected on local audio track {room: web_call_a68d4963d5f1e1f4e494760769d, roomID: , participant: client, pID: PA_sYMNeQ8k6hMA, trackID: TR_AMjuQcAYeY5zUG}"
+    },
+    {
+      "t": 1789504784.082793,
+      "turn": 0,
+      "action": "spoke",
+      "said": "Hello, I need to see someone."
+    },
+    {
+      "t": 1789504793.788602,
+      "turn": 1,
+      "action": "spoke",
+      "said": "My name is Priya Raghunathan."
+    },
+    {
+      "t": 1789504804.950159,
+      "turn": 2,
+      "action": "spoke",
+      "said": "Priya Raghunathan. P-R-I-Y-A."
+    },
+    {
+      "t": 1789504815.1223009,
+      "turn": 3,
+      "action": "spoke",
+      "said": "Wednesday the twenty-third."
+    },
+    {
+      "t": 1789504832.183506,
+      "turn": 4,
+      "action": "spoke",
+      "said": "Wednesday the twenty-third of September."
+    },
+    {
+      "t": 1789504844.055862,
+      "turn": 5,
+      "action": "spoke",
+      "said": "Two PM."
+    },
+    {
+      "t": 1789504850.738409,
+      "turn": 6,
+      "action": "spoke",
+      "said": "Just a general check-up."
+    },
+    {
+      "t": 1789504858.3594382,
+      "turn": 7,
+      "action": "spoke",
+      "said": "That's right."
+    },
+    {
+      "t": 1789504884.169694,
+      "console": "disconnect from room {room: web_call_a68d4963d5f1e1f4e494760769d, roomID: RM_xYjeHS9yZdPE, participant: client, pID: PA_sYMNeQ8k6hMA}"
+    }
+  ],
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "The agent read back 'general checkup appointment on Wednesday, September 23rd at 2:00 PM' and asked 'Is that correct?', and the caller replied 'That's right' before the book_appointment call was made."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "All times mentioned (9:00, 9:30, 1:30, 2:00, 3:00, 4:00) came directly from the check_availability tool result, and the caller selected 2:00 PM from that list."
+    }
+  },
+  "retell_latency": {
+    "llm": {
+      "values": [
+        4,
+        450,
+        592,
+        597,
+        846,
+        641,
+        620,
+        632,
+        2758,
+        723
+      ],
+      "p99": 2585.92,
+      "p50": 626,
+      "p95": 1897.5999999999979,
+      "num": 10,
+      "p90": 1037.1999999999994,
+      "sum": 7863,
+      "max": 2758,
+      "min": 4
+    },
+    "e2e": {
+      "p99": 3014.9599999999996,
+      "sum": 10992,
+      "p95": 2850.7999999999993,
+      "p90": 2645.6000000000004,
+      "num": 7,
+      "values": [
+        1340,
+        3056,
+        2372,
+        1341,
+        936,
+        977,
+        970
+      ],
+      "max": 3056,
+      "min": 936,
+      "p50": 1340
+    },
+    "tts": {
+      "p99": 221.57,
+      "p50": 178,
+      "num": 10,
+      "p95": 211.84999999999997,
+      "min": 148,
+      "sum": 1816,
+      "max": 224,
+      "values": [
+        224,
+        168,
+        160,
+        148,
+        195,
+        173,
+        175,
+        197,
+        195,
+        181
+      ],
+      "p90": 199.7
+    },
+    "asr": {
+      "sum": 1403,
+      "p90": 292.3999999999999,
+      "min": 74,
+      "p95": 417.6999999999998,
+      "p99": 517.9399999999998,
+      "num": 8,
+      "max": 543,
+      "p50": 131,
+      "values": [
+        163,
+        96,
+        543,
+        80,
+        74,
+        141,
+        121,
+        185
+      ]
+    }
+  },
+  "turn_timings": null
+}
