@@ -25,6 +25,10 @@ from harness.scorer import score_run
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "runs" / "_synthetic_example"
 
+# Frozen so regenerating produces byte-identical files. A wall-clock stamp here
+# rewrote all 102 artifacts on every run and dirtied the git tree for nothing.
+FROZEN_TS = "2026-09-15T00:00:00+00:00"
+
 
 def fake_events(sc, arm: str, rng: random.Random) -> tuple[list[Event], dict]:
     """Build a plausible conversation. The hardened arm behaves better on

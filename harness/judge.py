@@ -121,7 +121,10 @@ _DEFAULT_MODELS = {
 
 def resolve_provider() -> tuple[str | None, str | None]:
     """(provider, model) or (None, None) if the judge is disabled/unavailable."""
-    want = (os.getenv("JUDGE_PROVIDER") or "").strip().lower()
+    # dotenv does NOT strip inline comments: `JUDGE_PROVIDER=openai # note`
+    # arrives as "openai # note". Strip it here so a stray comment silently
+    # falling back to auto-detect cannot be mistaken for an honoured choice.
+    want = (os.getenv("JUDGE_PROVIDER") or "").split("#")[0].strip().lower()
     if want == "none":
         return None, None
     keys = {
