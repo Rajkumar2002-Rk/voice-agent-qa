@@ -330,9 +330,11 @@ A tool call roughly doubles the turn, and part of that is my own infrastructure.
 
 ## Caveats — read these before quoting any number above
 
-**Scale.** Three repeats per cell. Enough to see a large effect, not enough for a
-small one. No confidence intervals are reported because none would be meaningful at
-n=3. Treat every number as directional.
+**Scale.** Three repeats per cell, 102 runs total. Enough to see a large effect, not
+a small one. No confidence intervals are reported because none would be meaningful at
+n=3. The 6-point voice pass-rate difference is within noise and is explicitly *not*
+claimed as a result; the 10-vs-2 unsafe-commit difference is large enough to be
+directional, but it is still n=3.
 
 **The prompt is not the only instruction channel — and the arms share the other one.**
 Both arms use an identical tool schema, and JSON Schema property descriptions turn
@@ -362,8 +364,8 @@ committed WAV of "David Okonkwo. O-K-O-N-K-W-O." transcribed as `David O'Connell
 on two runs and `David O'Conk Co` on a third. So a deterministic scorer plus a
 deterministic caller does **not** produce a deterministic experiment when the channel
 between them is stochastic. Voice results need higher n than text results to mean the
-same thing — which is the opposite of what the budget allows, and why the voice arm
-runs at n=2 while text runs at n=3.
+same thing. The voice arm was re-run at n=3 with padded fixtures after the n=2 batch
+exposed a stimulus confound; both arms are now n=3.
 
 **Scripted callers, not humans.** Fixed TTS fixtures, byte-identical every run. That
 buys reproducibility and costs realism: one synthetic voice, consistent prosody, no

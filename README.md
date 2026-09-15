@@ -10,7 +10,7 @@ adversarial callers, a rules-based scorer that names **which slot** was wrong an
 **what the agent actually captured**, and a controlled ablation across two prompt
 arms and two channels.
 
-**82 real runs against a live Retell account. Every transcript committed.**
+**102 real runs against a live Retell account. Every transcript committed.**
 
 ---
 
@@ -19,22 +19,46 @@ arms and two channels.
 | channel | naive prompt | hardened prompt |
 |---|---|---|
 | text (Chat API) | 95% | 95% |
-| voice (WebRTC) | 75% | 80% |
+| voice (WebRTC) | 67% | 73% |
 
-**Prompt hardening bought nothing measurable.** Six of nine adversarial personas were
-never broken by either prompt. The one failure nothing fixed is structural:
+Read as a pass rate, hardening bought 6 points on voice and nothing on text — close
+to noise. **That reading is wrong, and the reason is the most useful thing here.**
+
+Classifying *what kind of wrong* each failure was:
+
+| arm | channel | correct | safe refusal | **unsafe commit** |
+|---|---|---|---|---|
+| naive | voice | 20 | 0 | **10** |
+| hardened | voice | 22 | 5 | **2** |
+
+An *unsafe commit* is the agent telling the caller they're booked, with wrong data in
+the record. A *safe refusal* is the agent declining because it couldn't confirm
+something — scored as a failure, but for a clinic it's the correct outcome.
+
+**The naive prompt committed bad data 10 times; the hardened prompt twice.** A 5x
+reduction in the only failure that reaches a patient record — invisible in the pass
+rate, because a safe refusal and a wrong booking score identically.
+
+The one failure nothing fixed is structural:
 
 > Caller says **"David Okonkwo. O-K-O-N-K-W-O."** — spelling it out.
 > STT produces **"David O'Connell"**. The agent books the wrong name and confirms it.
 
 The information was destroyed upstream of the language model, along with the caller's
-own error-correction. The hardened prompt's *"spell-check unusual names"* rule cannot
-fire, because "O'Connell" looks entirely ordinary. **A text-only QA suite reports this
-agent as flawless at name capture, forever.**
+own error-correction. **A text-only QA suite reports this agent as flawless at name
+capture, forever.**
 
-The LLM judge agreed with the deterministic scorer **146/146** — which cuts against
-the premise this was built on, and is written up as such in
-[docs/findings.md](docs/findings.md).
+Every remaining voice failure is a patient name — dates, times, reasons and phone
+numbers all capture correctly. So the residual failure is localised to one subsystem,
+**STT vocabulary on uncommon surnames**, and none of the fixes for it are prompt
+engineering.
+
+**The LLM judge audited my scorer.** It disagreed twice and was right both times: STT
+had mangled the caller's own words, my strict parser couldn't read them, and the agent
+was blamed for inventing a time the caller actually said. STT noise didn't just
+degrade the agent — it corrupted my ground truth, and a deterministic scorer cannot
+catch that about itself. Fixed, re-scored for free, agreement now **177/177**.
+Written up in [docs/findings.md](docs/findings.md).
 
 ## The uncomfortable finding
 
@@ -102,8 +126,8 @@ Being precise about this, because "runnable" is the whole claim.
 | Clinic tool server | **Verified.** Deterministic availability, exercised in tests. |
 | Report generator | **Verified** against a fabricated run fixture. |
 | Text channel (Chat API) | **Verified live.** Passed first attempt. |
-| Voice channel (WebRTC web call) | **Verified live.** Real audio, real barge-in timing, real turn latency. |
-| Findings writeup | **In progress.** Text ablation run; voice ablation pending. |
+| Voice channel (WebRTC web call) | **Verified live.** Real audio, real barge-in timing, real turn latency. 60 runs at n=3. |
+| Findings writeup | **Complete.** [docs/findings.md](docs/findings.md), from 102 runs. |
 
 `runs/_synthetic_example/` contains **fabricated** numbers used only to test the
 reporter. It is stamped `SYNTHETIC: true`. Nothing in the findings comes from it.
