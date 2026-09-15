@@ -1008,3 +1008,30 @@ unchanged for now because the run is mid-flight; written up as required work.
 
 **Read the barge_in numbers in the final report with this in mind: hardened's 0% is
 partly a scoring artifact concealing better behaviour than naive's.**
+
+
+### The padded re-run sharpens the finding: it is names, and only names
+
+`s09_self_correction` went from **0/5 in every run** (unpadded, time never
+transcribed) to **4/5**. The padding fixed it. The one slot still failing:
+
+| run | captured | expected |
+|---|---|---|
+| naive #0 | `grace linkvist` | `grace lindqvist` |
+| naive #1 | `grace linkfist` | `grace lindqvist` |
+
+Combined with `s02_barge_in` (`Okonkwo` -> `dave o and kwo`), a clean pattern holds
+across the suite: **dates, times, reasons and phone numbers all capture correctly in
+voice. Uncommon surnames do not.**
+
+That is a much more actionable result than "voice is harder than text". It points at
+one specific, fixable subsystem — STT vocabulary — rather than at the agent, the
+prompt, or the model. The levers are keyword boosting, a custom surname vocabulary,
+phonetic-alphabet confirmation, or DTMF spelling capture. None of them are prompt
+engineering.
+
+**A note on what does not get an alias.** `s10` earned romanization aliases because
+`Youssef` and `Yusuf` are standard spellings of the same name. `linkvist` is not a
+spelling of `Lindqvist` — it is an error, and a patient record under it is wrong.
+Adding an alias there would be moving the goalposts to manufacture a pass. The line
+is: alias a genuine orthographic variant, never a mistranscription.
