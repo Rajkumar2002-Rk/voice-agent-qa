@@ -40,6 +40,35 @@ from ..schema import Scenario
 from .base import captured_slots_from_events, flatten_transcript
 
 PAGE = Path(__file__).parent / "page" / "harness.html"
+VENDOR = PAGE.parent / "vendor"
+
+# Pinned exactly. The Retell UMD lists these as externals and expects them on
+# window before it loads, so the versions must match its declared peer range.
+VENDOR_FILES = {
+    "eventemitter3.umd.js":
+        "https://cdn.jsdelivr.net/npm/eventemitter3@5.0.1/dist/eventemitter3.umd.js",
+    "livekit-client.umd.js":
+        "https://cdn.jsdelivr.net/npm/livekit-client@2.5.1/dist/livekit-client.umd.js",
+    "retell-client.umd.js":
+        "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@3.0.1/dist/index.umd.js",
+}
+
+
+def _ensure_vendor() -> None:
+    """Fetch the browser SDK bundles once, then run offline.
+
+    Downloading mid-run would make a network hiccup look like an agent failure.
+    """
+    import httpx
+
+    VENDOR.mkdir(exist_ok=True)
+    for name, url in VENDOR_FILES.items():
+        dst = VENDOR / name
+        if dst.exists() and dst.stat().st_size > 1000:
+            continue
+        r = httpx.get(url, follow_redirects=True, timeout=60)
+        r.raise_for_status()
+        dst.write_bytes(r.content)
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures" / "audio"
 
 
@@ -72,6 +101,7 @@ def run_voice_scenario(
     max_call_seconds: int = 120,
 ) -> dict[str, Any]:
     sync_playwright = _require_playwright()
+    _ensure_vendor()
     started = datetime.now(UTC).isoformat()
 
     call = client.create_web_call(agent_id, metadata={"scenario_id": scenario.id})
@@ -114,7 +144,9 @@ def run_voice_scenario(
 
         res = page.evaluate(
             "(cfg) => window.__qa_start(cfg)",
-            {"accessToken": access_token, "callId": call_id},
+            {"accessToken": access_token, "callId": call_id,
+             "iceServers": call.get("ice_servers"),
+             "transport": call.get("transport")},
         )
         if not res.get("ok"):
             browser.close()
@@ -139,7 +171,8 @@ def run_voice_scenario(
                 driver_log.append({"t": time.time(), "turn": i, "action": "barge_in",
                                    "after_ms": turn.interrupt_after_ms})
             elif turn.wait_for_agent:
-                page.evaluate("(ms) => window.__qa_waitAgentDone(ms)", 25000)
+                page.evaluate("(o) => window.__qa_waitAgentTurn(o)",
+                              {"startTimeoutMs": 9000, "quietMs": 700})
 
             page.evaluate(
                 "([id, opts]) => window.__qa_play(id, opts)",
@@ -148,8 +181,9 @@ def run_voice_scenario(
             driver_log.append({"t": time.time(), "turn": i, "action": "spoke",
                                "said": turn.say})
 
-        # let the agent finish its last turn before hanging up
-        page.evaluate("(ms) => window.__qa_waitAgentDone(ms)", 20000)
+        # let the agent finish its last turn (and any tool call) before hanging up
+        page.evaluate("(o) => window.__qa_waitAgentTurn(o)",
+                      {"startTimeoutMs": 12000, "quietMs": 1500, "maxMs": 30000})
         page_state = page.evaluate("() => window.__qa_state()")
         page.evaluate("() => window.__qa_stop()")
         page.wait_for_timeout(1000)

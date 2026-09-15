@@ -177,3 +177,79 @@ Fixed on both sides: comments moved onto their own lines in the template, and
 `resolve_provider` now strips anything after a `#` defensively. Noting it because
 "fails open, silently, into a plausible default" is the same failure shape as B2 and
 B4 — and it is the shape a QA harness can least afford.
+
+---
+
+## Day 1 — first live runs
+
+Account created, key working, 4 agents provisioned, tunnel up. Both channels now
+verified against a live Retell account.
+
+**Text channel worked on the first attempt.** s01 happy path, 4/4 slots, ~13s, $0.01.
+Retell reached the clinic tool webhook twice (`check_availability` then
+`book_appointment`), which also confirmed the cloudflared tunnel end-to-end — the
+one thing I couldn't verify locally.
+
+**Voice channel took three attempts.** Both failures were mine, and both were the
+kind you only find by running it.
+
+### B8. The SDK's UMD bundle has externals nobody documents
+
+First voice run died instantly: `Retell SDK global not found on window`.
+
+Two causes stacked. The global is `retellClientJsSdk` (lowercase r), not
+`RetellWebClient` as I'd assumed from the docs' code samples. And more importantly,
+the UMD declares **eventemitter3 and livekit-client as externals**:
+
+```js
+e((t||self).retellClientJsSdk={}, t.eventemitter3, t.livekitClient)
+```
+
+It expects both on `window` before it loads, under those exact lowercase names —
+which is *not* what either library's own UMD publishes (`EventEmitter3` and
+`LivekitClient`). So a single `<script src=retell...>` tag can never work, and no
+amount of fixing the global name alone would have helped.
+
+Found by reading the minified bundle, not the docs. Now vendored locally with an
+alias shim, so runs don't depend on a CDN mid-call.
+
+### B9. The caller talked over the agent on every single turn
+
+Second voice run connected, ran 27 seconds, cost $0.07, and scored 0/4. The
+transcript is the whole story:
+
+```
+AGENT  Thanks for calling Lakeside Family Clinic, this is Robin. How can I help?
+USER   Hi. I'd like to book an appointment, please.
+AGENT  Of
+USER   My name is Maria Delgado. Tuesday, the twenty second of September.
+USER   Three PM works.
+```
+
+The agent got one word out before being buried, then never spoke again.
+
+`waitAgentDone` resolved as soon as the agent had been quiet for 600ms — but the
+agent is *already quiet* before it starts replying. With LLM+TTS latency of a second
+or more, "hasn't started yet" and "has finished" are indistinguishable unless you
+track that it started. So the wait returned immediately, every turn.
+
+Fixed by requiring a complete turn: wait for the agent to **start**, then wait for
+quiet. Third run passed 4/4 in 67s.
+
+**Worth noting for the writeup:** the audio path was never the problem. STT
+transcribed every caller utterance correctly on the failing run, including
+"Maria Delgado" and "the twenty second of September". The synthetic-microphone
+approach worked first time; what broke was my own turn-taking logic. That is a
+reassuring result for the method and an unflattering one for me.
+
+It also means the barge-in scenarios are testing something real — I have now
+accidentally demonstrated what uncontrolled barge-in looks like, and the agent
+handled it badly (gave up speaking entirely rather than re-asserting).
+
+### Live latency, first real numbers
+
+Happy path, naive arm, voice: median **1289 ms**, max **2981 ms** across 6 turns.
+The max lands on the final confirm-and-book turn, which includes a tool round-trip
+through the cloudflared tunnel to a laptop — so some of that is my test rig, not
+Retell. Worth separating tool-call turns from plain conversational turns before
+quoting any latency number as the agent's.

@@ -3,7 +3,22 @@
 <title>voice-agent-qa audio harness</title>
 <body>
 <pre id="log">booting…</pre>
-<script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@3.0.1/dist/index.umd.js"></script>
+<!--
+  The Retell UMD declares eventemitter3 and livekit-client as EXTERNALS:
+    e((t||self).retellClientJsSdk={}, t.eventemitter3, t.livekitClient)
+  so both must exist on window first, under those exact lowercase names — which
+  is not what their own UMD bundles publish. Hence the alias shim.
+
+  Vendored locally (see audio.py::_ensure_vendor) rather than hot-loaded from a
+  CDN: a test run should not depend on network reachability mid-call.
+-->
+<script src="vendor/eventemitter3.umd.js"></script>
+<script src="vendor/livekit-client.umd.js"></script>
+<script>
+  window.eventemitter3 = window.eventemitter3 || window.EventEmitter3;
+  window.livekitClient  = window.livekitClient  || window.LivekitClient;
+</script>
+<script src="vendor/retell-client.umd.js"></script>
 <script>
 /*
  * Headless caller rig.
@@ -82,22 +97,52 @@ window.__qa_waitAgentStart = (timeoutMs = 15000) =>
     }, 25);
   });
 
-window.__qa_waitAgentDone = (timeoutMs = 25000, quietMs = 600) =>
+window.__qa_waitAgentTurn = ({ startTimeoutMs = 9000, quietMs = 700,
+                               maxMs = 25000 } = {}) =>
   new Promise((resolve) => {
+    /*
+     * Wait for a COMPLETE agent turn: it must start speaking, then go quiet.
+     *
+     * The previous version only waited for quiet, and the agent is already
+     * quiet before it starts replying — so it returned immediately and the
+     * caller talked straight over the agent on every single turn. The
+     * transcript showed the agent getting one word out ("Of ") before being
+     * buried. LLM+TTS latency means "not talking yet" and "finished talking"
+     * look identical unless you track that it started.
+     */
     const t0 = Date.now();
-    let quietSince = state.agentTalking ? null : Date.now();
+    let started = state.agentTalking;
+    let quietSince = null;
     const iv = setInterval(() => {
-      if (state.agentTalking) quietSince = null;
-      else if (quietSince === null) quietSince = Date.now();
-      if (quietSince && Date.now() - quietSince >= quietMs) { clearInterval(iv); resolve({ ok: true }); }
-      else if (Date.now() - t0 > timeoutMs) { clearInterval(iv); resolve({ ok: false, reason: "timeout" }); }
-    }, 50);
+      const now = Date.now();
+      if (state.agentTalking) { started = true; quietSince = null; }
+      else if (started && quietSince === null) { quietSince = now; }
+
+      if (started && quietSince !== null && now - quietSince >= quietMs) {
+        clearInterval(iv); resolve({ ok: true, started: true });
+      } else if (!started && now - t0 > startTimeoutMs) {
+        clearInterval(iv);
+        resolve({ ok: true, started: false, reason: "agent never spoke" });
+      } else if (now - t0 > maxMs) {
+        clearInterval(iv); resolve({ ok: false, reason: "timeout" });
+      }
+    }, 40);
   });
 
-window.__qa_start = async ({ accessToken, callId, sampleRate = 24000 }) => {
+window.__qa_start = async ({ accessToken, callId, sampleRate = 24000,
+                            iceServers = undefined, transport = undefined }) => {
   try {
-    const Ctor = window.RetellWebClient || (window.RetellClientJsSdk || {}).RetellWebClient;
-    if (!Ctor) throw new Error("Retell SDK global not found on window");
+    // the UMD publishes `retellClientJsSdk` (lowercase r); the other spellings
+    // are fallbacks in case a future build renames it
+    const sdk = window.retellClientJsSdk || window.RetellClientJsSdk || window;
+    const Ctor = sdk.RetellWebClient;
+    if (!Ctor) {
+      throw new Error(
+        "RetellWebClient not found. globals present: " +
+        ["retellClientJsSdk", "EventEmitter3", "LivekitClient"]
+          .map(k => k + "=" + (typeof window[k])).join(", ")
+      );
+    }
     const c = new Ctor();
     window.__qa_client = c;
     c.on("call_started",  () => { state.started = true; log("call_started"); });
@@ -107,7 +152,10 @@ window.__qa_start = async ({ accessToken, callId, sampleRate = 24000 }) => {
     c.on("agent_stop_talking",  () => { state.agentTalking = false; log("agent_stop_talking"); });
     c.on("update", (u) => { if (u && u.transcript) state.transcript = u.transcript; });
     c.on("error", (e) => { state.error = String(e && e.message || e); log("ERROR", state.error); });
-    await c.startCall({ accessToken, callId, sampleRate });
+    const opts = { accessToken, callId, sampleRate };
+    if (iceServers) opts.iceServers = iceServers;
+    if (transport) opts.transport = transport;
+    await c.startCall(opts);
     return { ok: true };
   } catch (e) {
     state.error = String(e && e.message || e);

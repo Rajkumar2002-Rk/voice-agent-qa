@@ -1,19 +1,36 @@
 id: s10_compound_utterance
 persona: compound_utterance
-description: >
-  Caller packs multiple fields into single utterances — name+date together,
-  then time+reason together. The failure mode is silent dropping: the agent
-  acknowledges one field and asks for the other as if it were never given.
+description: "Caller packs multiple fields into single utterances \u2014 name+date together, then time+reason\
+  \ together. The failure mode is silent dropping: the agent acknowledges one field and asks for the other\
+  \ as if it were never given.\n"
 reference_date: 2026-09-14
-channels: [voice, text]
+channels:
+- voice
+- text
 turns:
-  - say: "Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth."
-  - say: "Nine thirty AM, and it's for a rash on my arm."
-  - say: "Yes, that's everything."
+- say: Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth.
+  audio_file: s10_compound_utterance_t00.wav
+- say: Nine thirty AM, and it's for a rash on my arm.
+  audio_file: s10_compound_utterance_t01.wav
+- say: Yes, that's everything.
+  audio_file: s10_compound_utterance_t02.wav
 expected_slots:
-  patient_name: {kind: name, expected: "Yusuf Karim"}
-  date:         {kind: date, expected: "2026-09-17"}
-  time:         {kind: time, expected: "9:30am"}
-  reason:       {kind: reason, accept_any_of: ["rash", "skin", "arm"]}
+  patient_name:
+    kind: name
+    expected: Yusuf Karim
+  date:
+    kind: date
+    expected: '2026-09-17'
+  time:
+    kind: time
+    expected: 9:30am
+  reason:
+    kind: reason
+    accept_any_of:
+    - rash
+    - skin
+    - arm
 must_confirm_before_booking: true
-expect_tool_calls: [check_availability, book_appointment]
+expect_tool_calls:
+- check_availability
+- book_appointment
