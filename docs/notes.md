@@ -767,3 +767,25 @@ times before refusing to ship; `scripts/check_fixtures.py` audits the whole set;
 agent failure, and the most convincing yet — because it produced *exactly the failure
 the scenario predicted*. A harness bug that generates a plausible negative result is
 far more dangerous than one that crashes.
+
+### B18 confirmed fixed — and the agent was never failing
+
+Re-ran `s04_mind_change` with the repaired fixture. "Ten AM" is now transcribed
+(as `"Ten a."` — partial, but enough), the agent captures `time: 10:00`, and both
+naive runs **PASS 4/4**.
+
+So the earlier picture — naive booking 15:00, carrying the pre-change time forward,
+hardened looping at 0/4 — was **entirely my silent audio**. On this scenario the
+naive first-draft prompt handles a mid-call mind change correctly and always did.
+
+Worth stating plainly because it is the third time today the same correction has been
+needed: **the agent keeps turning out to be better than my instrument said it was.**
+Every apparent capability gap so far — hallucinated availability, broken date
+handling, failure to update state on a mind change — has dissolved on inspection into
+a defect of mine. The one failure that has survived scrutiny is the STT
+mis-transcription in `s02_barge_in`, which no prompt can reach.
+
+If that holds through the rest of the voice runs, the headline finding is not "which
+failures can prompts fix" but something less comfortable and more useful: **most of
+what a first-pass QA harness reports as agent failure is harness failure**, and the
+work of building one is mostly the work of earning the right to believe its output.
