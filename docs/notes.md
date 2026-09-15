@@ -850,12 +850,16 @@ STT.
 finding.** The honest statement is: *short caller utterances failed to transcribe,
 under a stimulus that does not resemble natural speech onset.*
 
-Not fixed, deliberately. The remaining runs are mid-flight and padding the fixtures
-now would mean s09 ran against different audio than s01-s08 — the same silent
-inconsistency I refused to introduce with the prompt edit earlier. The fix is
-~250ms of leading and trailing silence in `harness.tts`, then a re-run of the
-short-utterance scenarios, and it is written up as outstanding work rather than
-quietly applied.
+**Fix implemented, deliberately not applied.** `harness.tts._to_wav48` now pads
+every render with 250ms of silence at both ends (verified: the "Four PM." clip goes
+from 0.50s with a hard attack to 1.00s with ~300ms of lead-in). The committed
+fixtures are untouched, because the remaining runs were mid-flight and re-rendering
+would have meant s09 ran against different audio than s01-s08 — the same silent
+inconsistency I refused to introduce with the prompt edit earlier.
+
+Applying it needs `python -m harness.tts build --force` and a re-run of the
+short-utterance scenarios. Until then, any short-turn STT result in this dataset is
+confounded and labelled as such.
 
 **This is the fifth time a harness property has masqueraded as a platform finding**,
 and the first one I have caught *before* writing it up rather than after. That is

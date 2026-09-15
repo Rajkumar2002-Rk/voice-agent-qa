@@ -37,6 +37,15 @@ MANIFEST = FIXTURES / "manifest.yaml"
 
 TARGET_RATE = 48000
 
+# Leading/trailing silence around every caller clip.
+#
+# Without it a fixture starts at full amplitude on sample zero, which is nothing
+# like human speech onset and gives the far end's voice-activity detector no
+# ramp-up. Short clips suffered worst: "Four PM." (0.50s, hard attack)
+# transcribed as "For", losing the time entirely. See B19 in docs/notes.md —
+# that result is confounded precisely because this padding was missing.
+PAD_MS = 250
+
 
 def _ffmpeg(*args: str) -> None:
     r = subprocess.run(["ffmpeg", "-y", "-loglevel", "error", *args],
@@ -46,8 +55,13 @@ def _ffmpeg(*args: str) -> None:
 
 
 def _to_wav48(src: Path, dst: Path) -> None:
-    _ffmpeg("-i", str(src), "-ar", str(TARGET_RATE), "-ac", "1",
-            "-c:a", "pcm_s16le", str(dst))
+    """Resample to 48k mono PCM and pad with silence at both ends."""
+    pad = PAD_MS / 1000.0
+    _ffmpeg(
+        "-i", str(src),
+        "-af", f"adelay={PAD_MS}|{PAD_MS},apad=pad_dur={pad}",
+        "-ar", str(TARGET_RATE), "-ac", "1", "-c:a", "pcm_s16le", str(dst),
+    )
 
 
 class SilentRender(RuntimeError):
