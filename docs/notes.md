@@ -574,3 +574,41 @@ exists to prevent.
 
 Logged now so that, whichever way it lands, the record shows the expectation was
 identified as mis-specified before the number arrived.
+
+### B17 — RESOLVED, and the prediction was wrong
+
+`s09_self_correction/naive#0` captured:
+
+```json
+{"patient_name": "Grace Lindqvist", "date": "2026-09-29", "time": "16:00",
+ "reason": "Annual physical", "phone": "5551234568"}
+```
+
+`phone` **PASS** — and with the *corrected* digits (…4568, not the misspoken …4567).
+All five slots passed. My prediction that it would come back MISSING was wrong.
+
+Why it was wrong, and this is the useful part: I analysed the prompts and concluded
+the agent had no instruction to collect a phone number. But `book_appointment`'s
+schema declares `phone` with the description *"Callback number, if given."* **The
+tool schema was the instruction.** The field existed, it was described in plain
+language, the caller volunteered a number, and the model filled it — with no prompt
+support and no `required` pressure.
+
+So the prompt is not the only instruction channel, and for structured capture it may
+not even be the main one. A JSON Schema property description is a directive the model
+follows. That reframes the ablation slightly: the two arms differ in prompt, but they
+share an identical tool schema, and **some of the behaviour I would have attributed
+to prompt quality is actually coming from the schema both arms share.** That is a
+real limit on how much any prompt-only ablation can explain, and it belongs in the
+caveats.
+
+It also means s09 is **not** mis-specified and needs no fix. I was wrong twice over:
+wrong that the agent would fail, and wrong that the scenario was buggy.
+
+Two things worth keeping from this:
+
+- **Recording the prediction before the result was what made this useful.** Had I
+  looked at the passing result first, I would have moved on and never noticed that my
+  model of *why* it should work was broken. The falsified prediction is the finding.
+- **It goes in the "expected to matter, didn't" column.** I expected prompt coverage
+  of a field to be necessary for capture. It wasn't.
