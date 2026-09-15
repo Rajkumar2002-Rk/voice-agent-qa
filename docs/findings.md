@@ -193,39 +193,103 @@ is blunt: an agent saying *"I'm open at 2pm"* — meaning the slot — is now in
 it. No deterministic fix found. **This check under-reports**, and should be read that
 way rather than as a clean signal.
 
-## 4. Which failures the hardened prompt fixed — PENDING
+## 4. Text ablation results — the hardened prompt did not help
 
-> Requires live runs. Table shape below; `make run-full` then `make report`.
+42 runs, 7 scenarios x 2 arms x 3 repeats, text channel. Raw transcripts committed
+under `runs/20260915T165252Z_text-ablation/`. $0.42.
 
-| persona | naive/text | hardened/text | naive/voice | hardened/voice | reading |
-|---|---|---|---|---|---|
-| barge_in | n/a | n/a | — | — | |
-| background_noise | n/a | n/a | — | — | |
-| mind_change | — | — | — | — | |
-| ambiguous_date | — | — | — | — | |
-| long_silence | n/a | n/a | — | — | |
-| out_of_scope | — | — | — | — | |
-| self_correction | — | — | — | — | |
-| compound_utterance | — | — | — | — | |
+| channel | naive | hardened |
+|---|---|---|
+| text | **20/21 (95%)** | **20/21 (95%)** |
 
-The classification this table is designed to produce:
+A dead tie. Not "hardened won narrowly" — literally the same number, arrived at by
+failing different things.
 
-- **Fixable by prompt** — fails naive, passes hardened, in *both* channels.
-- **Structural to voice** — passes text in both arms, fails voice in both arms. The
-  prompt is not the lever; this needs a config knob, a different model, or is
-  inherent to the audio pipeline.
-- **Fixed by prompt, voice only** — a voice-specific failure the prompt did reach.
-- **Nothing fixed it** — fails everywhere in both arms.
+| persona | naive | hardened |
+|---|---|---|
+| ambiguous_date | 5/6 (83%) | 6/6 (100%) |
+| self_correction | 3/3 (100%) | 2/3 (67%) |
+| happy_path, mind_change, out_of_scope, compound_utterance | 100% | 100% |
 
-## 5. LLM judge vs. deterministic scorer — PENDING
+The hardened prompt won one run on ambiguous dates and lost one on self-correction.
+Net zero.
 
-> The judge grades two checks the rules already cover (`confirmed_before_booking`,
-> `invented_availability`), so agreement is measurable rather than asserted.
-> Reported automatically by `harness.report`.
+### The single naive failure is a real bug worth reading
 
-- agreement rate: **—**
-- disagreements: **—**
-- of the disagreements, how many were the judge being wrong: **—**
+`s06/naive#0` booked 13:30 when the caller asked for 2 PM. The tool had returned
+`14:00` as available. The agent said:
+
+> "We don't have a 2:00 PM slot, but we do have 1:30 PM or 2:00 PM is not available.
+> Would you like to choose 1:30 PM or 3:00 PM instead?"
+
+It denied an available slot, contradicted itself mid-sentence, and booked the wrong
+time. The `time` slot was correctly scored WRONG — but note that the *invention*
+check passed, because inventing and wrongly-denying are different failures and only
+the first was implemented (see 3.x). This one run is what prompted the new
+`denied_available_slot` check.
+
+### The single hardened failure — and why I am not telling a story about it
+
+`s09/hardened#2` dropped the optional `phone` field. The tempting narrative: the
+hardened prompt's explicit "**Four fields**, all required" table crowded out a fifth
+field the tool schema offered — being more specific made it less complete.
+
+That mechanism is plausible. The evidence is one run. Hardened captured the phone in
+the other two; naive captured it in all three. **n=3 cannot distinguish that from
+noise**, and writing it up as a finding would be exactly the failure mode this
+project is about. Recorded as a hypothesis worth testing at higher n, not a result.
+
+### Most of the difference I expected was my own bugs
+
+Before the harness fixes, the naive arm appeared to fail badly — hallucinated
+availability, mangled dates, stalled conversations. Every one of those turned out to
+be a defect in the harness (3.1, 3.2, 3.3). With those fixed, on this scenario set,
+**a ten-minute first-draft prompt performs identically to a carefully hardened one.**
+
+That is the central negative result, and it is worth more than a clean win would have
+been: the measurable gap between a naive and a hardened prompt, at least over text
+with `gpt-4.1-mini` at temperature 0, was smaller than the measurement error of my
+own instrument.
+
+### What the hardened prompt did cost
+
+| arm | runs needing a caller nudge | mean nudges |
+|---|---|---|
+| naive | 1/21 | 0.05 |
+| hardened | 4/21 | 0.19 |
+
+Roughly four times as many runs where the agent was still asking questions after the
+script ran out. Same pass rate, more conversational turns to get there. On a real
+phone line that is caller patience and per-minute cost spent for no measured accuracy
+gain.
+
+## 5. LLM judge vs. deterministic scorer — the judge was perfect
+
+The judge (`claude-sonnet-5`) graded two checks the rules also cover, on all 42 runs:
+
+- **agreed: 74/74 (100%)**
+- disagreed: 0, "unclear": 0
+
+This cuts against the premise I built the project on. I expected to demonstrate judge
+unreliability and instead measured perfect agreement.
+
+**The honest reading, which is less flattering to the judge than the number suggests:**
+this dataset is easy. 40 of 42 runs pass, the conversations are short, and the two
+checks have visually obvious answers in the transcript. Agreement on near-uniform
+data is cheap — a grader that simply answered "yes, confirmed / no, not invented"
+every time would have scored 73/74. The judge was never required to catch a subtle
+failure, because there were almost none to catch.
+
+So this is **not** evidence that an LLM judge is reliable for slot correctness. It is
+evidence that on this data it was not the bottleneck, and that my assumption it would
+visibly disagree was wrong. The determinism argument now rests on the properties it
+actually earned — reproducibility, per-slot attribution, free re-scoring of committed
+transcripts (§3.x) — rather than on the judge being bad, which I did not show.
+
+Notably, the judge also agreed with the scorer *during the period the scorer was
+wrong*: it said "not invented" on runs where the morning-slot bug was live, because
+it was reading the transcript correctly and the agent genuinely had not invented
+anything. Ground truth was on the judge's side there, not mine.
 
 ## 6. Latency — PENDING
 

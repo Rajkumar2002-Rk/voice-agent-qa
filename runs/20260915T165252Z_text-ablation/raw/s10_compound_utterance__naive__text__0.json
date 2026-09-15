@@ -1,0 +1,551 @@
+{
+  "result": {
+    "scenario_id": "s10_compound_utterance",
+    "persona": "compound_utterance",
+    "channel": "text",
+    "arm": "naive",
+    "run_index": 0,
+    "call_id": "chat_c4749d7db096424306b5974e6ae",
+    "started_at": "2026-09-15T17:03:52.103898+00:00",
+    "ended_at": "2026-09-15T17:04:01.037197+00:00",
+    "slots": [
+      {
+        "slot": "patient_name",
+        "verdict": "PASS",
+        "expected": "Yusuf Karim",
+        "actual": "Yusuf Karim",
+        "normalized_expected": "yusuf karim",
+        "normalized_actual": "yusuf karim",
+        "rule": "name.casefold_strip_title",
+        "reasoning": "'Yusuf Karim' -> yusuf karim matches expected 'Yusuf Karim' -> yusuf karim"
+      },
+      {
+        "slot": "date",
+        "verdict": "PASS",
+        "expected": "2026-09-17",
+        "actual": "2026-09-17",
+        "normalized_expected": "2026-09-17",
+        "normalized_actual": "2026-09-17",
+        "rule": "date.iso",
+        "reasoning": "'2026-09-17' -> 2026-09-17 matches expected '2026-09-17' -> 2026-09-17"
+      },
+      {
+        "slot": "time",
+        "verdict": "PASS",
+        "expected": "9:30am",
+        "actual": "09:30",
+        "normalized_expected": "09:30",
+        "normalized_actual": "09:30",
+        "rule": "time.24h_by_schema",
+        "reasoning": "'09:30' -> 09:30 matches expected '9:30am' -> 09:30"
+      },
+      {
+        "slot": "reason",
+        "verdict": "PASS",
+        "expected": null,
+        "actual": "rash on my arm",
+        "normalized_expected": "rash|skin|arm",
+        "normalized_actual": "rash on my arm",
+        "rule": "reason.accept_list",
+        "reasoning": "matched declared term 'rash' (accept-list declared before the run)"
+      }
+    ],
+    "behaviours": [
+      {
+        "check": "booked",
+        "verdict": "PASS",
+        "reasoning": "agent called book_appointment",
+        "evidence": {
+          "args": {
+            "patient_name": "Yusuf Karim",
+            "date": "2026-09-17",
+            "time": "09:30",
+            "reason": "rash on my arm"
+          }
+        }
+      },
+      {
+        "check": "confirmed_before_booking",
+        "verdict": "PASS",
+        "reasoning": "agent read back both date and time, then the caller agreed (\"Yes, that's everything.\"), then it booked",
+        "evidence": {
+          "readback": "Yusuf, we do have a 9:30 AM slot open on Thursday, September 17. Just to confirm, your appointment is for a rash on your arm at 9:30 AM on that day. Is that correct?",
+          "assent": "Yes, that's everything.",
+          "date": "2026-09-17",
+          "time": "09:30"
+        }
+      },
+      {
+        "check": "invented_availability",
+        "verdict": "PASS",
+        "reasoning": "every specific time the agent stated came from the availability tool or from the caller",
+        "evidence": {
+          "tool_offered": [
+            "09:00",
+            "09:30",
+            "10:00",
+            "11:00",
+            "15:00",
+            "16:00"
+          ],
+          "caller_proposed": [],
+          "called_availability_tool": true,
+          "unparseable_tool_offers": []
+        }
+      },
+      {
+        "check": "expect_tool:check_availability",
+        "verdict": "PASS",
+        "reasoning": "check_availability was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      },
+      {
+        "check": "expect_tool:book_appointment",
+        "verdict": "PASS",
+        "reasoning": "book_appointment was called",
+        "evidence": {
+          "tools_called": [
+            "book_appointment",
+            "check_availability"
+          ]
+        }
+      }
+    ],
+    "latencies": [
+      {
+        "turn_index": 0,
+        "caller_utterance_end_ms": 1789491832466,
+        "agent_response_start_ms": 1789491833755,
+        "latency_ms": 1289,
+        "note": ""
+      },
+      {
+        "turn_index": 1,
+        "caller_utterance_end_ms": 1789491834123,
+        "agent_response_start_ms": 1789491835365,
+        "latency_ms": 1242,
+        "note": ""
+      },
+      {
+        "turn_index": 2,
+        "caller_utterance_end_ms": 1789491837486,
+        "agent_response_start_ms": 1789491840484,
+        "latency_ms": 2998,
+        "note": ""
+      }
+    ],
+    "judge": [
+      {
+        "check": "confirmed_before_booking",
+        "rating": "yes",
+        "rationale": "Agent read back date, time, and reason before booking and received an affirmative 'Yes, that's everything.' from the caller.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, and reason before booking and received an affirmative 'Yes, that's everything.' from the caller.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:30 AM slot offered matches a time returned by check_availability and was also the time the caller requested.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent was clear, friendly, and efficient without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly captured multiple fields packed into single utterances (name+date, then time+reason) without dropping any information.\"}}"
+      },
+      {
+        "check": "invented_availability",
+        "rating": "no",
+        "rationale": "The 9:30 AM slot offered matches a time returned by check_availability and was also the time the caller requested.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, and reason before booking and received an affirmative 'Yes, that's everything.' from the caller.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:30 AM slot offered matches a time returned by check_availability and was also the time the caller requested.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent was clear, friendly, and efficient without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly captured multiple fields packed into single utterances (name+date, then time+reason) without dropping any information.\"}}"
+      },
+      {
+        "check": "tone",
+        "rating": "good",
+        "rationale": "Agent was clear, friendly, and efficient without being robotic or over-apologetic.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, and reason before booking and received an affirmative 'Yes, that's everything.' from the caller.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:30 AM slot offered matches a time returned by check_availability and was also the time the caller requested.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent was clear, friendly, and efficient without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly captured multiple fields packed into single utterances (name+date, then time+reason) without dropping any information.\"}}"
+      },
+      {
+        "check": "handled_gracefully",
+        "rating": "yes",
+        "rationale": "Agent correctly captured multiple fields packed into single utterances (name+date, then time+reason) without dropping any information.",
+        "model": "anthropic:claude-sonnet-5",
+        "raw_response": "{\"confirmed_before_booking\": {\"answer\": \"yes\", \"why\": \"Agent read back date, time, and reason before booking and received an affirmative 'Yes, that's everything.' from the caller.\"},\n \"invented_availability\":    {\"answer\": \"no\", \"why\": \"The 9:30 AM slot offered matches a time returned by check_availability and was also the time the caller requested.\"},\n \"tone\":                     {\"answer\": \"good\", \"why\": \"Agent was clear, friendly, and efficient without being robotic or over-apologetic.\"},\n \"handled_gracefully\":       {\"answer\": \"yes\", \"why\": \"Agent correctly captured multiple fields packed into single utterances (name+date, then time+reason) without dropping any information.\"}}"
+      }
+    ],
+    "transcript": [
+      {
+        "role": "user",
+        "text": "Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491832466,
+        "end_ms": 1789491832466
+      },
+      {
+        "role": "agent",
+        "text": "Hi Yusuf! I can help with that. Just to confirm, you mean Thursday, September 17, 2026, right? Also, what time would you prefer, and what is the reason for your visit?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491833755,
+        "end_ms": 1789491833755
+      },
+      {
+        "role": "user",
+        "text": "Nine thirty AM, and it's for a rash on my arm.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491834123,
+        "end_ms": 1789491834123
+      },
+      {
+        "role": "agent",
+        "text": "Checking available times for Thursday, September 17, 2026.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491835365,
+        "end_ms": 1789491835365
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-17",
+          "execution_message": "Checking available times for Thursday, September 17, 2026."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-17",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-17"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Yusuf, we do have a 9:30 AM slot open on Thursday, September 17. Just to confirm, your appointment is for a rash on your arm at 9:30 AM on that day. Is that correct?",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491837102,
+        "end_ms": 1789491837102
+      },
+      {
+        "role": "user",
+        "text": "Yes, that's everything.",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491837486,
+        "end_ms": 1789491837486
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Yusuf Karim",
+          "date": "2026-09-17",
+          "time": "09:30",
+          "reason": "rash on my arm"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-863834",
+          "booked": {
+            "patient_name": "Yusuf Karim",
+            "date": "2026-09-17",
+            "time": "09:30",
+            "reason": "rash on my arm",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "agent",
+        "text": "Your appointment for a rash on your arm is booked for 9:30 AM on Thursday, September 17, 2026. If you need anything else, just let me know! Have a great day, Yusuf!",
+        "name": null,
+        "args": {},
+        "result": {},
+        "start_ms": 1789491840484,
+        "end_ms": 1789491840484
+      }
+    ],
+    "tool_calls": [
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "check_availability",
+        "args": {
+          "date": "2026-09-17",
+          "execution_message": "Checking available times for Thursday, September 17, 2026."
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "check_availability",
+        "args": {},
+        "result": {
+          "ok": true,
+          "date": "2026-09-17",
+          "slots": [
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "09:30"
+            },
+            {
+              "time": "10:00"
+            },
+            {
+              "time": "11:00"
+            },
+            {
+              "time": "15:00"
+            },
+            {
+              "time": "16:00"
+            }
+          ],
+          "message": "6 opening(s) on 2026-09-17"
+        },
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_call",
+        "text": "",
+        "name": "book_appointment",
+        "args": {
+          "patient_name": "Yusuf Karim",
+          "date": "2026-09-17",
+          "time": "09:30",
+          "reason": "rash on my arm"
+        },
+        "result": {},
+        "start_ms": null,
+        "end_ms": null
+      },
+      {
+        "role": "tool_result",
+        "text": "",
+        "name": "book_appointment",
+        "args": {},
+        "result": {
+          "ok": true,
+          "confirmation_number": "CLN-863834",
+          "booked": {
+            "patient_name": "Yusuf Karim",
+            "date": "2026-09-17",
+            "time": "09:30",
+            "reason": "rash on my arm",
+            "phone": null
+          }
+        },
+        "start_ms": null,
+        "end_ms": null
+      }
+    ],
+    "captured_slots": {
+      "patient_name": "Yusuf Karim",
+      "date": "2026-09-17",
+      "time": "09:30",
+      "reason": "rash on my arm"
+    },
+    "followups_used": 0,
+    "error": null
+  },
+  "raw": {
+    "chat_id": "chat_c4749d7db096424306b5974e6ae",
+    "chat_type": "api_chat",
+    "agent_id": "agent_0ac6eba014957f7ec29cf53f7d",
+    "agent_version": 0,
+    "agent_name": "qa-clinic-chat-naive",
+    "retell_llm_dynamic_variables": {
+      "current_day": "Monday",
+      "current_date_spoken": "Monday, September 14, 2026",
+      "current_date": "2026-09-14"
+    },
+    "collected_dynamic_variables": {},
+    "chat_status": "ongoing",
+    "start_timestamp": 1789491832296,
+    "transcript": "User: Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth.\nAgent: Hi Yusuf! I can help with that. Just to confirm, you mean Thursday, September 17, 2026, right? Also, what time would you prefer, and what is the reason for your visit?\nUser: Nine thirty AM, and it's for a rash on my arm.\nAgent: Checking available times for Thursday, September 17, 2026.\nAgent: Yusuf, we do have a 9:30 AM slot open on Thursday, September 17. Just to confirm, your appointment is for a rash on your arm at 9:30 AM on that day. Is that correct?\nUser: Yes, that's everything.\nAgent: Your appointment for a rash on your arm is booked for 9:30 AM on Thursday, September 17, 2026. If you need anything else, just let me know! Have a great day, Yusuf!",
+    "message_with_tool_calls": [
+      {
+        "message_id": "message_31dc40e28c1a7a5599a2e14f",
+        "role": "user",
+        "created_timestamp": 1789491832466,
+        "content": "Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth."
+      },
+      {
+        "message_id": "message_47e4cb490c21ab1347d8d5eb",
+        "role": "agent",
+        "created_timestamp": 1789491833755,
+        "content": "Hi Yusuf! I can help with that. Just to confirm, you mean Thursday, September 17, 2026, right? Also, what time would you prefer, and what is the reason for your visit?",
+        "metadata": {
+          "response_id": 1
+        }
+      },
+      {
+        "message_id": "message_9903d09107220b8305beef24",
+        "role": "user",
+        "created_timestamp": 1789491834123,
+        "content": "Nine thirty AM, and it's for a rash on my arm."
+      },
+      {
+        "message_id": "message_1319be21918687b58e3ed6f0",
+        "role": "agent",
+        "created_timestamp": 1789491835365,
+        "content": "Checking available times for Thursday, September 17, 2026.",
+        "metadata": {
+          "response_id": 2
+        }
+      },
+      {
+        "message_id": "message_dbc76bcf272bf6a0b1f4d2a6",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491835366,
+        "tool_call_id": "call_eakPJDJrM9peXM8yZxHcoWwA",
+        "name": "check_availability",
+        "arguments": "{\"date\":\"2026-09-17\",\"execution_message\":\"Checking available times for Thursday, September 17, 2026.\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_766e6fa9ffd2d374daabd317",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491835529,
+        "tool_call_id": "call_eakPJDJrM9peXM8yZxHcoWwA",
+        "content": "{\"ok\":true,\"date\":\"2026-09-17\",\"slots\":[{\"time\":\"09:00\"},{\"time\":\"09:30\"},{\"time\":\"10:00\"},{\"time\":\"11:00\"},{\"time\":\"15:00\"},{\"time\":\"16:00\"}],\"message\":\"6 opening(s) on 2026-09-17\"}",
+        "successful": true
+      },
+      {
+        "message_id": "message_86f94f41c510ca8f405ff67c",
+        "role": "agent",
+        "created_timestamp": 1789491837102,
+        "content": "Yusuf, we do have a 9:30 AM slot open on Thursday, September 17. Just to confirm, your appointment is for a rash on your arm at 9:30 AM on that day. Is that correct?",
+        "metadata": {
+          "response_id": 3
+        }
+      },
+      {
+        "message_id": "message_3180b942024239b9e55b467a",
+        "role": "user",
+        "created_timestamp": 1789491837486,
+        "content": "Yes, that's everything."
+      },
+      {
+        "message_id": "message_09e6373fbbda05672745aa08",
+        "role": "tool_call_invocation",
+        "created_timestamp": 1789491838851,
+        "tool_call_id": "call_oqHY8YyXElE9ZY3j0wFPCaVj",
+        "name": "book_appointment",
+        "arguments": "{\"patient_name\":\"Yusuf Karim\",\"date\":\"2026-09-17\",\"time\":\"09:30\",\"reason\":\"rash on my arm\"}",
+        "type": "custom"
+      },
+      {
+        "message_id": "message_e8546afa1e35ca18833a2bcc",
+        "role": "tool_call_result",
+        "created_timestamp": 1789491839046,
+        "tool_call_id": "call_oqHY8YyXElE9ZY3j0wFPCaVj",
+        "content": "{\"ok\":true,\"confirmation_number\":\"CLN-863834\",\"booked\":{\"patient_name\":\"Yusuf Karim\",\"date\":\"2026-09-17\",\"time\":\"09:30\",\"reason\":\"rash on my arm\",\"phone\":null}}",
+        "successful": true
+      },
+      {
+        "message_id": "message_ff568e1745823ff0e5038260",
+        "role": "agent",
+        "created_timestamp": 1789491840484,
+        "content": "Your appointment for a rash on your arm is booked for 9:30 AM on Thursday, September 17, 2026. If you need anything else, just let me know! Have a great day, Yusuf!",
+        "metadata": {
+          "response_id": 4
+        }
+      }
+    ],
+    "chat_cost": {
+      "product_costs": [
+        {
+          "unit_price": 0.4,
+          "cost": 1.6,
+          "product": "gpt_4_1_mini_text_testing"
+        }
+      ],
+      "combined_cost": 1.6
+    },
+    "data_storage_setting": "everything"
+  },
+  "driver_log": null,
+  "judge_agreement": {
+    "confirmed_before_booking": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "yes",
+      "judge_why": "Agent read back date, time, and reason before booking and received an affirmative 'Yes, that's everything.' from the caller."
+    },
+    "invented_availability": {
+      "agreement": "agree",
+      "rule": "PASS",
+      "judge": "no",
+      "judge_why": "The 9:30 AM slot offered matches a time returned by check_availability and was also the time the caller requested."
+    }
+  },
+  "retell_latency": null,
+  "turn_timings": [
+    {
+      "said": "Hi, this is Yusuf Karim and I need to come in Thursday the seventeenth.",
+      "api_round_trip_ms": 1658
+    },
+    {
+      "said": "Nine thirty AM, and it's for a rash on my arm.",
+      "api_round_trip_ms": 3331
+    },
+    {
+      "said": "Yes, that's everything.",
+      "api_round_trip_ms": 3371
+    }
+  ]
+}

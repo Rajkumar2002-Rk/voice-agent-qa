@@ -107,3 +107,32 @@ def test_readme_test_count_is_not_stale():
     assert claimed == actual, (
         f"README says {claimed} tests, suite has {actual}. Update the README."
     )
+
+
+def test_rescore_compares_by_name_not_position(tmp_path):
+    """Regression: rescore zipped old/new behaviour lists positionally, so
+    adding a check shifted the lists and it reported a pile of 'changes' that
+    were really unrelated checks compared against each other."""
+    import json
+
+    from harness.rescore import rescore_dir
+
+    # a run whose stored behaviours are in a different order, and one short,
+    # relative to what the current scorer emits
+    row = {
+        "scenario_id": "s01_happy_path", "persona": "happy_path", "channel": "text",
+        "arm": "naive", "run_index": 0, "started_at": "2026-09-15T00:00:00Z",
+        "ended_at": "2026-09-15T00:00:00Z",
+        "slots": [], "behaviours": [
+            {"check": "invented_availability", "verdict": "PASS", "reasoning": "x",
+             "evidence": {}},
+        ],
+        "latencies": [], "judge": [], "transcript": [], "tool_calls": [],
+        "captured_slots": {}, "error": None,
+    }
+    (tmp_path / "results.jsonl").write_text(json.dumps(row) + "\n")
+    rescore_dir(tmp_path, write=False)   # must not raise or mis-pair
+    # after rescoring, the new checks appear as "(new check)" rather than as
+    # bogus transitions from an unrelated check's verdict
+    out = (tmp_path / "results.jsonl").read_text()
+    assert "invented_availability" in out

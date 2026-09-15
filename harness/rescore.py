@@ -51,12 +51,28 @@ def rescore_dir(run_dir: Path, write: bool = False) -> int:
             changed.append((label, "PASS" if old.passed else "FAIL",
                             "PASS" if new.passed else "FAIL"))
         else:
-            for a, b in zip(old.slots, new.slots, strict=False):
-                if a.verdict != b.verdict:
-                    changed.append((f"{label} [{a.slot}]", a.verdict.value, b.verdict.value))
-            for a, b in zip(old.behaviours, new.behaviours, strict=False):
-                if a.verdict != b.verdict:
-                    changed.append((f"{label} [{a.check}]", a.verdict.value, b.verdict.value))
+            # Compare BY NAME, never by position. A scorer change that adds or
+            # reorders a check shifts the lists, and positional zip then reports
+            # a pile of spurious "changes" that are really different checks being
+            # compared to each other — which is exactly what happened the first
+            # time this ran.
+            old_s = {x.slot: x.verdict for x in old.slots}
+            new_s = {x.slot: x.verdict for x in new.slots}
+            for name in sorted(old_s.keys() | new_s.keys()):
+                a, b = old_s.get(name), new_s.get(name)
+                if a != b:
+                    changed.append((f"{label} [{name}]",
+                                    a.value if a else "(absent)",
+                                    b.value if b else "(absent)"))
+
+            old_b = {x.check: x.verdict for x in old.behaviours}
+            new_b = {x.check: x.verdict for x in new.behaviours}
+            for name in sorted(old_b.keys() | new_b.keys()):
+                a, b = old_b.get(name), new_b.get(name)
+                if a != b:
+                    changed.append((f"{label} [{name}]",
+                                    a.value if a else "(new check)",
+                                    b.value if b else "(removed)"))
 
         out_rows.append(new.model_dump(mode="json"))
 

@@ -416,19 +416,24 @@ def check_denied_available_slot(
         )
 
     denials: list[dict[str, object]] = []
+    seen: set[tuple[str, str]] = set()
     for e in events:
         if e.role != "agent" or not e.text or not _DENIAL_RE.search(e.text):
             continue
         for raw, canon in extract_times(e.text, skip_hours_context=False):
-            if canon in offered:
+            if canon in offered and (canon, e.text) not in seen:
+                seen.add((canon, e.text))
                 denials.append({"said": raw, "canonical": canon, "utterance": e.text})
 
     if denials:
         return BehaviourResult(
             check="denied_available_slot", verdict=Verdict.WRONG,
-            reasoning=f"agent told the caller {len(denials)} time(s) were "
-                      f"unavailable that {AVAILABILITY_TOOL} had returned as open "
-                      f"(heuristic check — see evidence)",
+            reasoning=f"agent used denial language in the same utterance as "
+                      f"{len(denials)} time(s) the {AVAILABILITY_TOOL} tool had "
+                      f"returned as open. HEURISTIC and utterance-level: it "
+                      f"cannot tell which of those times was denied and which "
+                      f"was offered alongside it, so the count over-reports. "
+                      f"The verdict flags the utterance; read the evidence.",
             evidence={"denied": denials, "tool_offered": sorted(offered)},
         )
     return BehaviourResult(
