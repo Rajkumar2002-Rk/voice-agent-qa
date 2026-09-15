@@ -51,7 +51,7 @@ Being precise about this, because "runnable" is the whole claim.
 
 | Component | Status |
 |---|---|
-| Deterministic scorer + normalisation | **Verified.** 185 tests, no network, no API key. |
+| Deterministic scorer + normalisation | **Verified.** 188 tests, no network, no API key. |
 | Scenario set (10 scenarios, 8 personas) | **Verified.** Self-consistency tested — every scenario is satisfiable by a perfect agent. |
 | Clinic tool server | **Verified.** Deterministic availability, exercised in tests. |
 | Report generator | **Verified** against a fabricated run fixture. |

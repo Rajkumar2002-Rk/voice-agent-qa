@@ -431,3 +431,35 @@ class TestDeniedAvailableSlot:
         r = check_denied_available_slot(base_scenario(), self._events(
             ["15:00"], "2:00 PM is not available, but 3:00 PM is."))
         assert r.verdict == Verdict.WRONG  # <- known over-report
+
+
+class TestLatencyToolAttribution:
+    """A turn containing a tool call includes a webhook round-trip to our own
+    server. Mixing those with plain conversational turns inflates any number
+    quoted as the agent's response time."""
+
+    def test_plain_turn_not_marked(self):
+        events = [ev("user", "hi", end_ms=1000), ev("agent", "hello", start_ms=1400)]
+        (t,) = compute_latencies(events)
+        assert t.involved_tool_call is False and t.latency_ms == 400
+
+    def test_tool_turn_marked(self):
+        events = [
+            ev("user", "Tuesday please", end_ms=1000),
+            ev("tool_call", name="check_availability", args={}),
+            ev("tool_result", name="check_availability", result={"slots": []}),
+            ev("agent", "We have 3pm", start_ms=3000),
+        ]
+        (t,) = compute_latencies(events)
+        assert t.involved_tool_call is True and t.latency_ms == 2000
+
+    def test_tool_after_the_reply_does_not_count(self):
+        """A tool call made after the agent already replied belongs to the next
+        turn, not this one."""
+        events = [
+            ev("user", "hi", end_ms=1000),
+            ev("agent", "one moment", start_ms=1300),
+            ev("tool_call", name="check_availability", args={}),
+        ]
+        (t,) = compute_latencies(events)
+        assert t.involved_tool_call is False

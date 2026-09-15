@@ -481,19 +481,31 @@ def compute_latencies(events: list[Event]) -> list[TurnLatency]:
         if e.role != "user":
             continue
         nxt = next((n for n in events[i + 1:] if n.role == "agent"), None)
+        # did a tool round-trip happen between the caller finishing and the
+        # agent starting? if so this turn's latency is not comparable to a
+        # plain conversational one
+        tool_between = False
+        for n in events[i + 1:]:
+            if n is nxt or (n.role == "agent" and n.text):
+                break
+            if n.role in ("tool_call", "tool_result"):
+                tool_between = True
         if nxt is None:
             out.append(TurnLatency(turn_index=turn, caller_utterance_end_ms=e.end_ms,
                                    agent_response_start_ms=None, latency_ms=None,
-                                   note="agent never responded to this turn"))
+                                   note="agent never responded to this turn",
+                                   involved_tool_call=tool_between))
         elif e.end_ms is None or nxt.start_ms is None:
             out.append(TurnLatency(turn_index=turn, caller_utterance_end_ms=e.end_ms,
                                    agent_response_start_ms=nxt.start_ms,
                                    latency_ms=None,
-                                   note="channel did not supply timestamps"))
+                                   note="channel did not supply timestamps",
+                                   involved_tool_call=tool_between))
         else:
             out.append(TurnLatency(turn_index=turn, caller_utterance_end_ms=e.end_ms,
                                    agent_response_start_ms=nxt.start_ms,
-                                   latency_ms=nxt.start_ms - e.end_ms))
+                                   latency_ms=nxt.start_ms - e.end_ms,
+                                   involved_tool_call=tool_between))
         turn += 1
     return out
 

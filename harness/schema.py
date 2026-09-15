@@ -135,6 +135,11 @@ class TurnLatency(BaseModel):
     agent_response_start_ms: int | None
     latency_ms: int | None
     note: str = ""
+    # A turn containing a tool call includes a webhook round-trip to the clinic
+    # server — over a cloudflared tunnel to a laptop, in this setup. That is test
+    # rig, not agent, and mixing the two inflates any latency number quoted as
+    # "the agent's response time".
+    involved_tool_call: bool = False
 
 
 class JudgeSignal(BaseModel):

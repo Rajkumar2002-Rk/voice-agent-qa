@@ -164,20 +164,37 @@ def build(run_dir: Path) -> str:
     add("## Turn latency\n")
     add("Voice only. Text-channel numbers are API round-trip and are not "
         "conversational latency; they are excluded here.\n")
-    lat: dict[tuple[str, str], list[int]] = defaultdict(list)
+    add("Turns are split by whether a tool call happened inside them. A tool turn "
+        "includes a webhook round-trip to the clinic server — over a tunnel to a "
+        "laptop here — which is test rig, not agent. Quoting the combined number "
+        "as the agent's response time would overstate it.\n")
+    lat: dict[tuple[str, str, bool], list[int]] = defaultdict(list)
     for r in results:
         if r.channel != "voice":
             continue
         for t in r.latencies:
             if t.latency_ms is not None:
-                lat[(r.arm, r.persona)].append(t.latency_ms)
+                lat[(r.arm, r.persona, bool(t.involved_tool_call))].append(t.latency_ms)
     if lat:
-        add("| arm | persona | n | median ms | p90 ms | max ms |")
-        add("|---|---|---|---|---|---|")
-        for (arm, p), vals in sorted(lat.items()):
-            vs = sorted(vals)
-            p90 = vs[min(len(vs) - 1, int(0.9 * len(vs)))]
-            add(f"| {arm} | {p} | {len(vs)} | {statistics.median(vs):.0f} | {p90} | {max(vs)} |")
+        for tool in (False, True):
+            rows = {k: v for k, v in lat.items() if k[2] is tool}
+            if not rows:
+                continue
+            add(f"**{'Turns with a tool call' if tool else 'Conversational turns (no tool call)'}**\n")
+            add("| arm | persona | n | median ms | p90 ms | max ms |")
+            add("|---|---|---|---|---|---|")
+            for (arm, p, _), vals in sorted(rows.items()):
+                vs = sorted(vals)
+                p90 = vs[min(len(vs) - 1, int(0.9 * len(vs)))]
+                add(f"| {arm} | {p} | {len(vs)} | {statistics.median(vs):.0f} | {p90} | {max(vs)} |")
+            add("")
+        # headline comparison
+        plain = [v for k, vs in lat.items() if not k[2] for v in vs]
+        tooled = [v for k, vs in lat.items() if k[2] for v in vs]
+        if plain and tooled:
+            add(f"Median conversational turn: **{statistics.median(plain):.0f} ms** "
+                f"(n={len(plain)}).  Median turn containing a tool call: "
+                f"**{statistics.median(tooled):.0f} ms** (n={len(tooled)}).")
     else:
         add("_No voice runs with usable timestamps._")
     add("")
