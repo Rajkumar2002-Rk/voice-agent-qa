@@ -789,3 +789,37 @@ If that holds through the rest of the voice runs, the headline finding is not "w
 failures can prompts fix" but something less comfortable and more useful: **most of
 what a first-pass QA harness reports as agent failure is harness failure**, and the
 work of building one is mostly the work of earning the right to believe its output.
+
+### F3. Denying available slots is a real, recurring failure — and the original check was blind to it
+
+Second independent sighting, different scenario, different channel:
+
+| run | tool returned | agent told the caller |
+|---|---|---|
+| `s06/text/naive#0` | `14:00` open | "We don't have a 2:00 PM slot" |
+| `s07/voice/naive#0` | `13:30` open | "1:30 PM is already booked" |
+
+In both cases the agent contradicted a tool response it had just received, and in
+both cases it went on to book an appointment anyway. `invented_availability` returned
+PASS for both, correctly by its own definition — the agent invented nothing, it
+*denied* something true.
+
+Two things this establishes:
+
+1. **It is a pattern, not a one-off.** Two sightings across different scenarios and
+   different channels, from the same model at temperature 0. Whatever causes it is
+   not scenario-specific.
+2. **The entire original check suite would have missed it.** Every check I wrote
+   asked "did the agent assert something false?" The complementary question — "did
+   the agent deny something true?" — went unasked until a transcript forced it, and
+   it is the commercially expensive half. An invented slot double-books a room and
+   someone notices. A wrongly refused slot loses a booking silently.
+
+`denied_available_slot` now catches it, with the caveat that the check is
+utterance-level and over-counts within a flagged utterance (it cannot separate the
+time being denied from times offered in the same breath). The verdict is sound; the
+count is an upper bound.
+
+Worth carrying into any eval design: **enumerate your checks in pairs.** For every
+"did it say something untrue", write the matching "did it fail to say something
+true". The second is usually harder to detect and usually matters more.
