@@ -938,3 +938,73 @@ abnormal termination has no accounting system.**
 The wider lesson for anyone building this: a cost guard that only counts successful
 work will always understate, because the expensive part of an experiment is the
 attempts you throw away. Today that was three batches out of eight.
+
+
+---
+
+## F4. The agent that behaved correctly scored worse - and my earlier prediction was wrong
+
+Re-run with padded fixtures, `s02_barge_in`:
+
+| arm | captured | slots | what it did |
+|---|---|---|---|
+| naive | `dave o`, `dave o and kwo` | **3/4** | booked a garbled name silently |
+| hardened | *(nothing)* | **0/4** | noticed the name was garbled, asked the caller to spell it, never booked |
+
+The hardened transcript:
+
+```
+USER   Dave O and KWO?
+AGENT  Could you please spell your full name for me?
+...
+AGENT  I still need your full name spelled out to proceed with checking availability.
+```
+
+That is **correct behaviour**. Its prompt says to take a full name and spell-check it
+back if unusual, and it did exactly that rather than committing a patient record
+under a name it could not read. The open-loop scripted caller cannot answer an
+unanticipated question, so the agent asked three times, exhausted its follow-ups, and
+booked nothing - scoring zero.
+
+**The harness rewards the agent that silently got it wrong and punishes the one that
+correctly refused to proceed.** In a clinic, "I did not book because I could not
+confirm the patient name" is the right outcome and booking under `dave o` is the
+wrong one. My scoring has them exactly backwards.
+
+### My earlier prediction was wrong, and the reason is the interesting part
+
+Before the hardened runs in the *unpadded* batch I predicted: the spell-check rule
+will not fire, because STT hands the agent a plausible ordinary surname. That held
+then. It does not hold now, and the difference is the padding:
+
+| stimulus | STT produced | agent's view | behaviour |
+|---|---|---|---|
+| unpadded | `David O'Connell` | a plausible ordinary surname | booked it, no suspicion |
+| padded | `Dave O and KWO?` | visibly garbled | challenged it, asked to spell |
+
+Better audio did not produce a *correct* transcription - it produced an *obviously
+wrong* one. And an obviously-wrong transcription is far more useful to the agent than
+a plausibly-wrong one, because it is detectable. **The failure mode that matters is
+not that STT is inaccurate, it is that STT is confidently plausible when it is
+wrong.**
+
+That is a sharper and more actionable finding than anything else in this project, and
+it only appeared because fixing an unrelated harness bug changed the stimulus.
+
+### What this means for the scorer (not changed mid-run)
+
+The scenario needs to distinguish three outcomes, and currently collapses the last
+two:
+
+1. captured the right name - PASS
+2. captured a wrong name and booked it - FAIL (dangerous)
+3. **refused to book because it could not confirm the name - currently FAIL, should
+   be a distinct verdict**
+
+`must_not_book` exists for scenarios where refusing is correct, but `s02` declares a
+booking is expected. The fix is a `safe_refusal` concept: a run that declines to
+commit *and says why* is not the same as a run that commits wrong data. Left
+unchanged for now because the run is mid-flight; written up as required work.
+
+**Read the barge_in numbers in the final report with this in mind: hardened's 0% is
+partly a scoring artifact concealing better behaviour than naive's.**
